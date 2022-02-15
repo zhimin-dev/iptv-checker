@@ -45,8 +45,6 @@ jobs:
           mv dist/ result/dist/
           mv images/ result/images/
           mv js/ result/js/
-          mv background.html result/
-          mv index.html result/
           mv manifest.json result/
           mv options.html result/
           git rm -r --cached .
