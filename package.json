@@ -12,7 +12,7 @@
     "axios": "^0.21.0",
     "element-ui": "^2.13.2",
     "js-md5": "^0.7.3",
-    "sortablejs": "^1.14.0",
+    "sortablejs": "^1.15.0",
     "url-loader": "^4.1.0",
     "vue": "^2.5.11"
   },
@@ -34,7 +34,7 @@
     "eslint-plugin-vue": "^6.2.2",
     "file-loader": "^1.1.4",
     "node-sass": "^4.5.3",
-    "sass": "^1.26.10",
+    "sass": "^1.49.9",
     "sass-loader": "^6.0.7",
     "vue-loader": "^13.0.5",
     "vue-template-compiler": "^2.4.4",

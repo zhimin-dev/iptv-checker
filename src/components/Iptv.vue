@@ -1,19 +1,36 @@
 <template>
   <div class="iptv-container">
     <div class="header-container">
-      <el-input
-        type="textarea"
-        :rows="2"
-        placeholder="请输入直播源m3u列表，请保证第一行为#EXTM3U开头前缀，或者为空，保证第二行为#EXTINF直播源信息"
-        @change="hanldeTrans"
-        v-model="source"
-      ></el-input>
+      <div class="input-and-search-container">
+        <div style="width: 600px;margin-right: 20px;display: flex;align-items: center;">
+          <el-input
+            type="textarea"
+            :rows="2"
+            placeholder="请输入直播源m3u列表，请保证第一行为#EXTM3U开头前缀，或者为空，保证第二行为#EXTINF直播源信息"
+            style="max-width: 600px;"
+            @change="hanldeTrans"
+            v-model="source"
+          ></el-input>
+        </div>
+        <div style="display: flex;align-items: flex-start;flex-direction: column;" class="one-btn">
+          <div style="display: flex;align-items: flex-start;">
+            <el-input size="mini" v-model="filterName" placeholder="输入你想看的频道名称" clearable style="width:200px" class="one-btn"></el-input>
+            <el-button size="mini" class="one-btn" @click="this.filterConfirm">添加频道名称</el-button>
+            <el-button size="mini" type="success" @click="this.doFilterShow">搜索</el-button>
+            <el-button size="mini" @click="this.doRecoverList" v-if="this.bkList.length > 0" class="one-btn">还原</el-button>
+          </div>
+          <div class="one-btn" style="margin-top:3px">
+            <el-tag v-for="(value,index) in filterNames" size="mini" type="info" class="one-btn" :key="index" @close="deleteFilterNames(index)" closable>{{value}}</el-tag>
+          </div>
+        </div>
+      </div>
       <div class="btn-list">
         <el-button
           size="mini"
           type="info"
           @click="getData"
           v-if="selectedList.length > 0"
+          class="one-btn"
         >
           保存选中直播源信息
         </el-button>
@@ -58,7 +75,7 @@
         </li>
       </ul>
     </div>
-    <div>
+    <div class="show-container">
       <el-table
         v-if="list.length > 0 && !nowIsSort"
         ref="dataTable"
@@ -114,7 +131,8 @@ import { fetchGet } from "../utils/axios";
 export default {
   data() {
     return {
-      source: "",
+      source: '',
+      bkList:[],
       list: [],
       isCheckOver: false,
       firstTitle: "",
@@ -123,6 +141,8 @@ export default {
       nowCheckCount: 0,
       nowIsCheck: false,
       nowIsSort: false,
+      filterName:'',
+      filterNames:["CCTV","卫视"]
     };
   },
   watch: {
@@ -136,6 +156,36 @@ export default {
     this.parseList();
   },
   methods: {
+    doRecoverList(){
+      this.list = this.bkList;
+      this.bkList = [];
+    },
+    filterConfirm() {
+      if(this.filterName !=='') {
+        this.filterNames.push(this.filterName)
+        this.filterName =''
+      }
+    },
+    contains(str, substr) {
+      return str.indexOf(substr)!= -1;
+    },
+    doFilterShow(){
+      this.bkList = this.list;
+      let rows = [];
+      for(let i =0;i<this.list.length;i++) {
+        let hit = false
+        for(let j = 0;j<this.filterNames.length;j++) {
+            if(this.contains(this.list[i].name, this.filterNames[j]) && !hit) {
+              rows.push(this.list[i])
+              hit = true
+            }
+        }
+      }
+      this.list = rows
+    },
+    deleteFilterNames(index) {
+      this.filterNames.splice(index,1)
+    },
     doDelete(index) {
       this.list.splice(index, 1);
     },
@@ -211,7 +261,8 @@ export default {
       this.isCheckOver = false;
       for (let i = 0; i < this.list.length; i += 1) {
         this.nowIsCheck = true;
-        fetchGet(this.list[i].url)
+          setTimeout(() =>{
+          fetchGet(this.list[i].url)
           .then((res) => {
             if (this.checkFirstLineIsRight(res)) {
               this.list[i].status = 1;
@@ -223,7 +274,8 @@ export default {
           .catch(() => {
             this.list[i].status = 2;
             this.nowCheckCount += 1;
-          });
+          })
+        }, 3000*i);
       }
     },
     parseList() {
@@ -314,10 +366,28 @@ export default {
 </script>
 <style lang="sass" scoped>
 .iptv-container
+  .one-btn
+    margin-right: 10px
   .header-container
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    z-index: 999;
+    border-bottom: 1px solid #EBEEF5
+    background-color: #fff
+    display: flex;
+    flex-direction: column;
+    .input-and-search-container
+      margin: 10px 0px;
+      display: flex;
+      justify-content: flex-start;
     .btn-list
       margin: 10px 0
+      display: flex
   .sort-container
+    padding-top: 160px
     .sort-ul
       display: flex
       flex-direction: column
@@ -327,4 +397,6 @@ export default {
         padding: 10px
         display: flex
         border-bottom: 1px solid #000
+  .show-container
+    padding-top: 160px
 </style>
