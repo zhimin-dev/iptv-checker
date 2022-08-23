@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 var service = axios.create({
-  timeout:5000,
+  timeout:3000,
   headers:{}
 })
 
