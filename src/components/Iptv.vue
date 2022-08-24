@@ -104,12 +104,12 @@
         ></el-input>
       </div>
       <div class="sort-container" v-show="nowIsSort">
-        <ul id="items" class="sort-ul">
-          <li class="item-li" v-for="(value, index) in list" :key="index">
+        <draggable v-model="list" group="people" @start="drag=true" @end="drag=false" class="sort-ul">
+          <li class="item-li" v-for="(value, index) in list" :key="value.name+value.url">
             {{ index + 1 }}. {{ value.name }}
             <el-link @click="doDelete(index)">删除</el-link>
           </li>
-        </ul>
+        </draggable>
       </div>
       <div class="show-container">
         <el-table
@@ -193,10 +193,13 @@
   </div>
 </template>
 <script>
-import Sortable from "sortablejs";
 import { fetchGet } from "../utils/axios";
+import draggable from 'vuedraggable'
 
 export default {
+  components: {
+      draggable,
+  },
   data() {
     return {
       step: 0,
@@ -295,24 +298,8 @@ export default {
         this.nowIsSort = false;
       } else {
         this.nowIsSort = true;
-        this.enableSort();
       }
       this.selectedList = [];
-    },
-    enableSort() {
-      const el = document.getElementById("items");
-      const _this = this;
-      Sortable.create(el, {
-        onEnd({ newIndex, oldIndex }) {
-          const current = _this.list.splice(oldIndex, 1)[0];
-          _this.list.splice(newIndex, 0, current);
-          const rows = _this.list;
-          _this.list = [];
-          setTimeout(() => {
-            _this.list = rows;
-          }, 5);
-        },
-      });
     },
     handleSelectionChange(val) {
       this.selectedList = val;

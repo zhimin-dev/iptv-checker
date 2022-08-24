@@ -14,7 +14,8 @@
     "js-md5": "^0.7.3",
     "sortablejs": "^1.15.0",
     "url-loader": "^4.1.0",
-    "vue": "^2.5.11"
+    "vue": "^2.5.11",
+    "vuedraggable": "^2.24.3"
   },
   "browserslist": [
     "> 1%",
