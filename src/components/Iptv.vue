@@ -105,7 +105,7 @@
       </div>
       <div class="sort-container" v-show="nowIsSort">
         <draggable v-model="list" group="people" @start="drag=true" @end="drag=false" class="sort-ul">
-          <li class="item-li" v-for="(value, index) in list" :key="value.name+value.url">
+          <li class="item-li" v-for="(value, index) in list" :key="index">
             {{ index + 1 }}. {{ value.name }}
             <el-link @click="doDelete(index)">删除</el-link>
           </li>
