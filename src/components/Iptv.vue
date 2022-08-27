@@ -182,6 +182,17 @@
               v-model="source"
             ></el-input>
           </div>
+          <div class="select-m3u-country">
+            选择m3u源地区：
+            <el-select class="select-m3u-country-list" v-model="selected" multiple filterable placeholder="请选择">
+              <el-option
+                v-for="(item,index) in countryList"
+                :key="index"
+                :label="item.country"
+                :value="item.url">
+              </el-option>
+            </el-select>
+          </div> 
         </div>
         <span slot="footer" class="dialog-footer">
           <el-button type="primary" @click="dialogHandleContent"
@@ -202,6 +213,9 @@ export default {
   },
   data() {
     return {
+      countryList:[],
+      selected:[],
+      countryLink:'https://static.zmis.me/public/user/file/1/local/20220827/1661576337000country.json',
       step: 0,
       m3uLink: "",
       dialogLoading: false,
@@ -228,20 +242,41 @@ export default {
     },
   },
   mounted() {
-    this.parseList();
+    this.getCountryList();
   },
   methods: {
+    getCountryList() {
+      fetchGet(this.countryLink).then(res=> (
+        this.countryList = res
+      )).catch(err => {
+        this.$message.error("获取country列表失败");
+      })
+    },
     dialogHandleContent() {
-      if (this.m3uLink === "" && this.source === "") {
+      console.log(this.selected)
+      if (this.m3uLink === "" && this.source === "" && this.selected.length == 0) {
         this.$message.error("请填写至少一个输入框哦！");
         return;
       }
       if (this.m3uLink !== "") {
         this.dialogLoading = true;
         this.m3uLinkToBody(this.m3uLink);
-      } else {
+      } else if (this.source !== ''){
         this.hanldeTrans();
         this.step = 1;
+      } else if (this.selected.length > 0) {
+        let all = []
+        for(let i = 0; i < this.selected.length; i += 1) {
+          all.push(fetchGet(this.selected[i]))
+        }
+        Promise.all(all).then(res => {
+          console.log(res)
+          for(let i = 0;i<res.length;i++) {
+            this.source += "\n"+res[i]
+          }
+          this.hanldeTrans();
+          this.step = 1;
+        })
       }
     },
     m3uLinkToBody(_link) {
@@ -468,6 +503,12 @@ export default {
   text-align: left
   .has-m3u-link
     margin-bottom: 20px
+  .has-m3u-content
+    margin-bottom: 20px
+  .select-m3u-country
+    margin-bottom: 20px
+    .select-m3u-country-list
+
 .iptv-container
   .one-btn
     margin-right: 10px
@@ -502,4 +543,8 @@ export default {
         border-bottom: 1px solid #000
   .show-container
     padding-top: 160px
+
+.el-select-dropdown__list
+  display: flex !important
+  flex-direction: column !important
 </style>
