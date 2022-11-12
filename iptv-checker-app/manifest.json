@@ -1,0 +1,40 @@
+{
+  "name": "iptv-checker",
+  "description": "for chrome extension",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "permissions": [
+    "alarms", 
+    "tabs", 
+    "bookmarks", 
+    "contextMenus",
+    "declarativeContent",
+    "notifications",
+    "webRequest",
+    "webRequestBlocking", 
+		"storage"
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "content_scripts": [
+		{
+      "matches": ["<all_urls>"],
+			"js": ["js/axios.min.js"],
+			"run_at": "document_start"
+		}
+  ],
+  "icons":
+	{
+		"16": "images/icon.png",
+		"48": "images/icon.png",
+		"128": "images/icon.png"
+	},
+  "options_page": "index.html",
+  "action": {
+    "default_icon" : "images/icon.png",
+    "default_title": "iptv-checker",
+    "default_popup": "popup.html"
+  },
+  "homepage_url": "https://github.com/zhimin-dev/iptv-checker"
+}
