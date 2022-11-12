@@ -35,6 +35,7 @@ const ParseM3u = {
             status: 0,
             name: ParseM3u.parseName(one),
             originalData: `${one}\n${two}`,
+            checked: false
         };
         return row;
     },

@@ -9,6 +9,7 @@ export const MainContextProvider = function ({ children }) {
     const [showM3uBody, setShowM3uBody] = useState([]);//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkMillisSeconds, setCheckMillisSeconds] = useState(3000);//检查url最多的
+    const [exportText, setExportText] = useState('')
 
     useEffect(() => {
         setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
@@ -45,7 +46,9 @@ export const MainContextProvider = function ({ children }) {
             let hit = false;
             for (let j = 0; j < filterNames.length; j++) {
                 if (contains(showM3uBody[i].name, filterNames[j]) && !hit) {
-                    rows.push(showM3uBody[i]);
+                    let one = showM3uBody[i]
+                    one.index = rows.length
+                    rows.push(one);
                     hit = true;
                 }
             }
@@ -62,8 +65,8 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const setShowM3uBodyStatus = (index, status) => {
-        setShowM3uBody(prev => 
-            prev.map((item, idx) => idx === index ? {...item, status:  status} : item)
+        setShowM3uBody(prev =>
+            prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
         )
     }
 
@@ -72,7 +75,49 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const onExportValidM3uData = () => {
-        
+        let name = `#EXTM3U x-tvg-url="https://iptv-org.github.io/epg/guides/ao/guide.dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/ar/directv.com.ar.epg.xml,https://iptv-org.github.io/epg/guides/ar/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/bf/canalplus-afrique.com.epg.xml,https://iptv-org.github.io/epg/guides/bi/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/bo/comteco.com.bo.epg.xml,https://iptv-org.github.io/epg/guides/br/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/cn/tv.cctv.com.epg.xml,https://iptv-org.github.io/epg/guides/cz/m.tv.sms.cz.epg.xml,https://iptv-org.github.io/epg/guides/dk/allente.se.epg.xml,https://iptv-org.github.io/epg/guides/fr/chaines-tv.orange.fr.epg.xml,https://iptv-org.github.io/epg/guides/ga/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml,https://iptv-org.github.io/epg/guides/hk-en/nowplayer.now.com.epg.xml,https://iptv-org.github.io/epg/guides/id-en/mncvision.id.epg.xml,https://iptv-org.github.io/epg/guides/it/guidatv.sky.it.epg.xml,https://iptv-org.github.io/epg/guides/my/astro.com.my.epg.xml,https://iptv-org.github.io/epg/guides/ng/dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/nl/delta.nl.epg.xml,https://iptv-org.github.io/epg/guides/tr/digiturk.com.tr.epg.xml,https://iptv-org.github.io/epg/guides/uk/bt.com.epg.xml,https://iptv-org.github.io/epg/guides/us-pluto/i.mjh.nz.epg.xml,https://iptv-org.github.io/epg/guides/us/tvtv.us.epg.xml,https://iptv-org.github.io/epg/guides/za/guide.dstv.com.epg.xml"\n`;
+        for (let i = 0; i < showM3uBody.length; i += 1) {
+            if (showM3uBody[i].checked) {
+                name += `${showM3uBody[i].originalData}\n`;
+            }
+        }
+        setExportText(name)
+    }
+
+    const onSelectedRow = (index) => {
+        let updatedList = [...showM3uBody]
+        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        updatedList[objIndex].checked = !updatedList[objIndex].checked;
+        setShowM3uBody(updatedList)
+    }
+
+    const onSelectedOrNotAll = (mod) => {
+        //mod = 1选择 0取消选择
+        if (mod === 1) {
+            setShowM3uBody(prev => prev.map((item, _) =>
+                true ? { ...item, checked: true } : ''
+            ))
+        } else {
+            setShowM3uBody(prev => prev.map((item, _) =>
+                true ? { ...item, checked: false } : ''
+            ))
+        }
+    }
+
+    const getAvailableOrNotAvailableIndex = (mod) => {
+        //mod == 1 有效 2无效
+        let ids = []
+        let updatedList = [...showM3uBody]
+        for (let i = 0; i < updatedList.length; i++) {
+            if (showM3uBody[i].status === mod) {
+                updatedList[i].checked = true
+                ids.push(showM3uBody[i].index)
+            } else {
+                updatedList[i].checked = false
+            }
+        }
+        setShowM3uBody(updatedList)
+        return ids
     }
 
     const onCheckTheseLinkIsAvailable = async () => {
@@ -132,9 +177,9 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod,checkMillisSeconds,
+            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, exportText,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
-            deleteShowM3uRow, onExportValidM3uData,
+            deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
         }}>
             {children}
         </MainContext.Provider>
