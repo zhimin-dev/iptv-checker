@@ -4,19 +4,9 @@
   "version": "0.0.1",
   "manifest_version": 3,
   "permissions": [
-    "alarms", 
-    "tabs", 
-    "bookmarks", 
-    "contextMenus",
-    "declarativeContent",
-    "notifications",
     "webRequest",
-    "webRequestBlocking", 
-		"storage"
+    "webRequestBlocking"
   ],
-  "background": {
-    "service_worker": "js/background.js"
-  },
   "content_scripts": [
 		{
       "matches": ["<all_urls>"],
@@ -26,13 +16,13 @@
   ],
   "icons":
 	{
-		"16": "images/icon.png",
-		"48": "images/icon.png",
-		"128": "images/icon.png"
+		"16": "src/assets/icon.png",
+		"48": "src/assets/icon.png",
+		"128": "src/assets/icon.png"
 	},
-  "options_page": "index.html",
+  "options_page": "dist/index.html",
   "action": {
-    "default_icon" : "images/icon.png",
+    "default_icon" : "src/assets/icon.png",
     "default_title": "iptv-checker",
     "default_popup": "popup.html"
   },

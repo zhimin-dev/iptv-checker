@@ -23,7 +23,15 @@ import Checkbox from '@mui/material/Checkbox';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PropTypes from 'prop-types';
+import FormControl from '@mui/material/FormControl';
 
+const HeaderFixedHeight = 152
+
+const searchTitleCss = {
+  fontSize: '11px',
+  color: "#7d7a7a",
+  marginBottom: '4px'
+}
 
 function SimpleDialog(props) {
   const { onClose, open, body } = props;
@@ -32,10 +40,31 @@ function SimpleDialog(props) {
     onClose();
   };
 
+  const doDownload = () => {
+    var a = document.createElement('a')
+    var blob = new Blob([body])
+    var url = window.URL.createObjectURL(blob)
+    a.href = url
+    a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
+    a.click()
+  }
+
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>您选择的m3u信息</DialogTitle>
-      <div>{body}</div>
+      <FormControl sx={{ width: 550, margin: '10px' }}>
+        <TextField multiline sx={{ fontSize: '11px' }} label='您所选择的m3u信息' size="small" id="standard-multiline-static" rows={4} value={body} />
+      </FormControl>
+      <FormControl sx={{ width: 550, margin: '10px' }}>
+        <LoadingButton
+          size="small"
+          onClick={doDownload}
+          variant="contained"
+          color="success"
+        >
+          下载
+        </LoadingButton>
+      </FormControl>
     </Dialog>
   );
 }
@@ -48,6 +77,8 @@ SimpleDialog.propTypes = {
 
 const ListItem = styled('li')(({ theme }) => ({
   margin: theme.spacing(0.5),
+  listStyle: "none",
+  display: 'initial',
 }));
 
 export default function Detail() {
@@ -86,7 +117,18 @@ export default function Detail() {
   }
 
   const addNewSearchFilter = () => {
-    setChipData([...chipData, searchTitle])
+    if (searchTitle === '') {
+      return
+    }
+    let isHit = false
+    for (let i = 0; i < chipData.length; i++) {
+      if (chipData[i] === searchTitle) {
+        isHit = true
+      }
+    }
+    if (!isHit) {
+      setChipData([...chipData, searchTitle])
+    }
     setSearchTitle("")
   }
 
@@ -146,105 +188,175 @@ export default function Detail() {
   }
 
   return (
-    <div>
-      <TextField multiline id="standard-multiline-static" rows={4} value={_mainContext.originalM3uBody} onChange={handleChangeContent} />
-      <Box>
-        <TextField
-          size="small"
-          value={searchTitle}
-          onChange={handleChangeSearchTitle}
-          label="添加喜爱的电视台"
-        />
-        <LoadingButton
-          size="small"
-          onClick={addNewSearchFilter}
-          variant="contained"
-        >
-          点击添加
-        </LoadingButton>
-        <LoadingButton
-          size="small"
-          onClick={doFilter}
-          variant="contained"
-        >
-          搜索你添加的电视台
-        </LoadingButton>
-        {
-          _mainContext.handleMod === 0 ? (
-            <LoadingButton
-              size="small"
-              onClick={doCheckUrlIsValid}
-              variant="contained"
-            >
-              检查链接是否有效
-            </LoadingButton>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
-            <LoadingButton
-              size="small"
-              onClick={exportValidM3uData}
-              variant="contained"
-            >
-              导出有效的链接
-            </LoadingButton>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 ? (
-            <LoadingButton
-              size="small"
-              onClick={autoSelectedAvailablesUrl}
-              variant="contained"
-            >
-              自动选择有效链接
-            </LoadingButton>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 ? (
-            <LoadingButton
-              size="small"
-              onClick={autoSelectedInAvailablesUrl}
-              variant="contained"
-            >
-              自动选择无效链接
-            </LoadingButton>
-          ) : ''
-        }
-        {chipData.map((value, index) => {
-          return (
-            <ListItem key={index}>
-              <Chip
-                label={value}
-                onDelete={handleDeleteChip(index)}
+    <Box>
+      <Box sx={{
+        position: 'fixed',
+        backgroundColor: '#fff',
+        width: '100%',
+        height: HeaderFixedHeight + "px",
+        borderBottom: '1px solid #eee',
+        top: 0,
+        left: 0,
+        zIndex: 999,
+        padding: '8px'
+      }}>
+        <Box sx={{ display: 'flex' }}>
+          <FormControl sx={{ width: 250, marginRight: '5px' }}>
+            <TextField multiline sx={{ fontSize: '11px' }} label='m3u原始数据' size="small" id="standard-multiline-static" rows={4} value={_mainContext.originalM3uBody} onChange={handleChangeContent} />
+          </FormControl>
+          <Box sx={{ maxWidth: "349px" }}>
+            <Box sx={searchTitleCss}>搜索</Box>
+            <Box sx={{
+              marginBottom: "5px",
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <FormControl sx={{ marginRight: '5px' }}>
+                <TextField
+                  size="small"
+                  value={searchTitle}
+                  onChange={handleChangeSearchTitle}
+                  label="添加喜爱的电视名称"
+                />
+              </FormControl>
+              <FormControl sx={{ marginRight: '5px' }}>
+                <LoadingButton
+                  size="small"
+                  onClick={addNewSearchFilter}
+                  variant="outlined"
+                >
+                  添加
+                </LoadingButton>
+              </FormControl>
+              <FormControl sx={{ marginRight: '5px' }}>
+                <LoadingButton
+                  size="small"
+                  onClick={doFilter}
+                  variant="contained"
+                  color="success"
+                >
+                  搜索
+                </LoadingButton>
+              </FormControl>
+            </Box>
+            <Box>
+              {chipData.map((value, index) => {
+                return (
+                  <ListItem key={index}>
+                    <Chip
+                      label={value}
+                      size="small"
+                      onDelete={handleDeleteChip(index)}
+                    />
+                  </ListItem>
+                );
+              })}
+            </Box>
+          </Box>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Box sx={searchTitleCss}>设置</Box>
+            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+              <TextField
+                size="small"
+                value={_mainContext.checkMillisSeconds}
+                onChange={handleChangeCheckMillisSeconds}
+                label="下一次请求间隔时间（毫秒）"
               />
-            </ListItem>
-          );
-        })}
-      </Box>
-      <Box>
-        <TextField
-          size="small"
-          value={_mainContext.checkMillisSeconds}
-          onChange={handleChangeCheckMillisSeconds}
-          label="下一次请求间隔时间（毫秒）"
-        />
-        不显示url
-        <Switch
-          checked={showUrl}
-          onChange={handleChangeShowUrl}
-          inputProps={{ 'aria-label': 'controlled' }}
-        />显示url
+            </FormControl>
+            <FormControl sx={{
+              width: 200, marginRight: '5px',
+              display: 'flex',
+              flexDirection: 'row'
+            }}>
+              不显示url
+              <Switch
+                size="small"
+                checked={showUrl}
+                onChange={handleChangeShowUrl}
+                inputProps={{ 'aria-label': 'controlled' }}
+              />显示url
+            </FormControl>
+          </Box>
+        </Box>
+        <Box sx={{ marginTop: "5px" }}>
+          {
+            _mainContext.handleMod === 0 ? (
+              <FormControl sx={{
+                marginRight: "5px",
+              }}>
+                <LoadingButton
+                  size="small"
+                  onClick={doCheckUrlIsValid}
+                  variant="outlined"
+                >
+                  检查直播源链接是否有效
+                </LoadingButton>
+              </FormControl>
+            ) : ''
+          }
+          {
+            _mainContext.handleMod === 1 ? (
+              <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
+            ) : ''
+          }
+          {
+            _mainContext.handleMod === 2 ? (
+              <FormControl sx={{
+                marginRight: "5px",
+              }}>
+                <LoadingButton
+                  size="small"
+                  onClick={autoSelectedAvailablesUrl}
+                  variant="contained"
+                >
+                  自动选择有效链接
+                </LoadingButton>
+              </FormControl>
+            ) : ''
+          }
+          {
+            _mainContext.handleMod === 2 ? (
+              <FormControl sx={{
+                marginRight: "5px",
+              }}>
+                <LoadingButton
+                  size="small"
+                  onClick={autoSelectedInAvailablesUrl}
+                  variant="outlined"
+                >
+                  自动选择无效链接
+                </LoadingButton>
+              </FormControl>
+            ) : ''
+          }
+          {
+            _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
+              <FormControl sx={{
+                marginRight: "5px",
+              }}>
+                <LoadingButton
+                  size="small"
+                  onClick={exportValidM3uData}
+                  variant="contained"
+                  color="error"
+                >
+                  导出有效的链接
+                </LoadingButton>
+              </FormControl>
+            ) : ''
+          }
+        </Box>
       </Box>
       <SimpleDialog
         open={open}
         onClose={handleClose}
         body={_mainContext.exportText}
       />
-      <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+      <TableContainer component={Paper} sx={{ marginTop: (HeaderFixedHeight + 10) + "px" }}>
+        <Table sx={{ maxWidth: 650 }} aria-label="a dense table">
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -280,7 +392,11 @@ export default function Detail() {
                   />
                 </TableCell>
                 <TableCell component="th" scope="row">
-                  <Button onClick={() => deleteThisRow(index)}>删除</Button>
+                  {
+                    _mainContext.handleMod !== 1 ? (
+                      <Button onClick={() => deleteThisRow(index)}>删除</Button>
+                    ) : ''
+                  }
                 </TableCell>
                 <TableCell align="left">
                   {
@@ -319,6 +435,6 @@ export default function Detail() {
           </TableBody>
         </Table>
       </TableContainer>
-    </div>
+    </Box>
   )
 }

@@ -8,8 +8,9 @@ export const MainContextProvider = function ({ children }) {
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([]);//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
-    const [checkMillisSeconds, setCheckMillisSeconds] = useState(3000);//检查url最多的
+    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//检查url最多的
     const [exportText, setExportText] = useState('')
+    const [hasCheckedCount, setHasCheckedCount] = useState(0)
 
     useEffect(() => {
         setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
@@ -147,6 +148,7 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
+        let nowCount = 0
         while (randomArr.length !== 0) {
             let one = randomArr.shift()
             let hostName = parseUrlHost(one.url)
@@ -158,14 +160,18 @@ export const MainContextProvider = function ({ children }) {
                 continue
             } else {
                 try {
-                    let res = await axios.get(one.url)
+                    let res = await axios.get(one.url, {timeout: 3000})
                     if (res.status === 200) {
                         setShowM3uBodyStatus(one.index, 1)
                     } else {
                         setShowM3uBodyStatus(one.index, 2)
                     }
+                    nowCount++
+                    setHasCheckedCount(nowCount)
                     nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 } catch (e) {
+                    nowCount++
+                    setHasCheckedCount(nowCount)
                     setShowM3uBodyStatus(one.index, 2)
                     nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 }
@@ -177,7 +183,7 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, exportText,
+            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, exportText, hasCheckedCount,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
         }}>

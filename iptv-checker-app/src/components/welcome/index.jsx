@@ -15,7 +15,16 @@ const selectOption = [
   { 'mod': 3, "name": "公共订阅源" },
 ]
 
-const commonLink = "https://static.zmis.me/public/user/file/1/local/20220827/1661576337000country.json"
+const commonLink = "https://static.zmis.me/web/iptv/china.json"
+
+const boxMaxWith = 600
+
+const oneFrame = {
+  marginBottom: '10px',
+  width: boxMaxWith+"px",
+  display: 'flex',
+  justifyContent: 'flex-end',
+}
 
 export default function HorizontalLinearStepper() {
 
@@ -24,7 +33,7 @@ export default function HorizontalLinearStepper() {
   const [mod, setMod] = React.useState(1);
   const [body, setBody] = React.useState('');
   const [selectedUrl, setSelectedUrl] = React.useState([]);
-  const [customUrl, setCustomUrl] = React.useState('https://static.zmis.me/web/iptv/0820.m3u');
+  const [customUrl, setCustomUrl] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
   const handleChange = (event) => {
@@ -70,76 +79,76 @@ export default function HorizontalLinearStepper() {
   }
 
   return (
-    <div>
-      <Box sx={{ minWidth: 100 }}>
-        <FormControl fullWidth>
-          <InputLabel id="demo-simple-select-label">请选择模式</InputLabel>
-          <Select
-            labelId="demo-simple-select-label"
-            id="demo-simple-select"
-            value={mod}
-            label="请选择模式"
-            onChange={handleChange}
-          >
-            {
-              selectOption.map((value, index) => (
-                <MenuItem value={value.mod} key={index}>{value.name}</MenuItem>
-              ))
-            }
-          </Select>
-        </FormControl>
-        <Box>
+    <Box sx={{
+      display: 'flex',
+      flexDirection:'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '80vh'
+    }}>
+      <h1>IPTV Checker</h1>
+      <FormControl sx={oneFrame}>
+        <InputLabel id="demo-simple-select-label">请选择模式</InputLabel>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={mod}
+          label="请选择模式"
+          onChange={handleChange}
+        >
           {
-            mod === 3 ? (
-              <div>
-                <FormControl sx={{ m: 1, minWidth: 120 }} variant="standard">
-                  <InputLabel id="demo-select-small">country</InputLabel>
-                  <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={selectedUrl}
-                    label="country"
-                    autoWidth
-                    onChange={handleSelectedCountry}
-                  >
-                    {
-                      commonLinks.map((value, index) => (
-                        <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
-                      ))
-                    }
-                  </Select>
-                </FormControl>
-              </div>
-            ) : (
-              <div></div>
-            )
+            selectOption.map((value, index) => (
+              <MenuItem value={value.mod} key={index}>{value.name}</MenuItem>
+            ))
           }
-          {
-            mod === 2 ? (
-              <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} />
-            ) : (
-              <div></div>
-            )
-          }
-          {
-            mod === 1 ? (
+        </Select>
+      </FormControl>
+      <Box sx={oneFrame}>
+        {
+          mod === 3 ? (
+              <FormControl sx={{ width: boxMaxWith }}>
+                <InputLabel id="demo-simple-select-label" sx={{width:boxMaxWith+10}}>country</InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={selectedUrl}
+                  label="country"
+                  onChange={handleSelectedCountry}
+                >
+                  {
+                    commonLinks.map((value, index) => (
+                      <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
+                    ))
+                  }
+                </Select>
+              </FormControl>
+          ) : ''
+        }
+        {
+          mod === 2 ? (
+            <FormControl sx={{ width: boxMaxWith }} variant="standard">
+              <TextField  multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} />
+            </FormControl>
+          ) : ''
+        }
+        {
+          mod === 1 ? (
+            <FormControl sx={{ width: boxMaxWith }} variant="standard">
               <TextField multiline id="standard-multiline-static" rows={4} value={customUrl} onChange={handleChangeTextSelectedUrl} />
-            ) : (
-              <div></div>
-            )
-          }
-          <Box>
-            <LoadingButton
-              size="small"
-              onClick={handleConfirm}
-              loading={loading}
-              variant="contained"
-            >
-              确定
-            </LoadingButton>
-          </Box>
-        </Box>
+            </FormControl>
+          ) : ''
+        }
       </Box>
-    </div>
+      <Box sx={oneFrame}>
+          <LoadingButton
+            size="small"
+            onClick={handleConfirm}
+            loading={loading}
+            variant="contained"
+          >
+            确定
+          </LoadingButton>
+      </Box>
+    </Box>
   );
 }
