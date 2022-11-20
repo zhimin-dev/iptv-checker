@@ -4,6 +4,7 @@ import { MainContext } from './context/main';
 
 import Welcome from './components/welcome/index'
 import Detail from './components/detail/index'
+import Watch from './components/watch/index'
 
 export default function HorizontalLinearStepper() {
 
@@ -14,9 +15,17 @@ export default function HorizontalLinearStepper() {
         {
           _mainContext.scene === 0 ?(
             <Welcome></Welcome>
-          ):(
+          ):''
+        }
+        {
+          _mainContext.scene === 1 ?(
             <Detail></Detail>
-          )
+          ):''
+        }
+        {
+          _mainContext.scene === 2 ?(
+            <Watch></Watch>
+          ):''
         }
       </Box>
   );

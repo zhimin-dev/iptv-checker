@@ -24,6 +24,15 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PropTypes from 'prop-types';
 import FormControl from '@mui/material/FormControl';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import GetAppIcon from '@mui/icons-material/GetApp';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import SearchIcon from '@mui/icons-material/Search';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 const HeaderFixedHeight = 152
 
@@ -34,11 +43,39 @@ const searchTitleCss = {
 }
 
 function SimpleDialog(props) {
-  const { onClose, open, body } = props;
+  const _mainContext = useContext(MainContext);
+
+  //mod == 1 下载界面 2预览原始m3u信息
+  const { onClose, open, body, mod } = props;
+
+  const [showTextAreaLable, setShowTextAreaLable] = useState('')
+  const [showUrl, setShowUrl] = useState(false)
+
+  useEffect(() => {
+    if (mod === 1) {
+      setShowTextAreaLable('您所选择的m3u信息')
+    } else if (mod === 2) {
+      setShowTextAreaLable('原始m3u信息')
+    } else if (mod === 3) {
+      setShowTextAreaLable('设置')
+    }
+  }, [mod])
 
   const handleClose = () => {
     onClose();
   };
+
+  const handleChangeCheckMillisSeconds = (e) => {
+    _mainContext.changeCheckMillisSeconds(parseInt(e.target.value, 10))
+  }
+
+  const handleChangeHttpRequestTimeout = (e) => {
+    _mainContext.changeHttpRequestTimeout(parseInt(e.target.value, 10))
+  }
+
+  const handleChangeShowUrl = (event) => {
+    setShowUrl(event.target.checked);
+  }
 
   const doDownload = () => {
     var a = document.createElement('a')
@@ -51,20 +88,67 @@ function SimpleDialog(props) {
 
   return (
     <Dialog onClose={handleClose} open={open}>
-      <DialogTitle>您选择的m3u信息</DialogTitle>
-      <FormControl sx={{ width: 550, margin: '10px' }}>
-        <TextField multiline sx={{ fontSize: '11px' }} label='您所选择的m3u信息' size="small" id="standard-multiline-static" rows={4} value={body} />
-      </FormControl>
-      <FormControl sx={{ width: 550, margin: '10px' }}>
-        <LoadingButton
-          size="small"
-          onClick={doDownload}
-          variant="contained"
-          color="success"
-        >
-          下载
-        </LoadingButton>
-      </FormControl>
+      <DialogTitle>{showTextAreaLable}</DialogTitle>
+      {
+        mod === 3 ? (
+          <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '20px'
+        }}>
+          <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+            <TextField
+              size="small"
+              value={_mainContext.checkMillisSeconds}
+              onChange={handleChangeCheckMillisSeconds}
+              label="下一次请求间隔时间（毫秒）"
+            />
+          </FormControl>
+          <FormControl sx={{
+            width: 200,
+            marginRight: '5px',
+            display: 'flex',
+            flexDirection: 'row', 
+            marginBottom: '20px'
+          }}>
+            不显示url
+            <Switch
+              size="small"
+              checked={showUrl}
+              onChange={handleChangeShowUrl}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />显示url
+          </FormControl>
+          <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+            <TextField
+              size="small"
+              value={_mainContext.httpRequestTimeout}
+              onChange={handleChangeHttpRequestTimeout}
+              label="请求超时时间（毫秒）"
+            />
+          </FormControl>
+        </Box>) : ''
+      }
+      {mod === 1 || mod === 2 ? (
+        <FormControl sx={{ width: 550, margin: '10px' }}>
+          <TextField multiline sx={{ fontSize: '11px' }} label={showTextAreaLable} size="small" id="standard-multiline-static" rows={4} value={body} />
+        </FormControl>
+      ) : ''}
+
+      {
+        mod === 1 ? (
+          <FormControl sx={{ width: 550, margin: '10px' }}>
+            <LoadingButton
+              size="small"
+              onClick={doDownload}
+              variant="contained"
+              startIcon={<GetAppIcon />}
+            >
+              下载
+            </LoadingButton>
+          </FormControl>
+        ) : ''
+      }
     </Dialog>
   );
 }
@@ -73,6 +157,7 @@ SimpleDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   body: PropTypes.string.isRequired,
+  mod: PropTypes.number.isRequired,
 };
 
 const ListItem = styled('li')(({ theme }) => ({
@@ -85,10 +170,10 @@ export default function Detail() {
   const _mainContext = useContext(MainContext);
 
   const [searchTitle, setSearchTitle] = useState('')
-  const [chipData, setChipData] = useState(['CCTV', '卫视']);
-  const [showUrl, setShowUrl] = useState(false)
+  const [chipData, setChipData] = useState([]);
   const [selectedArr, setSelectedArr] = useState([])
   const [open, setOpen] = useState(false);
+  const [dialogMod, setDialogMod] = useState(1);
 
   const handleClose = (value) => {
     setOpen(false);
@@ -96,10 +181,6 @@ export default function Detail() {
 
   const handleDeleteChip = (chipToDelete) => () => {
     setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
-  }
-
-  const handleChangeContent = (e) => {
-    _mainContext.changeOriginalM3uBody(e.target.value)
   }
 
   const autoSelectedAvailablesUrl = () => {
@@ -136,10 +217,6 @@ export default function Detail() {
     _mainContext.filterM3u(chipData)
   }
 
-  const handleChangeCheckMillisSeconds = (e) => {
-    _mainContext.changeCheckMillisSeconds(parseInt(e.target.value, 10))
-  }
-
   const doCheckUrlIsValid = () => {
     _mainContext.onCheckTheseLinkIsAvailable()
   }
@@ -150,12 +227,15 @@ export default function Detail() {
 
   const exportValidM3uData = () => {
     _mainContext.onExportValidM3uData()
+    setDialogMod(1)
     setOpen(true);
   }
 
-  const handleChangeShowUrl = (event) => {
-    setShowUrl(event.target.checked);
-  };
+  const showOriginalM3uBodyInfo = () => {
+    _mainContext.changeDialogBodyData()
+    setDialogMod(2)
+    setOpen(true);
+  }
 
   const handleSelectCheckedAll = () => {
     let mod = 1//选中
@@ -170,6 +250,11 @@ export default function Detail() {
     }
     _mainContext.onSelectedOrNotAll(mod)
     setSelectedArr(temp)
+  }
+
+  const showSetting = () => {
+    setDialogMod(3)
+    setOpen(true);
   }
 
   const onSelectedThisRow = (index) => {
@@ -200,11 +285,8 @@ export default function Detail() {
         zIndex: 999,
         padding: '8px'
       }}>
-        <Box sx={{ display: 'flex' }}>
-          <FormControl sx={{ width: 250, marginRight: '5px' }}>
-            <TextField multiline sx={{ fontSize: '11px' }} label='m3u原始数据' size="small" id="standard-multiline-static" rows={4} value={_mainContext.originalM3uBody} onChange={handleChangeContent} />
-          </FormControl>
-          <Box sx={{ maxWidth: "349px" }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ maxWidth: "500px" }}>
             <Box sx={searchTitleCss}>搜索</Box>
             <Box sx={{
               marginBottom: "5px",
@@ -216,7 +298,7 @@ export default function Detail() {
                   size="small"
                   value={searchTitle}
                   onChange={handleChangeSearchTitle}
-                  label="添加喜爱的电视名称"
+                  label="筛选喜爱的电视名称"
                 />
               </FormControl>
               <FormControl sx={{ marginRight: '5px' }}>
@@ -224,6 +306,7 @@ export default function Detail() {
                   size="small"
                   onClick={addNewSearchFilter}
                   variant="outlined"
+                  startIcon={<AddCircleOutlineIcon />}
                 >
                   添加
                 </LoadingButton>
@@ -234,6 +317,7 @@ export default function Detail() {
                   onClick={doFilter}
                   variant="contained"
                   color="success"
+                  startIcon={<SearchIcon />}
                 >
                   搜索
                 </LoadingButton>
@@ -253,35 +337,23 @@ export default function Detail() {
               })}
             </Box>
           </Box>
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            <Box sx={searchTitleCss}>设置</Box>
-            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
-              <TextField
+          <Box sx={{ paddingRight: "20px" }}>
+            <FormControl sx={{ marginRight: '5px' }}>
+              <LoadingButton
                 size="small"
-                value={_mainContext.checkMillisSeconds}
-                onChange={handleChangeCheckMillisSeconds}
-                label="下一次请求间隔时间（毫秒）"
-              />
-            </FormControl>
-            <FormControl sx={{
-              width: 200, marginRight: '5px',
-              display: 'flex',
-              flexDirection: 'row'
-            }}>
-              不显示url
-              <Switch
-                size="small"
-                checked={showUrl}
-                onChange={handleChangeShowUrl}
-                inputProps={{ 'aria-label': 'controlled' }}
-              />显示url
+                onClick={showSetting}
+                variant="outlined"
+                startIcon={<SettingsIcon />}
+              >
+                设置
+              </LoadingButton>
             </FormControl>
           </Box>
         </Box>
         <Box sx={{ marginTop: "5px" }}>
+          <FormControl sx={{ marginRight: '5px' }}>
+            <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">显示原始m3u信息</Button>
+          </FormControl>
           {
             _mainContext.handleMod === 0 ? (
               <FormControl sx={{
@@ -291,6 +363,7 @@ export default function Detail() {
                   size="small"
                   onClick={doCheckUrlIsValid}
                   variant="outlined"
+                  startIcon={<RadioButtonUncheckedIcon />}
                 >
                   检查直播源链接是否有效
                 </LoadingButton>
@@ -311,8 +384,9 @@ export default function Detail() {
                   size="small"
                   onClick={autoSelectedAvailablesUrl}
                   variant="contained"
+                  startIcon={<CheckCircleOutlineIcon />}
                 >
-                  自动选择有效链接
+                  获取有效链接
                 </LoadingButton>
               </FormControl>
             ) : ''
@@ -326,8 +400,9 @@ export default function Detail() {
                   size="small"
                   onClick={autoSelectedInAvailablesUrl}
                   variant="outlined"
+                  startIcon={<ErrorOutlineIcon />}
                 >
-                  自动选择无效链接
+                  获取无效链接
                 </LoadingButton>
               </FormControl>
             ) : ''
@@ -341,9 +416,9 @@ export default function Detail() {
                   size="small"
                   onClick={exportValidM3uData}
                   variant="contained"
-                  color="error"
+                  startIcon={<ExitToAppIcon />}
                 >
-                  导出有效的链接
+                  导出选中的链接
                 </LoadingButton>
               </FormControl>
             ) : ''
@@ -353,7 +428,8 @@ export default function Detail() {
       <SimpleDialog
         open={open}
         onClose={handleClose}
-        body={_mainContext.exportText}
+        body={_mainContext.dialogBody}
+        mod={dialogMod}
       />
       <TableContainer component={Paper} sx={{ marginTop: (HeaderFixedHeight + 10) + "px" }}>
         <Table sx={{ maxWidth: 650 }} aria-label="a dense table">
