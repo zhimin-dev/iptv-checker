@@ -4,12 +4,13 @@ export const MainContext = createContext();
 import ParseM3u from './utils'
 
 export const MainContextProvider = function ({ children }) {
-    const [scene, setScene] = useState(0);//当前是欢迎页0 还是详情页1
+    const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([]);//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//检查url最多的
-    const [exportText, setExportText] = useState('')
+    const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
+    const [dialogBody, setBialogBody] = useState('')
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
 
     useEffect(() => {
@@ -37,17 +38,22 @@ export const MainContextProvider = function ({ children }) {
         setShowM3uBody(prev => prev.filter((_, i) => i !== index))
     }
 
+    const changeHttpRequestTimeout = (timeout) => {
+
+    }
+
     const filterM3u = (filterNames) => {
         if (filterNames.length === 0) {
             setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
             return
         }
+        let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody)
         let rows = [];
-        for (let i = 0; i < showM3uBody.length; i++) {
+        for (let i = 0; i < temp.length; i++) {
             let hit = false;
             for (let j = 0; j < filterNames.length; j++) {
-                if (contains(showM3uBody[i].name, filterNames[j]) && !hit) {
-                    let one = showM3uBody[i]
+                if (contains(temp[i].name, filterNames[j]) && !hit) {
+                    let one = temp[i]
                     one.index = rows.length
                     rows.push(one);
                     hit = true;
@@ -82,7 +88,11 @@ export const MainContextProvider = function ({ children }) {
                 name += `${showM3uBody[i].originalData}\n`;
             }
         }
-        setExportText(name)
+        setBialogBody(name)
+    }
+
+    const changeDialogBodyData = () => {
+        setBialogBody(originalM3uBody)
     }
 
     const onSelectedRow = (index) => {
@@ -160,7 +170,7 @@ export const MainContextProvider = function ({ children }) {
                 continue
             } else {
                 try {
-                    let res = await axios.get(one.url, {timeout: 3000})
+                    let res = await axios.get(one.url, {timeout: httpRequestTimeout})
                     if (res.status === 200) {
                         setShowM3uBodyStatus(one.index, 1)
                     } else {
@@ -183,9 +193,10 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, exportText, hasCheckedCount,
+            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
+            changeHttpRequestTimeout, changeDialogBodyData,
         }}>
             {children}
         </MainContext.Provider>

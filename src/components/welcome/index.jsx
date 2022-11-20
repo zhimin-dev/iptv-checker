@@ -8,6 +8,7 @@ import Select from '@mui/material/Select';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { MainContext } from './../../context/main';
 import axios from 'axios'
+import CheckIcon from '@mui/icons-material/Check';
 
 const selectOption = [
   { 'mod': 1, "name": "我有m3u订阅源链接" },
@@ -145,6 +146,7 @@ export default function HorizontalLinearStepper() {
             onClick={handleConfirm}
             loading={loading}
             variant="contained"
+            startIcon={<CheckIcon />}
           >
             确定
           </LoadingButton>
