@@ -49,7 +49,6 @@ function SimpleDialog(props) {
   const { onClose, open, body, mod } = props;
 
   const [showTextAreaLable, setShowTextAreaLable] = useState('')
-  const [showUrl, setShowUrl] = useState(false)
 
   useEffect(() => {
     if (mod === 1) {
@@ -74,7 +73,7 @@ function SimpleDialog(props) {
   }
 
   const handleChangeShowUrl = (event) => {
-    setShowUrl(event.target.checked);
+    _mainContext.changeShowUrl(event.target.checked);
   }
 
   const doDownload = () => {
@@ -114,7 +113,7 @@ function SimpleDialog(props) {
             不显示url
             <Switch
               size="small"
-              checked={showUrl}
+              checked={_mainContext.showUrl}
               onChange={handleChangeShowUrl}
               inputProps={{ 'aria-label': 'controlled' }}
             />显示url
@@ -500,7 +499,7 @@ export default function Detail() {
                 <TableCell align="left">
                   <div>{row.name}</div>
                   {
-                    showUrl ? (
+                    _mainContext.showUrl ? (
                       <div>{row.url}</div>
                     ) : ''
                   }
