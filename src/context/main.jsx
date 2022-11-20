@@ -12,6 +12,7 @@ export const MainContextProvider = function ({ children }) {
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
     const [dialogBody, setBialogBody] = useState('')
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
+    const [showUrl, setShowUrl] = useState(false)
 
     useEffect(() => {
         setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
@@ -23,6 +24,10 @@ export const MainContextProvider = function ({ children }) {
 
     const getMillisSeconds = () => {
         return (new Date()).getTime()
+    }
+
+    const changeShowUrl = (b) => {
+        setShowUrl(b)
     }
 
     const contains = (str, substr) => {
@@ -39,7 +44,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeHttpRequestTimeout = (timeout) => {
-
+        setHttpRequestTimeout(timeout)
     }
 
     const filterM3u = (filterNames) => {
@@ -193,10 +198,10 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout,
+            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout, showUrl,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData,
+            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl
         }}>
             {children}
         </MainContext.Provider>
