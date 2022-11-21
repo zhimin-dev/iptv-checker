@@ -32,7 +32,9 @@ import GetAppIcon from '@mui/icons-material/GetApp';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
+import PreviewIcon from '@mui/icons-material/Preview';
 
 const HeaderFixedHeight = 152
 
@@ -271,6 +273,11 @@ export default function Detail() {
     }
   }
 
+  const watchThisRow = (val) => {
+    window.history.pushState({}, '', "?original="+encodeURIComponent(val.originalData))
+    _mainContext.goToWatchPage()
+  }
+
   return (
     <Box>
       <Box sx={{
@@ -469,9 +476,10 @@ export default function Detail() {
                 <TableCell component="th" scope="row">
                   {
                     _mainContext.handleMod !== 1 ? (
-                      <Button onClick={() => deleteThisRow(index)}>删除</Button>
+                      <Button onClick={() => deleteThisRow(row)} startIcon={<DeleteOutlineIcon />}>删除</Button>
                     ) : ''
                   }
+                  <Button onClick={() => watchThisRow(row)} startIcon={<PreviewIcon />}>在线观看</Button>
                 </TableCell>
                 <TableCell align="left">
                   {

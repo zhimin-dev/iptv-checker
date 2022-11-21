@@ -1,4 +1,34 @@
 const ParseM3u = {
+    parseOneM3uData: (str) => {
+        let dataArr = str.split('\n')
+        if (dataArr.length > 0) {
+            let obj = {}
+            obj.url = dataArr[dataArr.length - 1]
+            let copt = []
+            if (dataArr.length > 2) {
+                for (let i = 1; i < dataArr.length - 1; i++) {
+                    let one = dataArr[i]
+                    let rep = one.replace("#EXTVLCOPT:", "")
+                    let two = rep.split(":")
+                    let vTwo = []
+                    for (let j = 0; j < two.length; j++) {
+                        if (j !== 0) {
+                            vTwo.push(two[j])
+                        }
+
+                    }
+                    copt.push({ key: two[0], value: vTwo.join(":") })
+                }
+            }
+            obj.tvgId = ParseM3u.pregValue(dataArr[0], "tvg-id")
+            obj.copt = copt
+            obj.name = ParseM3u.parseName(dataArr[0])
+            obj.logoUrl = ParseM3u.pregValue(dataArr[0], "tvg-logo")
+            obj.exist = true
+            return obj;
+        }
+        return []
+    },
     parseOriginalBodyToList: (originalM3uBody) => {
         const regex = /#EXTINF:(.*)\n(#EXTVLCOPT:.*\n)*(http[s]*)(.*)/gm;
         let rows = [];

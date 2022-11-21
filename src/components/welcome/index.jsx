@@ -16,13 +16,16 @@ const selectOption = [
   { 'mod': 3, "name": "公共订阅源" },
 ]
 
+const githubLink = "https://github.com/zhimin-dev/iptv-checker"
+const copyright = "@知敏studio"
+
 const commonLink = "https://static.zmis.me/web/iptv/china.json"
 
 const boxMaxWith = 600
 
 const oneFrame = {
   marginBottom: '10px',
-  width: boxMaxWith+"px",
+  width: boxMaxWith + "px",
   display: 'flex',
   justifyContent: 'flex-end',
 }
@@ -82,7 +85,7 @@ export default function HorizontalLinearStepper() {
   return (
     <Box sx={{
       display: 'flex',
-      flexDirection:'column',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
       height: '80vh'
@@ -107,28 +110,28 @@ export default function HorizontalLinearStepper() {
       <Box sx={oneFrame}>
         {
           mod === 3 ? (
-              <FormControl sx={{ width: boxMaxWith }}>
-                <InputLabel id="demo-simple-select-label" sx={{width:boxMaxWith+10}}>country</InputLabel>
-                <Select
-                  labelId="demo-simple-select-label"
-                  id="demo-simple-select"
-                  value={selectedUrl}
-                  label="country"
-                  onChange={handleSelectedCountry}
-                >
-                  {
-                    commonLinks.map((value, index) => (
-                      <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
-                    ))
-                  }
-                </Select>
-              </FormControl>
+            <FormControl sx={{ width: boxMaxWith }}>
+              <InputLabel id="demo-simple-select-label" sx={{ width: boxMaxWith + 10 }}>country</InputLabel>
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={selectedUrl}
+                label="country"
+                onChange={handleSelectedCountry}
+              >
+                {
+                  commonLinks.map((value, index) => (
+                    <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
+                  ))
+                }
+              </Select>
+            </FormControl>
           ) : ''
         }
         {
           mod === 2 ? (
             <FormControl sx={{ width: boxMaxWith }} variant="standard">
-              <TextField  multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} />
+              <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} />
             </FormControl>
           ) : ''
         }
@@ -141,15 +144,19 @@ export default function HorizontalLinearStepper() {
         }
       </Box>
       <Box sx={oneFrame}>
-          <LoadingButton
-            size="small"
-            onClick={handleConfirm}
-            loading={loading}
-            variant="contained"
-            startIcon={<CheckIcon />}
-          >
-            确定
-          </LoadingButton>
+        <LoadingButton
+          size="small"
+          onClick={handleConfirm}
+          loading={loading}
+          variant="contained"
+          startIcon={<CheckIcon />}
+        >
+          确定
+        </LoadingButton>
+      </Box>
+      <Box>
+        <a target="_blank" href={githubLink}>{copyright}</a>
+        {/* <a target="_blank">我有m3u8链接</a> */}
       </Box>
     </Box>
   );

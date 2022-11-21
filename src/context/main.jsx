@@ -22,6 +22,10 @@ export const MainContextProvider = function ({ children }) {
         setScene(1);
     }
 
+    const goToWatchPage = () => {
+        setScene(2)
+    }
+
     const getMillisSeconds = () => {
         return (new Date()).getTime()
     }
@@ -201,7 +205,7 @@ export const MainContextProvider = function ({ children }) {
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout, showUrl,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl
+            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage
         }}>
             {children}
         </MainContext.Provider>
