@@ -51,6 +51,9 @@ const ParseM3u = {
                 rows[i][3] + "" + rows[i][4]
             )) !== null
         }
+        if(resultList.length === 0) {
+            throw new Error("未成功解析到数据，请检查输入")
+        }
         return resultList
     },
     parseRowToData(index, one, two) {
@@ -64,6 +67,7 @@ const ParseM3u = {
             tvgId: ParseM3u.pregValue(one, "tvg-id"),
             status: 0,
             name: ParseM3u.parseName(one),
+            sName: ParseM3u.parseName(one).toLowerCase(),
             originalData: `${one}\n${two}`,
             checked: false
         };

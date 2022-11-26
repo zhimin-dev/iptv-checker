@@ -48,8 +48,7 @@ export default function Watch() {
         let params = new URLSearchParams(window.location.search)
         let original = decodeURIComponent(params.get("original"))
         let parseData = ParseM3u.parseOneM3uData(original)
-        console.log(parseData)
-        if(parseData && parseData.exist) {
+        if (parseData && parseData.exist) {
             setName(parseData.name)
             setLogoUrl(parseData.logoUrl)
             setM3u8Link(parseData.url)
@@ -98,10 +97,11 @@ export default function Watch() {
                 console.log(data)
             });
             video.addEventListener("loadedmetadata", function (e) {
-                setVideoStyle({
-                    width: e.target.videoWidth + 'px',
-                    height: e.target.videoHeight + 'px'
-                })
+                // setVideoStyle({
+                //     width: e.target.videoWidth + 'px',
+                //     height: e.target.videoHeight + 'px'
+                // })
+                console.log("video width",  e.target.videoWidth + 'px', " height ", e.target.videoHeight+ 'px' )
             }, false);
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = videoSrc;
@@ -119,7 +119,7 @@ export default function Watch() {
     }
 
     const stopLoadM3u8Link = () => {
-        if(videoInstance) {
+        if (videoInstance) {
             videoInstance.pause()
         }
     }
@@ -153,7 +153,7 @@ export default function Watch() {
     const goback = () => {
         window.history.pushState({}, '', '?')
         _mainContext.goToDetailScene()
-      }
+    }
 
     return (
         <ThemeProvider theme={theme}>
@@ -187,11 +187,8 @@ export default function Watch() {
                     </FormControl>
                 </Box>
             </Dialog>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <h2 style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                }}>
+            <Box>
+                <FormControl sx={{ margin: '10px' }}>
                     <LoadingButton
                         size="small"
                         onClick={goback}
@@ -199,10 +196,8 @@ export default function Watch() {
                     >
                         返回
                     </LoadingButton>
-                    {name}
-                    {logoUrl !== '' ? (
-                        <img src={logoUrl} height="50"></img>
-                    ) : ''}
+                </FormControl>
+                <FormControl sx={{ margin: '10px' }}>
                     <LoadingButton
                         size="small"
                         onClick={showDialog}
@@ -210,6 +205,19 @@ export default function Watch() {
                     >
                         设置
                     </LoadingButton>
+                </FormControl>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{marginLeft:"10px"}}>
+                    {logoUrl !== '' ? (
+                        <img src={logoUrl} height="50"></img>
+                    ) : ''}
+                </Box>
+                <h2 style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                }}>
+                    {name}
                     {
                         !isPlaying ? (
                             <LoadingButton
@@ -237,6 +245,7 @@ export default function Watch() {
                         ) : ''
                     }
                 </h2>
+                
                 <FormControl sx={{ margin: '10px' }}>
                     {
                         m3u8Link !== "" ? (

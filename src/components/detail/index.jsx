@@ -35,13 +35,15 @@ import SearchIcon from '@mui/icons-material/Search';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PreviewIcon from '@mui/icons-material/Preview';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const HeaderFixedHeight = 152
 
 const searchTitleCss = {
   fontSize: '11px',
   color: "#7d7a7a",
-  marginBottom: '4px'
+  marginBottom: '4px',
+  marginRight: '10px'
 }
 
 function SimpleDialog(props) {
@@ -93,42 +95,42 @@ function SimpleDialog(props) {
       {
         mod === 3 ? (
           <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '20px'
-        }}>
-          <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
-            <TextField
-              size="small"
-              value={_mainContext.checkMillisSeconds}
-              onChange={handleChangeCheckMillisSeconds}
-              label="下一次请求间隔时间（毫秒）"
-            />
-          </FormControl>
-          <FormControl sx={{
-            width: 200,
-            marginRight: '5px',
             display: 'flex',
-            flexDirection: 'row', 
-            marginBottom: '20px'
+            flexDirection: 'column',
+            padding: '20px'
           }}>
-            不显示url
-            <Switch
-              size="small"
-              checked={_mainContext.showUrl}
-              onChange={handleChangeShowUrl}
-              inputProps={{ 'aria-label': 'controlled' }}
-            />显示url
-          </FormControl>
-          <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
-            <TextField
-              size="small"
-              value={_mainContext.httpRequestTimeout}
-              onChange={handleChangeHttpRequestTimeout}
-              label="请求超时时间（毫秒）"
-            />
-          </FormControl>
-        </Box>) : ''
+            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+              <TextField
+                size="small"
+                value={_mainContext.checkMillisSeconds}
+                onChange={handleChangeCheckMillisSeconds}
+                label="下一次请求间隔时间（毫秒）"
+              />
+            </FormControl>
+            <FormControl sx={{
+              width: 200,
+              marginRight: '5px',
+              display: 'flex',
+              flexDirection: 'row',
+              marginBottom: '20px'
+            }}>
+              不显示url
+              <Switch
+                size="small"
+                checked={_mainContext.showUrl}
+                onChange={handleChangeShowUrl}
+                inputProps={{ 'aria-label': 'controlled' }}
+              />显示url
+            </FormControl>
+            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+              <TextField
+                size="small"
+                value={_mainContext.httpRequestTimeout}
+                onChange={handleChangeHttpRequestTimeout}
+                label="请求超时时间（毫秒）"
+              />
+            </FormControl>
+          </Box>) : ''
       }
       {mod === 1 || mod === 2 ? (
         <FormControl sx={{ width: 550, margin: '10px' }}>
@@ -274,8 +276,12 @@ export default function Detail() {
   }
 
   const watchThisRow = (val) => {
-    window.history.pushState({}, '', "?original="+encodeURIComponent(val.originalData))
+    window.history.pushState({}, '', "?original=" + encodeURIComponent(val.originalData))
     _mainContext.goToWatchPage()
+  }
+
+  const goback = () => {
+    _mainContext.goToWelcomeScene()
   }
 
   return (
@@ -293,54 +299,76 @@ export default function Detail() {
       }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ maxWidth: "500px" }}>
-            <Box sx={searchTitleCss}>搜索</Box>
-            <Box sx={{
-              marginBottom: "5px",
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              <FormControl sx={{ marginRight: '5px' }}>
-                <TextField
-                  size="small"
-                  value={searchTitle}
-                  onChange={handleChangeSearchTitle}
-                  label="筛选喜爱的电视名称"
-                />
-              </FormControl>
+            <Box sx={{marginBottom: '10px'}}>
               <FormControl sx={{ marginRight: '5px' }}>
                 <LoadingButton
                   size="small"
-                  onClick={addNewSearchFilter}
-                  variant="outlined"
-                  startIcon={<AddCircleOutlineIcon />}
+                  onClick={goback}
+                  startIcon={<ArrowBackIcon />}
                 >
-                  添加
+                  返回
                 </LoadingButton>
               </FormControl>
               <FormControl sx={{ marginRight: '5px' }}>
-                <LoadingButton
-                  size="small"
-                  onClick={doFilter}
-                  variant="contained"
-                  color="success"
-                  startIcon={<SearchIcon />}
-                >
-                  搜索
-                </LoadingButton>
+              {
+                _mainContext.handleMod === 1 ? (
+                  <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
+                ) : ''
+              }
               </FormControl>
             </Box>
-            <Box>
-              {chipData.map((value, index) => {
-                return (
-                  <ListItem key={index}>
-                    <Chip
-                      label={value}
-                      size="small"
-                      onDelete={handleDeleteChip(index)}
-                    />
-                  </ListItem>
-                );
-              })}
+            <Box sx={{display:"flex"}}>
+              <Box sx={searchTitleCss}>搜索</Box>
+              <Box>
+              <Box sx={{
+                marginBottom: "5px",
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <TextField
+                    size="small"
+                    value={searchTitle}
+                    onChange={handleChangeSearchTitle}
+                    label="筛选喜爱的电视名称"
+                  />
+                </FormControl>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <LoadingButton
+                    size="small"
+                    onClick={addNewSearchFilter}
+                    variant="outlined"
+                    startIcon={<AddCircleOutlineIcon />}
+                  >
+                    添加
+                  </LoadingButton>
+                </FormControl>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <LoadingButton
+                    size="small"
+                    onClick={doFilter}
+                    variant="contained"
+                    color="success"
+                    startIcon={<SearchIcon />}
+                  >
+                    搜索
+                  </LoadingButton>
+                </FormControl>
+              </Box>
+              <Box>
+                {chipData.map((value, index) => {
+                  return (
+                    <ListItem key={index}>
+                      <Chip
+                        label={value}
+                        size="small"
+                        onDelete={handleDeleteChip(index)}
+                      />
+                    </ListItem>
+                  );
+                })}
+              </Box>
+              </Box>
             </Box>
           </Box>
           <Box sx={{ paddingRight: "20px" }}>
@@ -374,11 +402,6 @@ export default function Detail() {
                   检查直播源链接是否有效
                 </LoadingButton>
               </FormControl>
-            ) : ''
-          }
-          {
-            _mainContext.handleMod === 1 ? (
-              <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
             ) : ''
           }
           {
