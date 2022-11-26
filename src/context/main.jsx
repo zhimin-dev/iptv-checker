@@ -14,12 +14,16 @@ export const MainContextProvider = function ({ children }) {
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
     const [showUrl, setShowUrl] = useState(false)
 
-    useEffect(() => {
-        setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
-    }, [originalM3uBody])
-
     const goToDetailScene = () => {
         setScene(1);
+    }
+
+    const goToWelcomeScene =() => {
+        setScene(0);
+    }
+
+    const goToWatchPage = () => {
+        setScene(2)
     }
 
     const getMillisSeconds = () => {
@@ -57,7 +61,7 @@ export const MainContextProvider = function ({ children }) {
         for (let i = 0; i < temp.length; i++) {
             let hit = false;
             for (let j = 0; j < filterNames.length; j++) {
-                if (contains(temp[i].name, filterNames[j]) && !hit) {
+                if (contains(temp[i].sName, filterNames[j]) && !hit) {
                     let one = temp[i]
                     one.index = rows.length
                     rows.push(one);
@@ -66,10 +70,12 @@ export const MainContextProvider = function ({ children }) {
             }
         }
         setShowM3uBody(rows)
+        setHandleMod(0)
     }
 
     const changeOriginalM3uBody = (body) => {
         setOriginalM3uBody(body);
+        setShowM3uBody(ParseM3u.parseOriginalBodyToList(body))
     }
 
     const deepCopyJson = (obj) => {
@@ -192,7 +198,7 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        console.log("finished.....")
+        console.log("check finished.....")
         setHandleMod(2)
     }
 
@@ -201,7 +207,7 @@ export const MainContextProvider = function ({ children }) {
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout, showUrl,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl
+            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene
         }}>
             {children}
         </MainContext.Provider>
