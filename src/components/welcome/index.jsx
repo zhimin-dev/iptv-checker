@@ -141,7 +141,7 @@ export default function HorizontalLinearStepper() {
           {errorMsg}
         </Alert>
       </Snackbar>
-      <h1>IPTV Checker<span style={{fontSize:"12px"}}>{nowVersion}</span></h1>
+      <h1>IPTV Checker<span style={{ fontSize: "12px" }}>{nowVersion}</span></h1>
       <FormControl sx={oneFrame}>
         <InputLabel id="demo-simple-select-label">请选择模式</InputLabel>
         <Select

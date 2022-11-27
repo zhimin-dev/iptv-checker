@@ -299,7 +299,7 @@ export default function Detail() {
       }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Box sx={{ maxWidth: "500px" }}>
-            <Box sx={{marginBottom: '10px'}}>
+            <Box sx={{ marginBottom: '10px' }}>
               <FormControl sx={{ marginRight: '5px' }}>
                 <LoadingButton
                   size="small"
@@ -310,64 +310,64 @@ export default function Detail() {
                 </LoadingButton>
               </FormControl>
               <FormControl sx={{ marginRight: '5px' }}>
-              {
-                _mainContext.handleMod === 1 ? (
-                  <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
-                ) : ''
-              }
+                {
+                  _mainContext.handleMod === 1 ? (
+                    <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
+                  ) : ''
+                }
               </FormControl>
             </Box>
-            <Box sx={{display:"flex"}}>
+            <Box sx={{ display: "flex" }}>
               <Box sx={searchTitleCss}>搜索</Box>
               <Box>
-              <Box sx={{
-                marginBottom: "5px",
-                display: 'flex',
-                alignItems: 'center'
-              }}>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <TextField
-                    size="small"
-                    value={searchTitle}
-                    onChange={handleChangeSearchTitle}
-                    label="筛选喜爱的电视名称"
-                  />
-                </FormControl>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <LoadingButton
-                    size="small"
-                    onClick={addNewSearchFilter}
-                    variant="outlined"
-                    startIcon={<AddCircleOutlineIcon />}
-                  >
-                    添加
-                  </LoadingButton>
-                </FormControl>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <LoadingButton
-                    size="small"
-                    onClick={doFilter}
-                    variant="contained"
-                    color="success"
-                    startIcon={<SearchIcon />}
-                  >
-                    搜索
-                  </LoadingButton>
-                </FormControl>
-              </Box>
-              <Box>
-                {chipData.map((value, index) => {
-                  return (
-                    <ListItem key={index}>
-                      <Chip
-                        label={value}
-                        size="small"
-                        onDelete={handleDeleteChip(index)}
-                      />
-                    </ListItem>
-                  );
-                })}
-              </Box>
+                <Box sx={{
+                  marginBottom: "5px",
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <FormControl sx={{ marginRight: '5px' }}>
+                    <TextField
+                      size="small"
+                      value={searchTitle}
+                      onChange={handleChangeSearchTitle}
+                      label="筛选喜爱的电视名称"
+                    />
+                  </FormControl>
+                  <FormControl sx={{ marginRight: '5px' }}>
+                    <LoadingButton
+                      size="small"
+                      onClick={addNewSearchFilter}
+                      variant="outlined"
+                      startIcon={<AddCircleOutlineIcon />}
+                    >
+                      添加
+                    </LoadingButton>
+                  </FormControl>
+                  <FormControl sx={{ marginRight: '5px' }}>
+                    <LoadingButton
+                      size="small"
+                      onClick={doFilter}
+                      variant="contained"
+                      color="success"
+                      startIcon={<SearchIcon />}
+                    >
+                      搜索
+                    </LoadingButton>
+                  </FormControl>
+                </Box>
+                <Box>
+                  {chipData.map((value, index) => {
+                    return (
+                      <ListItem key={index}>
+                        <Chip
+                          label={value}
+                          size="small"
+                          onDelete={handleDeleteChip(index)}
+                        />
+                      </ListItem>
+                    );
+                  })}
+                </Box>
               </Box>
             </Box>
           </Box>

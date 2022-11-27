@@ -76,7 +76,7 @@ export default function Watch() {
                         xhr.open('GET', url, true);
                         if (httpHeaders.length > 0) {
                             for (let i = 0; i < httpHeaders.length; i++) {
-                                if (httpHeaders[i].key !== "" && httpHeaders[i].key !=='User-Agent') {
+                                if (httpHeaders[i].key !== "" && httpHeaders[i].key !== 'User-Agent') {
                                     xhr.setRequestHeader(httpHeaders[i].key, httpHeaders[i].value);
                                 }
                             }
@@ -101,7 +101,7 @@ export default function Watch() {
                 //     width: e.target.videoWidth + 'px',
                 //     height: e.target.videoHeight + 'px'
                 // })
-                console.log("video width",  e.target.videoWidth + 'px', " height ", e.target.videoHeight+ 'px' )
+                console.log("video width", e.target.videoWidth + 'px', " height ", e.target.videoHeight + 'px')
             }, false);
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = videoSrc;
@@ -119,8 +119,15 @@ export default function Watch() {
     }
 
     const stopLoadM3u8Link = () => {
+        destroyVideo()
+    }
+
+    const destroyVideo = () => {
         if (videoInstance) {
             videoInstance.pause()
+            videoInstance.removeAttribute('src');
+            videoInstance.load();
+            console.log("destroyVideo")
         }
     }
 
@@ -151,6 +158,7 @@ export default function Watch() {
     }
 
     const goback = () => {
+        destroyVideo()
         window.history.pushState({}, '', '?')
         _mainContext.goToDetailScene()
     }
@@ -208,7 +216,7 @@ export default function Watch() {
                 </FormControl>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Box sx={{marginLeft:"10px"}}>
+                <Box sx={{ marginLeft: "10px" }}>
                     {logoUrl !== '' ? (
                         <img src={logoUrl} height="50"></img>
                     ) : ''}
@@ -245,7 +253,7 @@ export default function Watch() {
                         ) : ''
                     }
                 </h2>
-                
+
                 <FormControl sx={{ margin: '10px' }}>
                     {
                         m3u8Link !== "" ? (

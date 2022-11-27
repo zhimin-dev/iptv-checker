@@ -19,8 +19,8 @@ const ParseM3u = {
                     let _key = two[0].replace("http-", "")
                     let _keyExp = _key.split("-")
                     let _keyExpArr = []
-                    for (let i = 0;i<_keyExp.length;i++) {
-                        _keyExpArr.push( _keyExp[i].charAt(0).toUpperCase() + _keyExp[i].slice(1))
+                    for (let i = 0; i < _keyExp.length; i++) {
+                        _keyExpArr.push(_keyExp[i].charAt(0).toUpperCase() + _keyExp[i].slice(1))
                     }
                     let _rKey = _keyExpArr.join("-")
                     let _value = vTwo.join(":")
@@ -59,7 +59,7 @@ const ParseM3u = {
                 rows[i][0]
             )) !== null
         }
-        if(resultList.length === 0) {
+        if (resultList.length === 0) {
             throw new Error("未成功解析到数据，请检查输入")
         }
         return resultList
