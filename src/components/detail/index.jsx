@@ -276,7 +276,7 @@ export default function Detail() {
   }
 
   const watchThisRow = (val) => {
-    window.history.pushState({}, '', "?original=" + encodeURIComponent(val.originalData))
+    window.history.pushState({}, '', "?original=" + encodeURIComponent(val.raw))
     _mainContext.goToWatchPage()
   }
 

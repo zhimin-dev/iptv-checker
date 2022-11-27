@@ -9,15 +9,22 @@ const ParseM3u = {
                 for (let i = 1; i < dataArr.length - 1; i++) {
                     let one = dataArr[i]
                     let rep = one.replace("#EXTVLCOPT:", "")
-                    let two = rep.split(":")
+                    let two = rep.split("=")
                     let vTwo = []
                     for (let j = 0; j < two.length; j++) {
                         if (j !== 0) {
                             vTwo.push(two[j])
                         }
-
                     }
-                    copt.push({ key: two[0], value: vTwo.join(":") })
+                    let _key = two[0].replace("http-", "")
+                    let _keyExp = _key.split("-")
+                    let _keyExpArr = []
+                    for (let i = 0;i<_keyExp.length;i++) {
+                        _keyExpArr.push( _keyExp[i].charAt(0).toUpperCase() + _keyExp[i].slice(1))
+                    }
+                    let _rKey = _keyExpArr.join("-")
+                    let _value = vTwo.join(":")
+                    copt.push({ key: _rKey, value: _value })
                 }
             }
             obj.tvgId = ParseM3u.pregValue(dataArr[0], "tvg-id")
@@ -48,7 +55,8 @@ const ParseM3u = {
             resultList.push(ParseM3u.parseRowToData(
                 i,
                 "#EXTINF:" + rows[i][1],
-                rows[i][3] + "" + rows[i][4]
+                rows[i][3] + "" + rows[i][4],
+                rows[i][0]
             )) !== null
         }
         if(resultList.length === 0) {
@@ -56,7 +64,7 @@ const ParseM3u = {
         }
         return resultList
     },
-    parseRowToData(index, one, two) {
+    parseRowToData(index, one, two, raw) {
         const row = {
             index: index,
             url: two,
@@ -69,7 +77,8 @@ const ParseM3u = {
             name: ParseM3u.parseName(one),
             sName: ParseM3u.parseName(one).toLowerCase(),
             originalData: `${one}\n${two}`,
-            checked: false
+            checked: false,
+            raw: raw,
         };
         return row;
     },

@@ -76,7 +76,7 @@ export default function Watch() {
                         xhr.open('GET', url, true);
                         if (httpHeaders.length > 0) {
                             for (let i = 0; i < httpHeaders.length; i++) {
-                                if (httpHeaders[i].key !== "") {
+                                if (httpHeaders[i].key !== "" && httpHeaders[i].key !=='User-Agent') {
                                     xhr.setRequestHeader(httpHeaders[i].key, httpHeaders[i].value);
                                 }
                             }
