@@ -12,24 +12,24 @@ import axios from 'axios'
 import CheckIcon from '@mui/icons-material/Check';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import CountryJson from './../../assets/api/country.json'
+import WatchJson from './../../assets/api/watch.json'
 
 const selectOption = [
   { 'mod': 1, "name": "我有m3u订阅源链接" },
   { 'mod': 2, "name": "我有m3u订阅源内容" },
+  { 'mod': 3, "name": "公共订阅源" },
+  { 'mod': 4, "name": "在线观看" },
 ]
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const nowVersion = "v2.2"
-
-const publicSourceObj = { 'mod': 3, "name": "公共订阅源" }
+const nowVersion = "v2.3"
 
 const githubLink = "https://github.com/zhimin-dev/iptv-checker"
 const copyright = "@知敏studio"
-
-const commonLink = "https://static.zmis.me/web/iptv/china.json"
 
 const boxMaxWith = 600
 
@@ -49,7 +49,6 @@ export default function HorizontalLinearStepper() {
   const [selectedUrl, setSelectedUrl] = React.useState('');
   const [customUrl, setCustomUrl] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-
   const [errorMsg, setErrorMsg] = React.useState('')
   const [showError, setShowError] = React.useState(false)
 
@@ -62,21 +61,7 @@ export default function HorizontalLinearStepper() {
   }, [])
 
   const fetchCommonLink = async () => {
-    let res = await axios.get(commonLink)
-    if (res.status === 200) {
-      if (res.data.length !== 0) {
-        setCommonLink(res.data)
-        let checkExist = false
-        for (let i = 0; i < selectOption.length; i += 1) {
-          if (selectOption[i].mod === 3) {
-            checkExist = true
-          }
-        }
-        if (!checkExist) {
-          selectOption.push(publicSourceObj)
-        }
-      }
-    }
+    setCommonLink(CountryJson)
   }
 
   const handleChangeContent = (e) => {
@@ -109,9 +94,13 @@ export default function HorizontalLinearStepper() {
         } else {
           throw new Error('请求失败')
         }
-      } else if (mod === 2) {
-        if (body !== '') {
-          _mainContext.changeOriginalM3uBody(body)
+      } else if (mod === 2||mod === 4) {
+        let _body = body
+        if(mod === 4) {
+          _body = decodeURIComponent(atob(WatchJson?.raw))
+        }
+        if (_body !== '') {
+          _mainContext.changeOriginalM3uBody(_body)
         } else {
           throw new Error('获取数据失败')
         }
@@ -141,7 +130,7 @@ export default function HorizontalLinearStepper() {
           {errorMsg}
         </Alert>
       </Snackbar>
-      <h1>IPTV Checker<span style={{fontSize:"12px"}}>{nowVersion}</span></h1>
+      <h1>IPTV Checker<span style={{ fontSize: "12px" }}>{nowVersion}</span></h1>
       <FormControl sx={oneFrame}>
         <InputLabel id="demo-simple-select-label">请选择模式</InputLabel>
         <Select

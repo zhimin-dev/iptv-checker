@@ -18,7 +18,7 @@ export const MainContextProvider = function ({ children }) {
         setScene(1);
     }
 
-    const goToWelcomeScene =() => {
+    const goToWelcomeScene = () => {
         setScene(0);
     }
 
@@ -181,7 +181,7 @@ export const MainContextProvider = function ({ children }) {
                 continue
             } else {
                 try {
-                    let res = await axios.get(one.url, {timeout: httpRequestTimeout})
+                    let res = await axios.get(one.url, { timeout: httpRequestTimeout })
                     if (res.status === 200) {
                         setShowM3uBodyStatus(one.index, 1)
                     } else {

@@ -1,0 +1,26 @@
+[
+  {
+    "country": "🇨🇳 China",
+    "url": "https://iptv-org.github.io/iptv/countries/cn.m3u"
+  },
+  {
+    "country": "🇨🇳 Taiwan, China",
+    "url": "https://iptv-org.github.io/iptv/countries/tw.m3u"
+  },
+  {
+    "country": "🇭🇰 Hong Kong, China",
+    "url": "https://iptv-org.github.io/iptv/countries/hk.m3u"
+  },
+  {
+    "country": "🇯🇵 Japan",
+    "url": "https://iptv-org.github.io/iptv/countries/jp.m3u"
+  },
+  {
+    "country": "🇰🇵 North Korea",
+    "url": "https://iptv-org.github.io/iptv/countries/kp.m3u"
+  },
+  {
+    "country": "🇰🇷 South Korea",
+    "url": "https://iptv-org.github.io/iptv/countries/kr.m3u"
+  }
+]
