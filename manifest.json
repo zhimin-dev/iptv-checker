@@ -1,7 +1,7 @@
 {
   "name": "iptv-checker",
   "description": "for chrome extension",
-  "version": "0.0.1",
+  "version": "2.3.0",
   "manifest_version": 3,
   "permissions": [
     "webRequest",
