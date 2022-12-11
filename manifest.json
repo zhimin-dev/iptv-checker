@@ -1,7 +1,7 @@
 {
   "name": "iptv-checker",
   "description": "for chrome extension",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "manifest_version": 3,
   "permissions": [
     "webRequest",
@@ -16,13 +16,13 @@
   ],
   "icons":
 	{
-		"16": "src/assets/icon.png",
-		"48": "src/assets/icon.png",
-		"128": "src/assets/icon.png"
+		"16": "img/icon.png",
+		"48": "img/icon.png",
+		"128": "img/icon.png"
 	},
-  "options_page": "dist/index.html",
+  "options_page": "index.html",
   "action": {
-    "default_icon" : "src/assets/icon.png",
+    "default_icon" : "img/icon.png",
     "default_title": "iptv-checker",
     "default_popup": "popup.html"
   },
