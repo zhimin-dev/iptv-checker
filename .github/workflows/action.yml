@@ -44,7 +44,7 @@ jobs:
           mv js/ dist/js/
           mv README.md dist/
           mv manifest.json dist/
-          mv options.html dist/
+          mv popup.html dist/
           git rm -r --cached .
           mv dist/* ../*
           rm -rf dist
