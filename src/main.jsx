@@ -9,16 +9,19 @@ import {
   Route,
 } from "react-router-dom";
 import Watch from './components/watch/index'
-import ErrorPage from "./error-page";
+import ErrorPage from "./components/error/error-page";
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/index.html",
     element: <App />,
-    errorElement: <ErrorPage />,
   },
   {
-    path: "/dist/watch",
+    path: "/",
+    element: <App />,
+  },
+  {
+    path: "/watch",
     element: <Watch />,
   }
 ]);
@@ -26,8 +29,7 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <MainContextProvider>
-      <App />
-      {/* <RouterProvider router={router} /> */}
+      <RouterProvider router={router} />
     </MainContextProvider>
   </React.StrictMode>
 )

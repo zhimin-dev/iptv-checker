@@ -26,7 +26,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const nowVersion = "v2.3"
+const nowVersion = "v2.4"
 
 const githubLink = "https://github.com/zhimin-dev/iptv-checker"
 const copyright = "@知敏studio"
