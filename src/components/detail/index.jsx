@@ -36,6 +36,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PreviewIcon from '@mui/icons-material/Preview';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { redirect } from "react-router-dom";
 
 const HeaderFixedHeight = 152
 
@@ -276,8 +277,7 @@ export default function Detail() {
   }
 
   const watchThisRow = (val) => {
-    window.history.pushState({}, '', "?original=" + encodeURIComponent(val.raw))
-    _mainContext.goToWatchPage()
+    window.open("/watch?original="+encodeURIComponent(val.raw) )
   }
 
   const goback = () => {
@@ -323,7 +323,7 @@ export default function Detail() {
                 <Box sx={{
                   marginBottom: "5px",
                   display: 'flex',
-                  alignItems: 'center'
+                  alignItems: 'flex-end'
                 }}>
                   <FormControl sx={{ marginRight: '5px' }}>
                     <TextField
@@ -331,6 +331,7 @@ export default function Detail() {
                       value={searchTitle}
                       onChange={handleChangeSearchTitle}
                       label="筛选喜爱的电视名称"
+                      variant="standard"
                     />
                   </FormControl>
                   <FormControl sx={{ marginRight: '5px' }}>
@@ -499,7 +500,7 @@ export default function Detail() {
                 <TableCell component="th" scope="row">
                   {
                     _mainContext.handleMod !== 1 ? (
-                      <Button onClick={() => deleteThisRow(row)} startIcon={<DeleteOutlineIcon />}>删除</Button>
+                      <Button onClick={() => deleteThisRow(index)} startIcon={<DeleteOutlineIcon />}>删除</Button>
                     ) : ''
                   }
                   <Button onClick={() => watchThisRow(row)} startIcon={<PreviewIcon />}>在线观看</Button>

@@ -4,14 +4,13 @@ import App from './App'
 import './index.css'
 import {MainContextProvider} from './context/main'
 import {
-  createBrowserRouter,
   RouterProvider,
-  Route,
+  createHashRouter,
 } from "react-router-dom";
 import Watch from './components/watch/index'
 import ErrorPage from "./components/error/error-page";
 
-const router = createBrowserRouter([
+const router = createHashRouter([
   {
     path: "/index.html",
     element: <App />,
