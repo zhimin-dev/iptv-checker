@@ -36,16 +36,9 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import PreviewIcon from '@mui/icons-material/Preview';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { redirect } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 const HeaderFixedHeight = 152
-
-const searchTitleCss = {
-  fontSize: '11px',
-  color: "#7d7a7a",
-  marginBottom: '4px',
-  marginRight: '10px'
-}
 
 function SimpleDialog(props) {
   const _mainContext = useContext(MainContext);
@@ -173,6 +166,7 @@ const ListItem = styled('li')(({ theme }) => ({
 export default function Detail() {
   const _mainContext = useContext(MainContext);
 
+  const navigate = useNavigate();
   const [searchTitle, setSearchTitle] = useState('')
   const [chipData, setChipData] = useState([]);
   const [selectedArr, setSelectedArr] = useState([])
@@ -277,7 +271,13 @@ export default function Detail() {
   }
 
   const watchThisRow = (val) => {
-    window.open("/watch?original="+encodeURIComponent(val.raw) )
+    let query = {}
+    if (val !== null) {
+      query.original = encodeURIComponent(val.raw)
+    }
+    navigate("/watch", {
+      state: query,
+    })
   }
 
   const goback = () => {
@@ -318,19 +318,19 @@ export default function Detail() {
               </FormControl>
             </Box>
             <Box sx={{ display: "flex" }}>
-              <Box sx={searchTitleCss}>搜索</Box>
               <Box>
-                <Box sx={{
+                <Box component="form"
+                 sx={{
                   marginBottom: "5px",
                   display: 'flex',
                   alignItems: 'flex-end'
                 }}>
                   <FormControl sx={{ marginRight: '5px' }}>
                     <TextField
-                      size="small"
+                      id="outlined-name"
                       value={searchTitle}
                       onChange={handleChangeSearchTitle}
-                      label="筛选喜爱的电视名称"
+                      label="搜索"
                       variant="standard"
                     />
                   </FormControl>

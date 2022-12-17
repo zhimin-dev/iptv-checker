@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useContext, useState, createContext, useEffect } from "react"
+import { useEffect } from "react"
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
@@ -16,7 +16,7 @@ import CountryJson from './../../assets/api/country.json'
 import WatchJson from './../../assets/api/watch.json'
 import Button from '@mui/material/Button';
 import ParseM3u from './../../context/utils'
-import {useNavigate,redirect} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const ModIHaveM3uLink = 1
 const ModIHaveM3uContent = 2
@@ -131,8 +131,8 @@ export default function HorizontalLinearStepper() {
 
   const goToWatchPage = async (val) => {
     let query = {}
-    if(val !== null) {
-      query.original  = encodeURIComponent(val.raw)
+    if (val !== null) {
+      query.original = encodeURIComponent(val.raw)
     }
     navigate("/watch", {
       state: query,
@@ -207,10 +207,10 @@ export default function HorizontalLinearStepper() {
         {
           mod === ModWatchOnline ? (
             <Box>
-              <Button variant="contained" sx={{margin: "5px"}} onClick={() => goToWatchPage(null)}>我有直播源m3u8地址</Button>
+              <Button variant="contained" sx={{ margin: "5px" }} onClick={() => goToWatchPage(null)}>我有直播源m3u8地址</Button>
               {
                 watchList.map((value, index) => (
-                  <Button variant="outlined" sx={{margin: "5px"}} onClick={() => goToWatchPage(value)} key={index}>{value.name}</Button>
+                  <Button variant="outlined" sx={{ margin: "5px" }} onClick={() => goToWatchPage(value)} key={index}>{value.name}</Button>
                 ))
               }
             </Box>

@@ -4,8 +4,7 @@
   "version": "2.5.0",
   "manifest_version": 3,
   "permissions": [
-    "webRequest",
-    "webRequestBlocking"
+    "webRequest"
   ],
   "content_scripts": [
 		{
