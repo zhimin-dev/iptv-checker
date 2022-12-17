@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useContext, useState, createContext, useEffect } from "react"
+import { useContext, useState, useEffect, useRef } from "react"
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
@@ -11,12 +11,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
-import PropTypes from 'prop-types';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import VideoSettingsIcon from '@mui/icons-material/VideoSettings';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import ParseM3u from './../../context/utils'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useLocation } from 'react-router-dom';
+
 
 const theme = createTheme({
     palette: {
@@ -30,43 +30,59 @@ const theme = createTheme({
 
 export default function Watch() {
     const _mainContext = useContext(MainContext);
-
+    const location = useLocation();
     const [name, setName] = useState('')
     const [logoUrl, setLogoUrl] = useState('')
     const [m3u8Link, setM3u8Link] = useState('')
-    const [loading, setLoading] = useState(false)
     const [open, setOpen] = useState(false)
+    const [hlsObj, setHlsObj] = useState(null)
     const [isPlaying, setIsPlaying] = useState(false)
     const [videoInstance, setVideoInstance] = useState(null)
     const [httpHeaders, setHttpHeaders] = useState([])
     const [videoStyle, setVideoStyle] = useState({
-        width: '550px',
-        height: '300px'
+        width: '768px',
+        height: '576px'
     })
 
+    const renderRef = useRef(true);
+
     useEffect(() => {
-        let params = new URLSearchParams(window.location.search)
-        let original = decodeURIComponent(params.get("original"))
-        let parseData = ParseM3u.parseOneM3uData(original)
-        if (parseData && parseData.exist) {
-            setName(parseData.name)
-            setLogoUrl(parseData.logoUrl)
-            setM3u8Link(parseData.url)
-            setHttpHeaders(parseData.copt)
+        let originalParams = location.state.original
+        if (originalParams === null || originalParams === undefined) {
+            setOpen(true)
+        } else {
+            let original = decodeURIComponent(originalParams)
+            let parseData = ParseM3u.parseOneM3uData(original)
+            if (parseData && parseData.exist) {
+                setName(parseData.name)
+                setLogoUrl(parseData.logoUrl)
+                setM3u8Link(parseData.url)
+                setHttpHeaders(parseData.copt)
+            } else {
+                setOpen(true)
+            }
         }
+
+        window.addEventListener("popstate", function (e) {
+            console.log("click back,开始准备销毁视频播放信息")
+            destroyVideo()
+            console.log("click back,开始准备销毁视频播放信息-finished")
+
+            return false
+        }, false);
     }, [])
 
     const changeM3u8Link = (e) => {
         setM3u8Link(e.target.value)
-        setLoading(false)
     }
 
     const handleClose = () => {
-        setOpen(false);
+        if (m3u8Link !== '') {
+            setOpen(false);
+        }
     };
 
     const onloadM3u8Link = () => {
-        setLoading(true)
         let video = document.getElementById('video')
         if (Hls.isSupported()) {
             var config = {
@@ -103,15 +119,13 @@ export default function Watch() {
                 // })
                 console.log("video width", e.target.videoWidth + 'px', " height ", e.target.videoHeight + 'px')
             }, false);
+            setHlsObj(hls)
         } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
             video.src = videoSrc;
         }
         video.play();
         setVideoInstance(video)
         setIsPlaying(true)
-        video.addEventListener("canplay", e => {
-            setLoading(false)
-        })
         video.addEventListener('error', function (e) {
             alert(e.message)
             setIsPlaying(false)
@@ -123,12 +137,17 @@ export default function Watch() {
     }
 
     const destroyVideo = () => {
+        if (hlsObj) {
+            hlsObj.stopLoad()
+        }
         if (videoInstance) {
+            video.src = ""
             videoInstance.pause()
             videoInstance.removeAttribute('src');
             videoInstance.load();
             console.log("destroyVideo")
         }
+        setIsPlaying(false)
     }
 
     const onChangeHttpHeaderKey = (val, index, e) => {
@@ -169,7 +188,7 @@ export default function Watch() {
                 <DialogTitle>设置</DialogTitle>
                 <Box>
                     <FormControl sx={{ width: 550, margin: '10px' }}>
-                        <TextField sx={{ fontSize: '11px' }} label='您所选择的m3u信息' size="small" id="standard-multiline-static" value={m3u8Link} onChange={changeM3u8Link} />
+                        <TextField sx={{ fontSize: '11px' }} label='请输入m3u8播放地址' size="small" id="standard-multiline-static" value={m3u8Link} onChange={changeM3u8Link} />
                     </FormControl>
                 </Box>
                 <Box>
@@ -180,7 +199,7 @@ export default function Watch() {
                                 onClick={addNewHttpHeader}
                                 variant="contained"
                             >
-                                添加http Header
+                                + http Header
                             </Button>
                         </Box>
                         {
@@ -199,19 +218,10 @@ export default function Watch() {
                 <FormControl sx={{ margin: '10px' }}>
                     <LoadingButton
                         size="small"
-                        onClick={goback}
-                        startIcon={<ArrowBackIcon />}
-                    >
-                        返回
-                    </LoadingButton>
-                </FormControl>
-                <FormControl sx={{ margin: '10px' }}>
-                    <LoadingButton
-                        size="small"
                         onClick={showDialog}
                         startIcon={<VideoSettingsIcon />}
                     >
-                        设置
+                        播放设置
                     </LoadingButton>
                 </FormControl>
             </Box>
@@ -232,7 +242,6 @@ export default function Watch() {
                                 size="small"
                                 onClick={onloadM3u8Link}
                                 variant="contained"
-                                loading={loading}
                                 color="canplayColor"
                                 startIcon={<PlayCircleOutlineIcon />}
                             >
