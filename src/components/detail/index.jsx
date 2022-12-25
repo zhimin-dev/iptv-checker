@@ -40,6 +40,260 @@ import { useNavigate } from 'react-router-dom';
 
 const HeaderFixedHeight = 152
 
+function Setting(props) {
+
+  const { setSelectedArr } = props;
+  const [searchTitle, setSearchTitle] = useState('')
+  const [chipData, setChipData] = useState([]);
+  const [dialogMod, setDialogMod] = useState(1);
+  const handleDeleteChip = (chipToDelete) => () => {
+    setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
+  }
+  const _mainContext = useContext(MainContext);
+
+  const goback = () => {
+    _mainContext.goToWelcomeScene()
+  }
+
+  const handleChangeSearchTitle = (e) => {
+    setSearchTitle(e.target.value)
+  }
+
+  const addNewSearchFilter = () => {
+    if (searchTitle === '') {
+      return
+    }
+    let isHit = false
+    for (let i = 0; i < chipData.length; i++) {
+      if (chipData[i] === searchTitle) {
+        isHit = true
+      }
+    }
+    if (!isHit) {
+      setChipData([...chipData, searchTitle])
+    }
+    setSearchTitle("")
+  }
+
+  const doFilter = () => {
+    _mainContext.filterM3u(chipData)
+  }
+
+  const doCheckUrlIsValid = () => {
+    _mainContext.onCheckTheseLinkIsAvailable()
+  }
+  const exportValidM3uData = () => {
+    _mainContext.onExportValidM3uData()
+    setDialogMod(1)
+    setOpen(true);
+  }
+  const showOriginalM3uBodyInfo = () => {
+    _mainContext.changeDialogBodyData()
+    setDialogMod(2)
+    setOpen(true);
+  }
+
+  const showSetting = () => {
+    setDialogMod(3)
+    setOpen(true);
+  }
+
+  const [open, setOpen] = useState(false);
+
+  const handleClose = (value) => {
+    setOpen(false);
+  };
+
+
+  const autoSelectedAvailablesUrl = () => {
+    let ids = _mainContext.getAvailableOrNotAvailableIndex(1)
+    setSelectedArr(ids)
+  }
+
+  const autoSelectedInAvailablesUrl = () => {
+    let ids = _mainContext.getAvailableOrNotAvailableIndex(2)
+    setSelectedArr(ids)
+  }
+
+  return (
+    <Box sx={{
+      position: 'fixed',
+      backgroundColor: '#fff',
+      width: '100%',
+      height: HeaderFixedHeight + "px",
+      borderBottom: '1px solid #eee',
+      top: 0,
+      left: 0,
+      zIndex: 999,
+      padding: '8px'
+    }}>
+      <SimpleDialog
+        open={open}
+        onClose={handleClose}
+        body={_mainContext.dialogBody}
+        mod={dialogMod}
+      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Box sx={{ maxWidth: "500px" }}>
+          <Box sx={{ marginBottom: '10px' }}>
+            <FormControl sx={{ marginRight: '5px' }}>
+              <LoadingButton
+                size="small"
+                onClick={goback}
+                startIcon={<ArrowBackIcon />}
+              >
+                返回
+              </LoadingButton>
+            </FormControl>
+            <FormControl sx={{ marginRight: '5px' }}>
+              {
+                _mainContext.handleMod === 1 ? (
+                  <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
+                ) : ''
+              }
+            </FormControl>
+          </Box>
+          <Box sx={{ display: "flex" }}>
+            <Box>
+              <Box component="form"
+                sx={{
+                  marginBottom: "5px",
+                  display: 'flex',
+                  alignItems: 'flex-end'
+                }}>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <TextField
+                    id="outlined-name"
+                    value={searchTitle}
+                    onChange={handleChangeSearchTitle}
+                    label="搜索"
+                    variant="standard"
+                  />
+                </FormControl>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <LoadingButton
+                    size="small"
+                    onClick={addNewSearchFilter}
+                    variant="outlined"
+                    startIcon={<AddCircleOutlineIcon />}
+                  >
+                    添加
+                  </LoadingButton>
+                </FormControl>
+                <FormControl sx={{ marginRight: '5px' }}>
+                  <LoadingButton
+                    size="small"
+                    onClick={doFilter}
+                    variant="contained"
+                    color="success"
+                    startIcon={<SearchIcon />}
+                  >
+                    搜索
+                  </LoadingButton>
+                </FormControl>
+              </Box>
+              <Box>
+                {chipData.map((value, index) => {
+                  return (
+                    <ListItem key={index}>
+                      <Chip
+                        label={value}
+                        size="small"
+                        onDelete={handleDeleteChip(index)}
+                      />
+                    </ListItem>
+                  );
+                })}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+        <Box sx={{ paddingRight: "20px" }}>
+          <FormControl sx={{ marginRight: '5px' }}>
+            <LoadingButton
+              size="small"
+              onClick={showSetting}
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+            >
+              设置
+            </LoadingButton>
+          </FormControl>
+        </Box>
+      </Box>
+      <Box sx={{ marginTop: "5px" }}>
+        <FormControl sx={{ marginRight: '5px' }}>
+          <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">显示原始m3u信息</Button>
+        </FormControl>
+        {
+          _mainContext.handleMod === 0 ? (
+            <FormControl sx={{
+              marginRight: "5px",
+            }}>
+              <LoadingButton
+                size="small"
+                onClick={doCheckUrlIsValid}
+                variant="outlined"
+                startIcon={<RadioButtonUncheckedIcon />}
+              >
+                检查直播源链接是否有效
+              </LoadingButton>
+            </FormControl>
+          ) : ''
+        }
+        {
+          _mainContext.handleMod === 2 ? (
+            <FormControl sx={{
+              marginRight: "5px",
+            }}>
+              <LoadingButton
+                size="small"
+                onClick={autoSelectedAvailablesUrl}
+                variant="contained"
+                startIcon={<CheckCircleOutlineIcon />}
+              >
+                获取有效链接
+              </LoadingButton>
+            </FormControl>
+          ) : ''
+        }
+        {
+          _mainContext.handleMod === 2 ? (
+            <FormControl sx={{
+              marginRight: "5px",
+            }}>
+              <LoadingButton
+                size="small"
+                onClick={autoSelectedInAvailablesUrl}
+                variant="outlined"
+                startIcon={<ErrorOutlineIcon />}
+              >
+                获取无效链接
+              </LoadingButton>
+            </FormControl>
+          ) : ''
+        }
+        {
+          _mainContext.handleMod === 2 ? (
+            <FormControl sx={{
+              marginRight: "5px",
+            }}>
+              <LoadingButton
+                size="small"
+                onClick={exportValidM3uData}
+                variant="contained"
+                startIcon={<ExitToAppIcon />}
+              >
+                导出选中的链接
+              </LoadingButton>
+            </FormControl>
+          ) : ''
+        }
+      </Box>
+    </Box>
+  )
+}
+
 function SimpleDialog(props) {
   const _mainContext = useContext(MainContext);
 
@@ -167,72 +421,10 @@ export default function Detail() {
   const _mainContext = useContext(MainContext);
 
   const navigate = useNavigate();
-  const [searchTitle, setSearchTitle] = useState('')
-  const [chipData, setChipData] = useState([]);
   const [selectedArr, setSelectedArr] = useState([])
-  const [open, setOpen] = useState(false);
-  const [dialogMod, setDialogMod] = useState(1);
-
-  const handleClose = (value) => {
-    setOpen(false);
-  };
-
-  const handleDeleteChip = (chipToDelete) => () => {
-    setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
-  }
-
-  const autoSelectedAvailablesUrl = () => {
-    let ids = _mainContext.getAvailableOrNotAvailableIndex(1)
-    setSelectedArr(ids)
-  }
-
-  const autoSelectedInAvailablesUrl = () => {
-    let ids = _mainContext.getAvailableOrNotAvailableIndex(2)
-    setSelectedArr(ids)
-  }
-
-  const handleChangeSearchTitle = (e) => {
-    setSearchTitle(e.target.value)
-  }
-
-  const addNewSearchFilter = () => {
-    if (searchTitle === '') {
-      return
-    }
-    let isHit = false
-    for (let i = 0; i < chipData.length; i++) {
-      if (chipData[i] === searchTitle) {
-        isHit = true
-      }
-    }
-    if (!isHit) {
-      setChipData([...chipData, searchTitle])
-    }
-    setSearchTitle("")
-  }
-
-  const doFilter = () => {
-    _mainContext.filterM3u(chipData)
-  }
-
-  const doCheckUrlIsValid = () => {
-    _mainContext.onCheckTheseLinkIsAvailable()
-  }
 
   const deleteThisRow = (index) => {
     _mainContext.deleteShowM3uRow(index)
-  }
-
-  const exportValidM3uData = () => {
-    _mainContext.onExportValidM3uData()
-    setDialogMod(1)
-    setOpen(true);
-  }
-
-  const showOriginalM3uBodyInfo = () => {
-    _mainContext.changeDialogBodyData()
-    setDialogMod(2)
-    setOpen(true);
   }
 
   const handleSelectCheckedAll = () => {
@@ -248,11 +440,6 @@ export default function Detail() {
     }
     _mainContext.onSelectedOrNotAll(mod)
     setSelectedArr(temp)
-  }
-
-  const showSetting = () => {
-    setDialogMod(3)
-    setOpen(true);
   }
 
   const onSelectedThisRow = (index) => {
@@ -280,187 +467,9 @@ export default function Detail() {
     })
   }
 
-  const goback = () => {
-    _mainContext.goToWelcomeScene()
-  }
-
   return (
     <Box>
-      <Box sx={{
-        position: 'fixed',
-        backgroundColor: '#fff',
-        width: '100%',
-        height: HeaderFixedHeight + "px",
-        borderBottom: '1px solid #eee',
-        top: 0,
-        left: 0,
-        zIndex: 999,
-        padding: '8px'
-      }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ maxWidth: "500px" }}>
-            <Box sx={{ marginBottom: '10px' }}>
-              <FormControl sx={{ marginRight: '5px' }}>
-                <LoadingButton
-                  size="small"
-                  onClick={goback}
-                  startIcon={<ArrowBackIcon />}
-                >
-                  返回
-                </LoadingButton>
-              </FormControl>
-              <FormControl sx={{ marginRight: '5px' }}>
-                {
-                  _mainContext.handleMod === 1 ? (
-                    <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
-                  ) : ''
-                }
-              </FormControl>
-            </Box>
-            <Box sx={{ display: "flex" }}>
-              <Box>
-                <Box component="form"
-                 sx={{
-                  marginBottom: "5px",
-                  display: 'flex',
-                  alignItems: 'flex-end'
-                }}>
-                  <FormControl sx={{ marginRight: '5px' }}>
-                    <TextField
-                      id="outlined-name"
-                      value={searchTitle}
-                      onChange={handleChangeSearchTitle}
-                      label="搜索"
-                      variant="standard"
-                    />
-                  </FormControl>
-                  <FormControl sx={{ marginRight: '5px' }}>
-                    <LoadingButton
-                      size="small"
-                      onClick={addNewSearchFilter}
-                      variant="outlined"
-                      startIcon={<AddCircleOutlineIcon />}
-                    >
-                      添加
-                    </LoadingButton>
-                  </FormControl>
-                  <FormControl sx={{ marginRight: '5px' }}>
-                    <LoadingButton
-                      size="small"
-                      onClick={doFilter}
-                      variant="contained"
-                      color="success"
-                      startIcon={<SearchIcon />}
-                    >
-                      搜索
-                    </LoadingButton>
-                  </FormControl>
-                </Box>
-                <Box>
-                  {chipData.map((value, index) => {
-                    return (
-                      <ListItem key={index}>
-                        <Chip
-                          label={value}
-                          size="small"
-                          onDelete={handleDeleteChip(index)}
-                        />
-                      </ListItem>
-                    );
-                  })}
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-          <Box sx={{ paddingRight: "20px" }}>
-            <FormControl sx={{ marginRight: '5px' }}>
-              <LoadingButton
-                size="small"
-                onClick={showSetting}
-                variant="outlined"
-                startIcon={<SettingsIcon />}
-              >
-                设置
-              </LoadingButton>
-            </FormControl>
-          </Box>
-        </Box>
-        <Box sx={{ marginTop: "5px" }}>
-          <FormControl sx={{ marginRight: '5px' }}>
-            <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">显示原始m3u信息</Button>
-          </FormControl>
-          {
-            _mainContext.handleMod === 0 ? (
-              <FormControl sx={{
-                marginRight: "5px",
-              }}>
-                <LoadingButton
-                  size="small"
-                  onClick={doCheckUrlIsValid}
-                  variant="outlined"
-                  startIcon={<RadioButtonUncheckedIcon />}
-                >
-                  检查直播源链接是否有效
-                </LoadingButton>
-              </FormControl>
-            ) : ''
-          }
-          {
-            _mainContext.handleMod === 2 ? (
-              <FormControl sx={{
-                marginRight: "5px",
-              }}>
-                <LoadingButton
-                  size="small"
-                  onClick={autoSelectedAvailablesUrl}
-                  variant="contained"
-                  startIcon={<CheckCircleOutlineIcon />}
-                >
-                  获取有效链接
-                </LoadingButton>
-              </FormControl>
-            ) : ''
-          }
-          {
-            _mainContext.handleMod === 2 ? (
-              <FormControl sx={{
-                marginRight: "5px",
-              }}>
-                <LoadingButton
-                  size="small"
-                  onClick={autoSelectedInAvailablesUrl}
-                  variant="outlined"
-                  startIcon={<ErrorOutlineIcon />}
-                >
-                  获取无效链接
-                </LoadingButton>
-              </FormControl>
-            ) : ''
-          }
-          {
-            _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
-              <FormControl sx={{
-                marginRight: "5px",
-              }}>
-                <LoadingButton
-                  size="small"
-                  onClick={exportValidM3uData}
-                  variant="contained"
-                  startIcon={<ExitToAppIcon />}
-                >
-                  导出选中的链接
-                </LoadingButton>
-              </FormControl>
-            ) : ''
-          }
-        </Box>
-      </Box>
-      <SimpleDialog
-        open={open}
-        onClose={handleClose}
-        body={_mainContext.dialogBody}
-        mod={dialogMod}
-      />
+      <Setting setSelectedArr={setSelectedArr}></Setting>
       <TableContainer component={Paper} sx={{ marginTop: (HeaderFixedHeight + 10) + "px" }}>
         <Table sx={{ maxWidth: 650 }} aria-label="a dense table">
           <TableHead>
