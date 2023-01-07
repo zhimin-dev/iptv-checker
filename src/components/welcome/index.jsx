@@ -17,6 +17,7 @@ import WatchJson from './../../assets/api/watch.json'
 import Button from '@mui/material/Button';
 import ParseM3u from './../../context/utils'
 import { useNavigate } from 'react-router-dom';
+import manifest from './../../../manifest';
 
 const ModIHaveM3uLink = 1
 const ModIHaveM3uContent = 2
@@ -34,9 +35,9 @@ const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const nowVersion = "v2.6"
+const nowVersion = manifest.version;
 
-const githubLink = "https://github.com/zhimin-dev/iptv-checker"
+const githubLink = manifest.homepage_url
 const copyright = "@知敏studio"
 
 const boxMaxWith = 600
@@ -55,7 +56,7 @@ export default function HorizontalLinearStepper() {
   const [commonLinks, setCommonLink] = React.useState([]);
   const [mod, setMod] = React.useState(ModIHaveM3uLink);
   const [body, setBody] = React.useState('');
-  const [selectedUrl, setSelectedUrl] = React.useState('');
+  const [selectedUrl, setSelectedUrl] = React.useState([]);
   const [customUrl, setCustomUrl] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState('')
@@ -96,20 +97,24 @@ export default function HorizontalLinearStepper() {
     setLoading(true);
     try {
       if (mod === ModPublicSource || mod === ModIHaveM3uLink) {
-        let targetUrl = customUrl
+        let targetUrl = [];
+        if(customUrl !== '') {
+          targetUrl = customUrl.split(",")
+        }
         if (mod === ModPublicSource) {
           targetUrl = selectedUrl
         }
-        if (targetUrl === '') {
+        if (targetUrl.length == 0) {
           throw new Error('链接为空')
         }
-        let res = await axios.get(targetUrl)
-        if (res.status === 200) {
-          setBody(res.data)
-          _mainContext.changeOriginalM3uBody(res.data)
-        } else {
-          throw new Error('请求失败')
+        let bodies = []
+        for (let i = 0;i<targetUrl.length;i++) {
+          let res = await axios.get(targetUrl[i])
+          if (res.status === 200) {
+            bodies.push(res.data)
+          }
         }
+        _mainContext.changeOriginalM3uBodies(bodies)
       } else if (mod === ModIHaveM3uContent) {
         if (body !== '') {
           _mainContext.changeOriginalM3uBody(body)
@@ -177,6 +182,7 @@ export default function HorizontalLinearStepper() {
               <Select
                 labelId="demo-simple-select-label"
                 id="demo-simple-select"
+                multiple
                 value={selectedUrl}
                 label="country"
                 onChange={handleSelectedCountry}
