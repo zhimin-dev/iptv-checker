@@ -199,14 +199,14 @@ export default function HorizontalLinearStepper() {
         {
           mod === ModIHaveM3uContent ? (
             <FormControl sx={{ width: boxMaxWith }} variant="standard">
-              <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} />
+              <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} placeholder='支持标准m3u文件格式以及文件内容为多行的[名称,url]的内容格式' />
             </FormControl>
           ) : ''
         }
         {
           mod === ModIHaveM3uLink ? (
             <FormControl sx={{ width: boxMaxWith }} variant="standard">
-              <TextField multiline id="standard-multiline-static" rows={4} value={customUrl} onChange={handleChangeTextSelectedUrl} />
+              <TextField multiline id="standard-multiline-static" placeholder='多个链接请用英文逗号","分隔,支持标准m3u链接以及文件内容为多行的[名称,url]的链接地址格式' rows={4} value={customUrl} onChange={handleChangeTextSelectedUrl} />
             </FormControl>
           ) : ''
         }
