@@ -59,10 +59,58 @@ const ParseM3u = {
                 rows[i][0]
             )) !== null
         }
-        if (resultList.length === 0) {
-            throw new Error("未成功解析到数据，请检查输入")
+        if(resultList.length === 0) {
+            return ParseM3u.parseQuoteFormat(originalM3uBody)
         }
         return resultList
+    },
+    parseQuoteFormat(body) {
+        let rows = []
+        let arr = body.split("\n")
+        for(var i = 0; i < arr.length; i++) {
+            if(arr[i] !== "") {
+                let item = arr[i].split(",")
+                if(item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
+                    rows.push({
+                        index: i,
+                        url: item[1],
+                        groupTitle: "",
+                        tvgLogo: "",
+                        tvgLanguage: "",
+                        tvgCountry: "",
+                        tvgId: "",
+                        status: 0,
+                        name: item[0],
+                        sName: item[0].toLowerCase(),
+                        originalData: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
+                        checked: false,
+                        raw: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
+                    })
+                }
+            }
+        }
+        if(rows.length === 0) {
+            throw new Error("未成功解析到数据，请检查输入")
+        }
+        return rows
+    },
+    checkStrIsLink(_str) {
+        const regex = /(http|https):\/\/([\w.]+\/?)\S*/;
+
+        // Alternative syntax using RegExp constructor
+        // const regex = new RegExp('(http|https):\\/\\/([\\w.]+\\/?)\\S*', '')
+        let m = [];
+        
+        if ((m = regex.exec(_str)) !== null) {
+            // The result can be accessed through the `m`-variable.
+            m.forEach((match, groupIndex) => {
+                m.push(match)
+            });
+        }
+        if(m!== null && m.length > 0) {
+            return true
+        }
+        return false
     },
     parseRowToData(index, one, two, raw) {
         const row = {

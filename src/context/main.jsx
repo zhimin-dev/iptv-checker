@@ -44,7 +44,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const deleteShowM3uRow = (index) => {
-        setShowM3uBody(prev => prev.filter((_, i) => i !== index))
+        setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
     }
 
     const changeHttpRequestTimeout = (timeout) => {
@@ -76,6 +76,20 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBody = (body) => {
         setOriginalM3uBody(body);
         setShowM3uBody(ParseM3u.parseOriginalBodyToList(body))
+    }
+
+    const changeOriginalM3uBodies = (bodies) => {
+        let res = []
+        let bodyStr = ''
+        for(let i = 0;i<bodies.length;i++) {
+            bodyStr += bodies[i] + "\n"
+            let one = ParseM3u.parseOriginalBodyToList(bodies[i])
+            for(let j = 0;j<one.length;j++) {
+                res.push(one[j])
+            }
+        }
+        setShowM3uBody(res)
+        setOriginalM3uBody(bodyStr);
     }
 
     const deepCopyJson = (obj) => {
@@ -207,7 +221,8 @@ export const MainContextProvider = function ({ children }) {
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout, showUrl,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene
+            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
+            changeOriginalM3uBodies,
         }}>
             {children}
         </MainContext.Provider>

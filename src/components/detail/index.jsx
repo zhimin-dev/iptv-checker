@@ -42,7 +42,7 @@ const HeaderFixedHeight = 152
 
 function Setting(props) {
 
-  const { setSelectedArr } = props;
+  const { setSelectedArr,selectedArr } = props;
   const [searchTitle, setSearchTitle] = useState('')
   const [chipData, setChipData] = useState([]);
   const [dialogMod, setDialogMod] = useState(1);
@@ -82,11 +82,13 @@ function Setting(props) {
   const doCheckUrlIsValid = () => {
     _mainContext.onCheckTheseLinkIsAvailable()
   }
+
   const exportValidM3uData = () => {
     _mainContext.onExportValidM3uData()
     setDialogMod(1)
     setOpen(true);
   }
+  
   const showOriginalM3uBodyInfo = () => {
     _mainContext.changeDialogBodyData()
     setDialogMod(2)
@@ -274,7 +276,7 @@ function Setting(props) {
           ) : ''
         }
         {
-          _mainContext.handleMod === 2 ? (
+          _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
             <FormControl sx={{
               marginRight: "5px",
             }}>
@@ -424,6 +426,13 @@ export default function Detail() {
   const [selectedArr, setSelectedArr] = useState([])
 
   const deleteThisRow = (index) => {
+    let row = []
+    for(let i = 0;i<selectedArr.length;i++) {
+      if(selectedArr[i] !== index) {
+        row.push(selectedArr[i]);
+      }
+    }
+    setSelectedArr(row)
     _mainContext.deleteShowM3uRow(index)
   }
 
@@ -469,7 +478,7 @@ export default function Detail() {
 
   return (
     <Box>
-      <Setting setSelectedArr={setSelectedArr}></Setting>
+      <Setting setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
       <TableContainer component={Paper} sx={{ marginTop: (HeaderFixedHeight + 10) + "px" }}>
         <Table sx={{ maxWidth: 650 }} aria-label="a dense table">
           <TableHead>
@@ -500,7 +509,7 @@ export default function Detail() {
                   <Checkbox
                     color="primary"
                     checked={row.checked}
-                    onClick={() => onSelectedThisRow(index)}
+                    onClick={() => onSelectedThisRow(row.index)}
                     inputProps={{
                       'aria-labelledby': row.index,
                     }}
@@ -509,7 +518,7 @@ export default function Detail() {
                 <TableCell component="th" scope="row">
                   {
                     _mainContext.handleMod !== 1 ? (
-                      <Button onClick={() => deleteThisRow(index)} startIcon={<DeleteOutlineIcon />}>删除</Button>
+                      <Button onClick={() => deleteThisRow(row.index)} startIcon={<DeleteOutlineIcon />}>删除</Button>
                     ) : ''
                   }
                   <Button onClick={() => watchThisRow(row)} startIcon={<PreviewIcon />}>在线观看</Button>
