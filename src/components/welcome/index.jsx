@@ -18,11 +18,15 @@ import Button from '@mui/material/Button';
 import ParseM3u from './../../context/utils'
 import { useNavigate } from 'react-router-dom';
 import manifest from './../../../manifest';
+import LogoSvg from './../../assets/iptv-checker.svg'
+import PropTypes from 'prop-types';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
-const ModIHaveM3uLink = 1
-const ModIHaveM3uContent = 2
-const ModPublicSource = 3
-const ModWatchOnline = 4
+const ModIHaveM3uLink = 0
+const ModIHaveM3uContent = 1
+const ModPublicSource = 2
+const ModWatchOnline = 3
 
 const selectOption = [
   { 'mod': ModIHaveM3uLink, "name": "我有m3u订阅源链接" },
@@ -38,7 +42,7 @@ const Alert = React.forwardRef(function Alert(props, ref) {
 const nowVersion = manifest.version;
 
 const githubLink = manifest.homepage_url
-const copyright = "@知敏studio"
+const copyright = manifest.author
 
 const boxMaxWith = 600
 
@@ -47,7 +51,34 @@ const oneFrame = {
   width: boxMaxWith + "px",
   display: 'flex',
   justifyContent: 'flex-end',
+  flexDirection: 'column'
 }
+
+function TabPanel(props) {
+  const { children, mod, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={mod !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {mod === index && (
+        <Box style={{ marginTop: "2px" }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  mod: PropTypes.number.isRequired,
+};
 
 export default function HorizontalLinearStepper() {
 
@@ -63,18 +94,25 @@ export default function HorizontalLinearStepper() {
   const [showError, setShowError] = React.useState(false)
   const [watchList, setWatchList] = React.useState([])
 
-  const handleChange = (event) => {
-    setMod(event.target.value);
-  };
-
   useEffect(() => {
     fetchCommonLink()
     fetchWatchOnlineData()
   }, [])
 
   const fetchWatchOnlineData = async () => {
-    let _body = decodeURIComponent(atob(WatchJson?.raw))
-    setWatchList(ParseM3u.parseOriginalBodyToList(_body))
+    console.log(WatchJson)
+    let list = []
+    for (let i = 0; i < WatchJson.length; i++) {
+      if (WatchJson[i].raw !== '') {
+        let _body = decodeURIComponent(atob(WatchJson[i].raw))
+        let _data = ParseM3u.parseOriginalBodyToList(_body)
+        list.push({
+          name: WatchJson[i].name,
+          list: _data
+        })
+      }
+    }
+    setWatchList(list)
   }
 
   const fetchCommonLink = async () => {
@@ -98,17 +136,22 @@ export default function HorizontalLinearStepper() {
     try {
       if (mod === ModPublicSource || mod === ModIHaveM3uLink) {
         let targetUrl = [];
-        if(customUrl !== '') {
-          targetUrl = customUrl.split(",")
-        }
         if (mod === ModPublicSource) {
-          targetUrl = selectedUrl
+          for (let i = 0; i < selectedUrl.length; i++) {
+            for (let j = 0; j < selectedUrl[i].length; j++) {
+              targetUrl.push(selectedUrl[i][j])
+            }
+          }
+        } else {
+          if (customUrl !== '') {
+            targetUrl = customUrl.split(",")
+          }
         }
         if (targetUrl.length == 0) {
           throw new Error('链接为空')
         }
         let bodies = []
-        for (let i = 0;i<targetUrl.length;i++) {
+        for (let i = 0; i < targetUrl.length; i++) {
           let res = await axios.get(targetUrl[i])
           if (res.status === 200) {
             bodies.push(res.data)
@@ -144,6 +187,10 @@ export default function HorizontalLinearStepper() {
     })
   }
 
+  const handleTabChange = (event, newValue) => {
+    setMod(newValue);
+  };
+
   return (
     <Box sx={{
       display: 'flex',
@@ -157,92 +204,96 @@ export default function HorizontalLinearStepper() {
           {errorMsg}
         </Alert>
       </Snackbar>
-      <h1>IPTV Checker<span style={{ fontSize: "12px" }}>{nowVersion}</span></h1>
-      <FormControl sx={oneFrame}>
-        <InputLabel id="demo-simple-select-label">请选择模式</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={mod}
-          label="请选择模式"
-          onChange={handleChange}
-        >
-          {
-            selectOption.map((value, index) => (
-              <MenuItem value={value.mod} key={index}>{value.name}</MenuItem>
-            ))
-          }
-        </Select>
-      </FormControl>
+      <img src={LogoSvg} height="70" />
+      <h1 style={{ fontSize: '30px' }}>IPTV Checker<span style={{ fontSize: "12px" }}>{nowVersion}</span></h1>
       <Box sx={oneFrame}>
-        {
-          mod === ModPublicSource ? (
-            <FormControl sx={{ width: boxMaxWith }}>
-              <InputLabel id="demo-simple-select-label" sx={{ width: boxMaxWith + 10 }}>country</InputLabel>
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                multiple
-                value={selectedUrl}
-                label="country"
-                onChange={handleSelectedCountry}
-              >
-                {
-                  commonLinks.map((value, index) => (
-                    <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
-                  ))
-                }
-              </Select>
-            </FormControl>
-          ) : ''
-        }
-        {
-          mod === ModIHaveM3uContent ? (
-            <FormControl sx={{ width: boxMaxWith }} variant="standard">
-              <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} placeholder='支持标准m3u文件格式以及文件内容为多行的[名称,url]的内容格式' />
-            </FormControl>
-          ) : ''
-        }
-        {
-          mod === ModIHaveM3uLink ? (
-            <FormControl sx={{ width: boxMaxWith }} variant="standard">
-              <TextField multiline id="standard-multiline-static" placeholder='多个链接请用英文逗号","分隔,支持标准m3u链接以及文件内容为多行的[名称,url]的链接地址格式' rows={4} value={customUrl} onChange={handleChangeTextSelectedUrl} />
-            </FormControl>
-          ) : ''
-        }
-        {
-          mod === ModWatchOnline ? (
-            <Box>
-              <Button variant="contained" sx={{ margin: "5px" }} onClick={() => goToWatchPage(null)}>我有直播源m3u8地址</Button>
+        <Box >
+          <Tabs value={mod} onChange={handleTabChange} aria-label="basic tabs example">
+            {
+              selectOption.map((value, index) => (
+                <Tab label={value.name} key={index} />
+              ))
+            }
+          </Tabs>
+        </Box>
+        <TabPanel mod={mod} index={ModIHaveM3uLink}>
+          <FormControl sx={{ width: boxMaxWith }} variant="standard">
+            <TextField multiline id="standard-multiline-static" placeholder='多个链接请用英文逗号","分隔,支持标准m3u链接以及文件内容为多行的[名称,url]的链接地址格式' rows={4} value={customUrl} onChange={handleChangeTextSelectedUrl} />
+          </FormControl>
+        </TabPanel>
+        <TabPanel mod={mod} index={ModIHaveM3uContent}>
+          <FormControl sx={{ width: boxMaxWith }} variant="standard">
+            <TextField multiline id="standard-multiline-static" rows={4} value={body} onChange={handleChangeContent} placeholder='支持标准m3u文件格式以及文件内容为多行的[名称,url]的内容格式' />
+          </FormControl>
+        </TabPanel>
+        <TabPanel mod={mod} index={ModPublicSource}>
+          <FormControl sx={{ width: boxMaxWith }}>
+            <InputLabel id="demo-simple-select-label" sx={{ width: boxMaxWith + 10 }}>country</InputLabel>
+            <Select
+              labelId="demo-simple-select-label"
+              id="demo-simple-select"
+              multiple
+              value={selectedUrl}
+              label="country"
+              onChange={handleSelectedCountry}
+            >
               {
-                watchList.map((value, index) => (
-                  <Button variant="outlined" sx={{ margin: "5px" }} onClick={() => goToWatchPage(value)} key={index}>{value.name}</Button>
+                commonLinks.map((value, index) => (
+                  <MenuItem value={value.url} key={index}>{value.country}</MenuItem>
                 ))
               }
+            </Select>
+          </FormControl>
+        </TabPanel>
+        <TabPanel mod={mod} index={ModWatchOnline}>
+          <Box>
+            <Button variant="contained" sx={{ margin: "5px" }} onClick={() => goToWatchPage(null)}>我有直播源m3u8地址</Button>
+            {
+              watchList.map((value, index) => (
+                <Box key={index}>
+                  <div style={{ color: '#b1b1b1' }}>{value.name}</div>
+                  <div style={{ display: "flex" }}>
+                    {
+                      value.list.map((val, ind) => (
+                        <div style={{
+                          margin: '5px',
+                          cursor: 'pointer'
+                        }} onClick={() => goToWatchPage(val)} key={ind}>
+                          {val.name}
+                        </div>
+                      ))
+                    }
+                  </div>
+                </Box>
+              ))
+            }
+          </Box>
+        </TabPanel>
+        {
+          mod !== ModWatchOnline ? (
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: '5px'
+            }}>
+              <LoadingButton
+                size="small"
+                onClick={handleConfirm}
+                loading={loading}
+                variant="contained"
+                startIcon={<CheckIcon />}
+              >
+                确定
+              </LoadingButton>
             </Box>
           ) : ''
         }
       </Box>
-      {
-        mod !== ModWatchOnline ? (
-          <Box sx={oneFrame}>
-            <LoadingButton
-              size="small"
-              onClick={handleConfirm}
-              loading={loading}
-              variant="contained"
-              startIcon={<CheckIcon />}
-            >
-              确定
-            </LoadingButton>
-          </Box>
-        ) : ''
-      }
       <Box sx={{
         position: 'absolute',
         bottom: 0
       }}>
-        <a target="_blank" href={githubLink}>{copyright}</a>
+        <a target="_blank" href={githubLink}>@{copyright}</a>
       </Box>
     </Box>
   );
