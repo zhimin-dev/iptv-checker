@@ -2,13 +2,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './index.css'
-import {MainContextProvider} from './context/main'
+import { MainContextProvider } from './context/main'
 import {
   RouterProvider,
   createHashRouter,
 } from "react-router-dom";
 import Watch from './components/watch/index'
-import ErrorPage from "./components/error/error-page";
 
 const router = createHashRouter([
   {
@@ -26,9 +25,9 @@ const router = createHashRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <MainContextProvider>
-      <RouterProvider router={router} />
-    </MainContextProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <MainContextProvider>
+    <RouterProvider router={router} />
+  </MainContextProvider>
+  // </React.StrictMode>
 )

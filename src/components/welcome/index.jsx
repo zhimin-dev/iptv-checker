@@ -100,7 +100,6 @@ export default function HorizontalLinearStepper() {
   }, [])
 
   const fetchWatchOnlineData = async () => {
-    console.log(WatchJson)
     let list = []
     for (let i = 0; i < WatchJson.length; i++) {
       if (WatchJson[i].raw !== '') {
@@ -204,7 +203,7 @@ export default function HorizontalLinearStepper() {
           {errorMsg}
         </Alert>
       </Snackbar>
-      <img src={LogoSvg} height="70" />
+      <img src={LogoSvg} height="70" style={{backgroundColor:"#fff",borderRadius:'20px'}} />
       <h1 style={{ fontSize: '30px' }}>IPTV Checker<span style={{ fontSize: "12px" }}>{nowVersion}</span></h1>
       <Box sx={oneFrame}>
         <Box >
