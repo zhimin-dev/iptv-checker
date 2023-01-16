@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import { useNavigate } from 'react-router-dom';
 import Setting from './setting';
-import {VirtualizedTable} from './vtable'
+import { VirtualizedTable } from './vtable'
 
 export default function Detail() {
   const _mainContext = useContext(MainContext);
@@ -75,12 +75,11 @@ export default function Detail() {
   return (
     <Box>
       <Setting setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
-                  {
-      <Paper style={{ 
-          height: vTableHeight,
-          marginTop: (_mainContext.headerHeight + 10) + "px",
-          minWidth: '800px'
-       }}>
+      <Paper style={{
+        height: vTableHeight,
+        marginTop: (_mainContext.headerHeight + 10) + "px",
+        minWidth: '800px'
+      }}>
         <VirtualizedTable
           rowCount={_mainContext.showM3uBody.length}
           rowGetter={({ index }) => _mainContext.showM3uBody[index]}

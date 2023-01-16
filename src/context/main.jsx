@@ -14,11 +14,6 @@ export const MainContextProvider = function ({ children }) {
     const [dialogBody, setBialogBody] = useState('')
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
     const [showUrl, setShowUrl] = useState(false)
-    const [isDarkMode, setIsDarkMode] = useState(false)//当前浏览器是否为夜晚模式
-
-    // useEffect(() => {
-    //     setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)  
-    // }, [])
 
     const goToDetailScene = () => {
         setScene(1);
@@ -98,10 +93,10 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBodies = (bodies) => {
         let res = []
         let bodyStr = ''
-        for(let i = 0;i<bodies.length;i++) {
+        for (let i = 0; i < bodies.length; i++) {
             bodyStr += bodies[i] + "\n"
             let one = ParseM3u.parseOriginalBodyToList(bodies[i])
-            for(let j = 0;j<one.length;j++) {
+            for (let j = 0; j < one.length; j++) {
                 res.push(one[j])
             }
         }

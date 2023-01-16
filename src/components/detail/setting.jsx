@@ -25,7 +25,7 @@ const ListItem = styled('li')(({ theme }) => ({
 }));
 
 export default function Setting(props) {
-    const {selectedArr, setSelectedArr } = props;
+    const { selectedArr, setSelectedArr } = props;
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
     const [dialogMod, setDialogMod] = useState(1);

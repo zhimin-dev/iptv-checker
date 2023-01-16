@@ -27,23 +27,23 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-        <Box sx={{ minWidth: 100 }}>
-          {
-            _mainContext.scene === 0 ? (
-              <Welcome></Welcome>
-            ) : ''
-          }
-          {
-            _mainContext.scene === 1 ? (
-              <Detail></Detail>
-            ) : ''
-          }
-          {
-            _mainContext.scene === 2 ? (
-              <Watch></Watch>
-            ) : ''
-          }
-        </Box>
-      </ThemeProvider>
+      <Box sx={{ minWidth: 100 }}>
+        {
+          _mainContext.scene === 0 ? (
+            <Welcome></Welcome>
+          ) : ''
+        }
+        {
+          _mainContext.scene === 1 ? (
+            <Detail></Detail>
+          ) : ''
+        }
+        {
+          _mainContext.scene === 2 ? (
+            <Watch></Watch>
+          ) : ''
+        }
+      </Box>
+    </ThemeProvider>
   );
 }
