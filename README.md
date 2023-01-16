@@ -1,6 +1,6 @@
 # iptv-checker
 
-![icon](https://github.com/zhimin-dev/iptv-checker/blob/react-version/img/icon.png)
+<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/react-version/img/icon.png" height=80>
 
 本扩展支持m3u链接、m3u源文件以及提供公共的源，选择对应的操作，然后点击确定，可以帮助你检查这些源是否有效，并将这些有效的另存为新的m3u文件
 
