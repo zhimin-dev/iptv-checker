@@ -1,434 +1,30 @@
 import { useState, useContext, useEffect } from 'react'
+import * as React from 'react';
 import { MainContext } from './../../context/main';
-import TextField from '@mui/material/TextField';
-import LoadingButton from '@mui/lab/LoadingButton';
 import Box from '@mui/material/Box';
-import { styled } from '@mui/material/styles';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import Avatar from '@mui/material/Avatar';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
-import { green, pink } from '@mui/material/colors';
-import Button from '@mui/material/Button';
-import Switch from '@mui/material/Switch';
-import Checkbox from '@mui/material/Checkbox';
-import DialogTitle from '@mui/material/DialogTitle';
-import Dialog from '@mui/material/Dialog';
-import PropTypes from 'prop-types';
-import FormControl from '@mui/material/FormControl';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import GetAppIcon from '@mui/icons-material/GetApp';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import SearchIcon from '@mui/icons-material/Search';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import SettingsIcon from '@mui/icons-material/Settings';
-import PreviewIcon from '@mui/icons-material/Preview';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate } from 'react-router-dom';
-
-const HeaderFixedHeight = 152
-
-function Setting(props) {
-
-  const { setSelectedArr,selectedArr } = props;
-  const [searchTitle, setSearchTitle] = useState('')
-  const [chipData, setChipData] = useState([]);
-  const [dialogMod, setDialogMod] = useState(1);
-  const handleDeleteChip = (chipToDelete) => () => {
-    setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
-  }
-  const _mainContext = useContext(MainContext);
-
-  const goback = () => {
-    _mainContext.goToWelcomeScene()
-  }
-
-  const handleChangeSearchTitle = (e) => {
-    setSearchTitle(e.target.value)
-  }
-
-  const addNewSearchFilter = () => {
-    if (searchTitle === '') {
-      return
-    }
-    let isHit = false
-    for (let i = 0; i < chipData.length; i++) {
-      if (chipData[i] === searchTitle) {
-        isHit = true
-      }
-    }
-    if (!isHit) {
-      setChipData([...chipData, searchTitle])
-    }
-    setSearchTitle("")
-  }
-
-  const doFilter = () => {
-    _mainContext.filterM3u(chipData)
-  }
-
-  const doCheckUrlIsValid = () => {
-    _mainContext.onCheckTheseLinkIsAvailable()
-  }
-
-  const exportValidM3uData = () => {
-    _mainContext.onExportValidM3uData()
-    setDialogMod(1)
-    setOpen(true);
-  }
-  
-  const showOriginalM3uBodyInfo = () => {
-    _mainContext.changeDialogBodyData()
-    setDialogMod(2)
-    setOpen(true);
-  }
-
-  const showSetting = () => {
-    setDialogMod(3)
-    setOpen(true);
-  }
-
-  const [open, setOpen] = useState(false);
-
-  const handleClose = (value) => {
-    setOpen(false);
-  };
-
-
-  const autoSelectedAvailablesUrl = () => {
-    let ids = _mainContext.getAvailableOrNotAvailableIndex(1)
-    setSelectedArr(ids)
-  }
-
-  const autoSelectedInAvailablesUrl = () => {
-    let ids = _mainContext.getAvailableOrNotAvailableIndex(2)
-    setSelectedArr(ids)
-  }
-
-  return (
-    <Box sx={{
-      position: 'fixed',
-      backgroundColor: '#fff',
-      width: '100%',
-      height: HeaderFixedHeight + "px",
-      borderBottom: '1px solid #eee',
-      top: 0,
-      left: 0,
-      zIndex: 999,
-      padding: '8px'
-    }}>
-      <SimpleDialog
-        open={open}
-        onClose={handleClose}
-        body={_mainContext.dialogBody}
-        mod={dialogMod}
-      />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Box sx={{ maxWidth: "500px" }}>
-          <Box sx={{ marginBottom: '10px' }}>
-            <FormControl sx={{ marginRight: '5px' }}>
-              <LoadingButton
-                size="small"
-                onClick={goback}
-                startIcon={<ArrowBackIcon />}
-              >
-                返回
-              </LoadingButton>
-            </FormControl>
-            <FormControl sx={{ marginRight: '5px' }}>
-              {
-                _mainContext.handleMod === 1 ? (
-                  <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
-                ) : ''
-              }
-            </FormControl>
-          </Box>
-          <Box sx={{ display: "flex" }}>
-            <Box>
-              <Box component="form"
-                sx={{
-                  marginBottom: "5px",
-                  display: 'flex',
-                  alignItems: 'flex-end'
-                }}>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <TextField
-                    id="outlined-name"
-                    value={searchTitle}
-                    onChange={handleChangeSearchTitle}
-                    label="搜索"
-                    variant="standard"
-                  />
-                </FormControl>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <LoadingButton
-                    size="small"
-                    onClick={addNewSearchFilter}
-                    variant="outlined"
-                    startIcon={<AddCircleOutlineIcon />}
-                  >
-                    添加
-                  </LoadingButton>
-                </FormControl>
-                <FormControl sx={{ marginRight: '5px' }}>
-                  <LoadingButton
-                    size="small"
-                    onClick={doFilter}
-                    variant="contained"
-                    color="success"
-                    startIcon={<SearchIcon />}
-                  >
-                    搜索
-                  </LoadingButton>
-                </FormControl>
-              </Box>
-              <Box>
-                {chipData.map((value, index) => {
-                  return (
-                    <ListItem key={index}>
-                      <Chip
-                        label={value}
-                        size="small"
-                        onDelete={handleDeleteChip(index)}
-                      />
-                    </ListItem>
-                  );
-                })}
-              </Box>
-            </Box>
-          </Box>
-        </Box>
-        <Box sx={{ paddingRight: "20px" }}>
-          <FormControl sx={{ marginRight: '5px' }}>
-            <LoadingButton
-              size="small"
-              onClick={showSetting}
-              variant="outlined"
-              startIcon={<SettingsIcon />}
-            >
-              设置
-            </LoadingButton>
-          </FormControl>
-        </Box>
-      </Box>
-      <Box sx={{ marginTop: "5px" }}>
-        <FormControl sx={{ marginRight: '5px' }}>
-          <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">显示原始m3u信息</Button>
-        </FormControl>
-        {
-          _mainContext.handleMod === 0 ? (
-            <FormControl sx={{
-              marginRight: "5px",
-            }}>
-              <LoadingButton
-                size="small"
-                onClick={doCheckUrlIsValid}
-                variant="outlined"
-                startIcon={<RadioButtonUncheckedIcon />}
-              >
-                检查直播源链接是否有效
-              </LoadingButton>
-            </FormControl>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 ? (
-            <FormControl sx={{
-              marginRight: "5px",
-            }}>
-              <LoadingButton
-                size="small"
-                onClick={autoSelectedAvailablesUrl}
-                variant="contained"
-                startIcon={<CheckCircleOutlineIcon />}
-              >
-                获取有效链接
-              </LoadingButton>
-            </FormControl>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 ? (
-            <FormControl sx={{
-              marginRight: "5px",
-            }}>
-              <LoadingButton
-                size="small"
-                onClick={autoSelectedInAvailablesUrl}
-                variant="outlined"
-                startIcon={<ErrorOutlineIcon />}
-              >
-                获取无效链接
-              </LoadingButton>
-            </FormControl>
-          ) : ''
-        }
-        {
-          _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
-            <FormControl sx={{
-              marginRight: "5px",
-            }}>
-              <LoadingButton
-                size="small"
-                onClick={exportValidM3uData}
-                variant="contained"
-                startIcon={<ExitToAppIcon />}
-              >
-                导出选中的链接
-              </LoadingButton>
-            </FormControl>
-          ) : ''
-        }
-      </Box>
-    </Box>
-  )
-}
-
-function SimpleDialog(props) {
-  const _mainContext = useContext(MainContext);
-
-  //mod == 1 下载界面 2预览原始m3u信息
-  const { onClose, open, body, mod } = props;
-
-  const [showTextAreaLable, setShowTextAreaLable] = useState('')
-
-  useEffect(() => {
-    if (mod === 1) {
-      setShowTextAreaLable('您所选择的m3u信息')
-    } else if (mod === 2) {
-      setShowTextAreaLable('原始m3u信息')
-    } else if (mod === 3) {
-      setShowTextAreaLable('设置')
-    }
-  }, [mod])
-
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleChangeCheckMillisSeconds = (e) => {
-    _mainContext.changeCheckMillisSeconds(parseInt(e.target.value, 10))
-  }
-
-  const handleChangeHttpRequestTimeout = (e) => {
-    _mainContext.changeHttpRequestTimeout(parseInt(e.target.value, 10))
-  }
-
-  const handleChangeShowUrl = (event) => {
-    _mainContext.changeShowUrl(event.target.checked);
-  }
-
-  const doDownload = () => {
-    var a = document.createElement('a')
-    var blob = new Blob([body])
-    var url = window.URL.createObjectURL(blob)
-    a.href = url
-    a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
-    a.click()
-  }
-
-  return (
-    <Dialog onClose={handleClose} open={open}>
-      <DialogTitle>{showTextAreaLable}</DialogTitle>
-      {
-        mod === 3 ? (
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '20px'
-          }}>
-            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
-              <TextField
-                size="small"
-                value={_mainContext.checkMillisSeconds}
-                onChange={handleChangeCheckMillisSeconds}
-                label="下一次请求间隔时间（毫秒）"
-              />
-            </FormControl>
-            <FormControl sx={{
-              width: 200,
-              marginRight: '5px',
-              display: 'flex',
-              flexDirection: 'row',
-              marginBottom: '20px'
-            }}>
-              不显示url
-              <Switch
-                size="small"
-                checked={_mainContext.showUrl}
-                onChange={handleChangeShowUrl}
-                inputProps={{ 'aria-label': 'controlled' }}
-              />显示url
-            </FormControl>
-            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
-              <TextField
-                size="small"
-                value={_mainContext.httpRequestTimeout}
-                onChange={handleChangeHttpRequestTimeout}
-                label="请求超时时间（毫秒）"
-              />
-            </FormControl>
-          </Box>) : ''
-      }
-      {mod === 1 || mod === 2 ? (
-        <FormControl sx={{ width: 550, margin: '10px' }}>
-          <TextField multiline sx={{ fontSize: '11px' }} label={showTextAreaLable} size="small" id="standard-multiline-static" rows={4} value={body} />
-        </FormControl>
-      ) : ''}
-
-      {
-        mod === 1 ? (
-          <FormControl sx={{ width: 550, margin: '10px' }}>
-            <LoadingButton
-              size="small"
-              onClick={doDownload}
-              variant="contained"
-              startIcon={<GetAppIcon />}
-            >
-              下载
-            </LoadingButton>
-          </FormControl>
-        ) : ''
-      }
-    </Dialog>
-  );
-}
-
-SimpleDialog.propTypes = {
-  onClose: PropTypes.func.isRequired,
-  open: PropTypes.bool.isRequired,
-  body: PropTypes.string.isRequired,
-  mod: PropTypes.number.isRequired,
-};
-
-const ListItem = styled('li')(({ theme }) => ({
-  margin: theme.spacing(0.5),
-  listStyle: "none",
-  display: 'initial',
-}));
+import Setting from './setting';
+import { VirtualizedTable } from './vtable'
 
 export default function Detail() {
   const _mainContext = useContext(MainContext);
+  const [vTableHeight, setVTableHeight] = useState(550)
+
+  useEffect(() => {
+    setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)
+    window.addEventListener("resize", e => {
+      setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
+    })
+  })
 
   const navigate = useNavigate();
   const [selectedArr, setSelectedArr] = useState([])
 
-  const deleteThisRow = (index) => {
+  const deleteThisRow = (index, tableIndex) => {
     let row = []
-    for(let i = 0;i<selectedArr.length;i++) {
-      if(selectedArr[i] !== index) {
+    for (let i = 0; i < selectedArr.length; i++) {
+      if (selectedArr[i] !== index) {
         row.push(selectedArr[i]);
       }
     }
@@ -479,87 +75,51 @@ export default function Detail() {
   return (
     <Box>
       <Setting setSelectedArr={setSelectedArr} selectedArr={selectedArr}></Setting>
-      <TableContainer component={Paper} sx={{ marginTop: (HeaderFixedHeight + 10) + "px" }}>
-        <Table sx={{ maxWidth: 650 }} aria-label="a dense table">
-          <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
-                <Checkbox
-                  color="primary"
-                  checked={selectedArr.length > 0 && selectedArr.length === _mainContext.showM3uBody.length}
-                  onClick={handleSelectCheckedAll}
-                  indeterminate={selectedArr.length > 0 && selectedArr.length !== _mainContext.showM3uBody.length}
-                  inputProps={{
-                    'aria-labelledby': -1,
-                  }}
-                />
-              </TableCell>
-              <TableCell>操作</TableCell>
-              <TableCell align="left">Status</TableCell>
-              <TableCell align="left">Name</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {_mainContext.showM3uBody.map((row, index) => (
-              <TableRow
-                key={index}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                <TableCell padding="checkbox">
-                  <Checkbox
-                    color="primary"
-                    checked={row.checked}
-                    onClick={() => onSelectedThisRow(row.index)}
-                    inputProps={{
-                      'aria-labelledby': row.index,
-                    }}
-                  />
-                </TableCell>
-                <TableCell component="th" scope="row">
-                  {
-                    _mainContext.handleMod !== 1 ? (
-                      <Button onClick={() => deleteThisRow(row.index)} startIcon={<DeleteOutlineIcon />}>删除</Button>
-                    ) : ''
-                  }
-                  <Button onClick={() => watchThisRow(row)} startIcon={<PreviewIcon />}>在线观看</Button>
-                </TableCell>
-                <TableCell align="left">
-                  {
-                    row.status === 0 ? (
-                      <Avatar sx={{ width: 24, height: 24 }}>
-                        <HorizontalRuleIcon />
-                      </Avatar>
-                    ) : ''
-                  }
-                  {
-                    row.status === 1 ? (
-                      <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
-                        <CheckCircleIcon />
-                      </Avatar>
-                    ) : ''
-                  }
-                  {
-                    row.status === 2 ? (
-                      <Avatar sx={{ bgcolor: pink[500], width: 24, height: 24 }}>
-                        <ErrorIcon />
-                      </Avatar>
-                    ) : ''
-                  }
-                </TableCell>
-                <TableCell align="left">
-                  <div>{row.name}</div>
-                  {
-                    _mainContext.showUrl ? (
-                      <div>{row.url}</div>
-                    ) : ''
-                  }
-                </TableCell>
-              </TableRow>
-            )
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Paper style={{
+        height: vTableHeight,
+        marginTop: (_mainContext.headerHeight + 10) + "px",
+        minWidth: '800px'
+      }}>
+        <VirtualizedTable
+          rowCount={_mainContext.showM3uBody.length}
+          rowGetter={({ index }) => _mainContext.showM3uBody[index]}
+          originalData={_mainContext.showM3uBody}
+          delRow={deleteThisRow}
+          selectAllRow={handleSelectCheckedAll}
+          selectRow={onSelectedThisRow}
+          watchThis={watchThisRow}
+          showOriginalUrl={_mainContext.showUrl}
+          selectedArr={selectedArr}
+          selectAll={handleSelectCheckedAll}
+          columns={[
+            {
+              width: 80,
+              label: 'checkBox',
+              dataKey: 'index',
+            },
+            {
+              width: 80,
+              label: 'index',
+              dataKey: 'index',
+            },
+            {
+              width: 120,
+              label: '操作',
+              dataKey: 'index',
+            },
+            {
+              width: 80,
+              label: 'status',
+              dataKey: 'index',
+            },
+            {
+              width: 800,
+              label: 'name',
+              dataKey: 'index',
+            },
+          ]}
+        />
+      </Paper>
     </Box>
   )
 }

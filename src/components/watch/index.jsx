@@ -8,7 +8,6 @@ import Hls from 'hls.js'
 import { MainContext } from './../../context/main';
 import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
@@ -16,17 +15,6 @@ import VideoSettingsIcon from '@mui/icons-material/VideoSettings';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import ParseM3u from './../../context/utils'
 import { useLocation } from 'react-router-dom';
-
-
-const theme = createTheme({
-    palette: {
-        canplayColor: {
-            main: '#9ccc65',
-            darker: '#087f23',
-            contrastText: '#000',
-        },
-    },
-});
 
 export default function Watch() {
     const _mainContext = useContext(MainContext);
@@ -183,7 +171,7 @@ export default function Watch() {
     }
 
     return (
-        <ThemeProvider theme={theme}>
+        <Box>
             <Dialog onClose={handleClose} open={open}>
                 <DialogTitle>设置</DialogTitle>
                 <Box>
@@ -242,7 +230,7 @@ export default function Watch() {
                                 size="small"
                                 onClick={onloadM3u8Link}
                                 variant="contained"
-                                color="canplayColor"
+                                // color="canplayColor"
                                 startIcon={<PlayCircleOutlineIcon />}
                             >
                                 播放
@@ -254,7 +242,7 @@ export default function Watch() {
                                 size="small"
                                 onClick={stopLoadM3u8Link}
                                 variant="contained"
-                                color="canplayColor"
+                                // color="canplayColor"
                                 startIcon={<StopCircleIcon />}
                             >
                                 停止
@@ -271,6 +259,6 @@ export default function Watch() {
                     }
                 </FormControl>
             </Box>
-        </ThemeProvider>
+        </Box>
     )
 }

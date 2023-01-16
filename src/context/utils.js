@@ -60,9 +60,20 @@ const ParseM3u = {
             )) !== null
         }
         if(resultList.length === 0) {
-            return ParseM3u.parseQuoteFormat(originalM3uBody)
+            return ParseM3u.removeRepeatList(ParseM3u.parseQuoteFormat(originalM3uBody))
         }
-        return resultList
+        return ParseM3u.removeRepeatList(resultList)
+    },
+    removeRepeatList (list) {
+        let saveMap = {};
+        let _rows = []
+        for(let i= 0;i<list.length;i++) {
+            if(saveMap[list[i].url] === undefined) {
+                _rows.push(list[i]);
+                saveMap[list[i].url] = true
+            }
+        }
+        return _rows
     },
     parseQuoteFormat(body) {
         let rows = []

@@ -1,12 +1,13 @@
-import { useState, createContext } from "react"
+import { useState, createContext, useEffect } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from './utils'
 
 export const MainContextProvider = function ({ children }) {
+    const headerHeight = 152
     const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
-    const [showM3uBody, setShowM3uBody] = useState([]);//m3u信息转换成list 数组
+    const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//检查url最多的
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
@@ -19,7 +20,17 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const goToWelcomeScene = () => {
-        setScene(0);
+        clearDetailData()
+        setScene(0)
+    }
+
+    const clearDetailData = () => {
+        setShowUrl(false)
+        setHasCheckedCount(0)
+        setBialogBody('')
+        setHandleMod(0)
+        setShowM3uBody([])
+        setOriginalM3uBody('')
     }
 
     const goToWatchPage = () => {
@@ -74,6 +85,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeOriginalM3uBody = (body) => {
+        clearDetailData()
         setOriginalM3uBody(body);
         setShowM3uBody(ParseM3u.parseOriginalBodyToList(body))
     }
@@ -81,10 +93,10 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBodies = (bodies) => {
         let res = []
         let bodyStr = ''
-        for(let i = 0;i<bodies.length;i++) {
+        for (let i = 0; i < bodies.length; i++) {
             bodyStr += bodies[i] + "\n"
             let one = ParseM3u.parseOriginalBodyToList(bodies[i])
-            for(let j = 0;j<one.length;j++) {
+            for (let j = 0; j < one.length; j++) {
                 res.push(one[j])
             }
         }
@@ -222,7 +234,7 @@ export const MainContextProvider = function ({ children }) {
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
-            changeOriginalM3uBodies,
+            changeOriginalM3uBodies, headerHeight
         }}>
             {children}
         </MainContext.Provider>
