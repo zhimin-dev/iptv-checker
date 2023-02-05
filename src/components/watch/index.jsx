@@ -4,7 +4,6 @@ import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 import LoadingButton from '@mui/lab/LoadingButton';
-import Hls from 'hls.js'
 import { MainContext } from './../../context/main';
 import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -13,12 +12,32 @@ import Dialog from '@mui/material/Dialog';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import VideoSettingsIcon from '@mui/icons-material/VideoSettings';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
-import ParseM3u from './../../context/utils'
+import ParseM3u from '../../utils/utils'
 import { useLocation } from 'react-router-dom';
+import VideoJS from './video'
 
 export default function Watch() {
     const _mainContext = useContext(MainContext);
     const location = useLocation();
+    const [videoJsOptions, setVideoJsOptions] = useState(null)
+    const setVideoOptions = (url) => {
+        setVideoJsOptions({
+            autoplay: true,
+            controls: true,
+            responsive: true,
+            fluid: true,
+            html5:{
+                vhs: {
+                    withCredentials: true,
+                    overrideNative: true
+                }
+            },
+            sources: [{
+                src: url,
+                type: 'application/x-mpegURL'
+            }]
+        })
+    }
     const [name, setName] = useState('')
     const [logoUrl, setLogoUrl] = useState('')
     const [m3u8Link, setM3u8Link] = useState('')
@@ -32,8 +51,6 @@ export default function Watch() {
         height: '576px'
     })
 
-    const renderRef = useRef(true);
-
     useEffect(() => {
         let originalParams = location.state.original
         if (originalParams === null || originalParams === undefined) {
@@ -44,24 +61,20 @@ export default function Watch() {
             if (parseData && parseData.exist) {
                 setName(parseData.name)
                 setLogoUrl(parseData.logoUrl)
-                setM3u8Link(parseData.url)
+                iniotM3u8Link(parseData.url)
                 setHttpHeaders(parseData.copt)
             } else {
                 setOpen(true)
             }
         }
-
-        window.addEventListener("popstate", function (e) {
-            console.log("click back,开始准备销毁视频播放信息")
-            destroyVideo()
-            console.log("click back,开始准备销毁视频播放信息-finished")
-
-            return false
-        }, false);
     }, [])
 
     const changeM3u8Link = (e) => {
         setM3u8Link(e.target.value)
+    }
+
+    const iniotM3u8Link = (_url) => {
+        setM3u8Link(_url)
     }
 
     const handleClose = () => {
@@ -71,53 +84,7 @@ export default function Watch() {
     };
 
     const onloadM3u8Link = () => {
-        let video = document.getElementById('video')
-        if (Hls.isSupported()) {
-            var config = {
-                xhrSetup: function (xhr, url) {
-                    xhr.withCredentials = false;
-                    if (!xhr.readyState) {
-                        xhr.open('GET', url, true);
-                        if (httpHeaders.length > 0) {
-                            for (let i = 0; i < httpHeaders.length; i++) {
-                                if (httpHeaders[i].key !== "" && httpHeaders[i].key !== 'User-Agent') {
-                                    xhr.setRequestHeader(httpHeaders[i].key, httpHeaders[i].value);
-                                }
-                            }
-                        }
-                    }
-                },
-                autoStartLoad: true,
-                enableWorker: true,
-            };
-
-            var hls = new Hls(config);
-            hls.loadSource(m3u8Link);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
-                console.log(
-                    'manifest loaded, found ' + data.levels.length + ' quality level'
-                );
-                console.log(data)
-            });
-            video.addEventListener("loadedmetadata", function (e) {
-                // setVideoStyle({
-                //     width: e.target.videoWidth + 'px',
-                //     height: e.target.videoHeight + 'px'
-                // })
-                console.log("video width", e.target.videoWidth + 'px', " height ", e.target.videoHeight + 'px')
-            }, false);
-            setHlsObj(hls)
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = videoSrc;
-        }
-        video.play();
-        setVideoInstance(video)
-        setIsPlaying(true)
-        video.addEventListener('error', function (e) {
-            alert(e.message)
-            setIsPlaying(false)
-        })
+        setVideoOptions(m3u8Link)
     }
 
     const stopLoadM3u8Link = () => {
@@ -125,16 +92,16 @@ export default function Watch() {
     }
 
     const destroyVideo = () => {
-        if (hlsObj) {
-            hlsObj.stopLoad()
-        }
-        if (videoInstance) {
-            video.src = ""
-            videoInstance.pause()
-            videoInstance.removeAttribute('src');
-            videoInstance.load();
-            console.log("destroyVideo")
-        }
+        // if (hlsObj) {
+        //     hlsObj.stopLoad()
+        // }
+        // if (videoInstance) {
+        //     video.src = ""
+        //     videoInstance.pause()
+        //     videoInstance.removeAttribute('src');
+        //     videoInstance.load();
+        //     console.log("destroyVideo")
+        // }
         setIsPlaying(false)
     }
 
@@ -164,11 +131,20 @@ export default function Watch() {
         setOpen(true)
     }
 
-    const goback = () => {
-        destroyVideo()
-        window.history.pushState({}, '', '?')
-        _mainContext.goToDetailScene()
-    }
+    const playerRef = React.useRef(null);
+
+    const handlePlayerReady = (player) => {
+        playerRef.current = player;
+
+        // You can handle player events here, for example:
+        player.on('waiting', () => {
+            console.log('player is waiting');
+        });
+
+        player.on('dispose', () => {
+            console.log('player will dispose');
+        });
+    };
 
     return (
         <Box>
@@ -230,7 +206,6 @@ export default function Watch() {
                                 size="small"
                                 onClick={onloadM3u8Link}
                                 variant="contained"
-                                // color="canplayColor"
                                 startIcon={<PlayCircleOutlineIcon />}
                             >
                                 播放
@@ -242,7 +217,6 @@ export default function Watch() {
                                 size="small"
                                 onClick={stopLoadM3u8Link}
                                 variant="contained"
-                                // color="canplayColor"
                                 startIcon={<StopCircleIcon />}
                             >
                                 停止
@@ -253,9 +227,9 @@ export default function Watch() {
 
                 <FormControl sx={{ margin: '10px' }}>
                     {
-                        m3u8Link !== "" ? (
-                            <video id="video" preload="auto" style={videoStyle} controls="controls"></video>
-                        ) : ''
+                        videoJsOptions === null ? "":(
+                            <VideoJS options={videoJsOptions} onReady={handlePlayerReady} headers={httpHeaders} />
+                        )
                     }
                 </FormControl>
             </Box>

@@ -4,14 +4,23 @@
 
 本扩展支持m3u链接、m3u源文件以及提供公共的源，选择对应的操作，然后点击确定，可以帮助你检查这些源是否有效，并将这些有效的另存为新的m3u文件
 
+## 二次开发
+
+如果基于源码启动`npm run dev`时,出现`No matching export in "node_modules/react-virtualized/dist/es/WindowScroller/WindowScroller.js" for import "bpfrpt_proptype_WindowScroller"` 这样的错误，请输入`npx patch-package`可解决
+
 ## 安装方法
 
-- [点我下载](https://github.com/zhimin-dev/iptv-checker/releases)本扩展并解压（选择最新的release版本下载）
+- 下载本扩展并解压（选择最新的releases版本下载或者选择**production分支**下载zip包，**请勿直接**使用main分支代码）
 - 下载chrome浏览器，打开浏览器，选择设置-扩展-加载未打包的扩展，选择解压后的文件夹
 - 在扩展中点击iptv-checker图标
 
 ## 变更日志
 
+- v2.9
+  - 首页输入框增加记忆功能，点击的tab以及输入的文本在刷新页面后不会清空
+  - 详情页面增加页面搜索提示功能，增加了对groupTitle的支持
+  - 对于非m3u格式的文件数据进行支持groupTitle字段，方便用户搜索过滤
+  - 将hls.js更换为video.js，在线观看退出后，原视频不会继续缓冲视频
 - v2.8
   - 列表去除相同的源地址
   - 优化了主页的选择界面，现在操作更加高效

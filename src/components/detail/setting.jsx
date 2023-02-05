@@ -17,6 +17,14 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemText from '@mui/material/ListItemText';
+
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -24,8 +32,20 @@ const ListItem = styled('li')(({ theme }) => ({
     display: 'initial',
 }));
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
+
 export default function Setting(props) {
     const { selectedArr, setSelectedArr } = props;
+    const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
     const [dialogMod, setDialogMod] = useState(1);
@@ -103,6 +123,23 @@ export default function Setting(props) {
         setSelectedArr([])
     }
 
+    const handleChangeGroup = (e) => {
+        setSelectedGroups(e.target.value)
+        let _aMap = {}
+        for (let i = 0; i < e.target.value.length; i++) {
+            _aMap[e.target.value[i]] = e.target.value[i]
+        }
+        let uGroup = _mainContext.uGroups
+        for (let i = 0; i < uGroup.length; i++) {
+            let checked = false
+            if (_aMap[uGroup[i].key] !== undefined) {
+                checked = true
+            }
+            uGroup[i].checked = checked
+        }
+        _mainContext.setUGroups(uGroup)
+    }
+
     return (
         <Box sx={{
             position: 'fixed',
@@ -122,7 +159,7 @@ export default function Setting(props) {
                 mod={dialogMod}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Box sx={{ maxWidth: "500px" }}>
+                <Box sx={{ maxWidth: "800px" }}>
                     <Box sx={{ marginBottom: '10px' }}>
                         <FormControl sx={{ marginRight: '5px' }}>
                             <LoadingButton
@@ -140,60 +177,161 @@ export default function Setting(props) {
                                 ) : ''
                             }
                         </FormControl>
+                        <FormControl sx={{ marginRight: '5px' }}>
+                            <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
+                        </FormControl>
+                        {
+                            _mainContext.handleMod === 0 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={doCheckUrlIsValid}
+                                        variant="outlined"
+                                        startIcon={<RadioButtonUncheckedIcon />}
+                                    >
+                                        检查直播源链接是否有效
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
+                        {
+                            _mainContext.handleMod === 2 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={autoSelectedAvailablesUrl}
+                                        variant="contained"
+                                        startIcon={<CheckCircleOutlineIcon />}
+                                    >
+                                        获取有效链接
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
+                        {
+                            _mainContext.handleMod === 2 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={autoSelectedInAvailablesUrl}
+                                        variant="outlined"
+                                        startIcon={<ErrorOutlineIcon />}
+                                    >
+                                        获取无效链接
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
+                        {
+                            _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={exportValidM3uData}
+                                        variant="contained"
+                                        startIcon={<ExitToAppIcon />}
+                                    >
+                                        导出选中的链接
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
                     </Box>
                     <Box sx={{ display: "flex" }}>
-                        <Box>
-                            <Box component="form"
-                                sx={{
-                                    marginBottom: "5px",
-                                    display: 'flex',
-                                    alignItems: 'flex-end'
-                                }}>
-                                <FormControl sx={{ marginRight: '5px' }}>
-                                    <TextField
-                                        id="outlined-name"
-                                        value={searchTitle}
-                                        onChange={handleChangeSearchTitle}
-                                        label="搜索"
-                                        variant="standard"
-                                    />
-                                </FormControl>
-                                <FormControl sx={{ marginRight: '5px' }}>
-                                    <LoadingButton
-                                        size="small"
-                                        onClick={addNewSearchFilter}
-                                        variant="outlined"
-                                        startIcon={<AddCircleOutlineIcon />}
-                                    >
-                                        添加
-                                    </LoadingButton>
-                                </FormControl>
-                                <FormControl sx={{ marginRight: '5px' }}>
-                                    <LoadingButton
-                                        size="small"
-                                        onClick={doFilter}
-                                        variant="contained"
-                                        color="success"
-                                        startIcon={<SearchIcon />}
-                                    >
-                                        搜索
-                                    </LoadingButton>
-                                </FormControl>
-                            </Box>
-                            <Box>
-                                {chipData.map((value, index) => {
-                                    return (
-                                        <ListItem key={index}>
-                                            <Chip
-                                                label={value}
-                                                size="small"
-                                                onDelete={handleDeleteChip(index)}
-                                            />
-                                        </ListItem>
-                                    );
-                                })}
-                            </Box>
+                        <Box component="form"
+                            sx={{
+                                marginBottom: "5px",
+                                display: 'flex',
+                                alignItems: 'flex-end'
+                            }}>
+                            <FormControl sx={{ marginRight: '5px' }}>
+                                <TextField
+                                    id="outlined-name"
+                                    value={searchTitle}
+                                    onChange={handleChangeSearchTitle}
+                                    label="多关键词搜索"
+                                    variant="standard"
+                                />
+                            </FormControl>
+                            <FormControl sx={{ marginRight: '5px' }}>
+                                <LoadingButton
+                                    size="small"
+                                    onClick={addNewSearchFilter}
+                                    variant="outlined"
+                                    startIcon={<AddCircleOutlineIcon />}
+                                >
+                                    添加关键词
+                                </LoadingButton>
+                            </FormControl>
+                            <FormControl sx={{ m: 1, width: 300, margin: 0,marginRight: '5px' }} size="small">
+                                <InputLabel id="demo-select-small" size="small">过滤Group</InputLabel>
+                                <Select
+                                    labelId="demo-select-small"
+                                    id="demo-select-small"
+                                    size="small"
+                                    multiple
+                                    value={selectedGroups}
+                                    onChange={handleChangeGroup}
+                                    input={<OutlinedInput label="过滤Group" />}
+                                    renderValue={(selectedGroups) => selectedGroups.join(', ')}
+                                    MenuProps={MenuProps}
+                                >
+                                    {_mainContext.uGroups.map((value, index) => (
+                                        <MenuItem key={index} value={value.key}>
+                                            <Checkbox checked={value.checked} />
+                                            <ListItemText primary={value.key} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            <FormControl sx={{ marginRight: '5px' }}>
+                                <LoadingButton
+                                    size="small"
+                                    onClick={doFilter}
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={<SearchIcon />}
+                                >
+                                    搜索
+                                </LoadingButton>
+                            </FormControl>
                         </Box>
+                    </Box>
+                    <Box sx={{ paddingRight: "20px", fontSize: '12px' }}>
+                        {
+                            chipData.length > 0 ? '频道名称包含:' : ''
+                        }
+                        {chipData.map((value, index) => {
+                            return (
+                                <ListItem key={index}>
+                                    <Chip
+                                        label={value}
+                                        size="small"
+                                        onDelete={handleDeleteChip(index)}
+                                    />
+                                    {
+                                        index < chipData.length - 1 ? '或' : ''
+                                    }
+                                </ListItem>
+                            );
+                        })}
+                        {
+                            chipData.length > 0 && selectedGroups.length > 0 ? '且' : ''
+                        }
+                        {
+                            selectedGroups.length > 0 ? '只显示组标签(GroupTitle)为[' + selectedGroups.join(',') + ']的数据' : ''
+                        }
+                        {
+                            chipData.length > 0 || selectedGroups.length ? ',需要点击【搜索】按钮进行筛选' : ''
+                        }
                     </Box>
                 </Box>
                 <Box sx={{ paddingRight: "20px" }}>
@@ -208,75 +346,6 @@ export default function Setting(props) {
                         </LoadingButton>
                     </FormControl>
                 </Box>
-            </Box>
-            <Box sx={{ marginTop: "5px" }}>
-                <FormControl sx={{ marginRight: '5px' }}>
-                    <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">显示原始m3u信息</Button>
-                </FormControl>
-                {
-                    _mainContext.handleMod === 0 ? (
-                        <FormControl sx={{
-                            marginRight: "5px",
-                        }}>
-                            <LoadingButton
-                                size="small"
-                                onClick={doCheckUrlIsValid}
-                                variant="outlined"
-                                startIcon={<RadioButtonUncheckedIcon />}
-                            >
-                                检查直播源链接是否有效
-                            </LoadingButton>
-                        </FormControl>
-                    ) : ''
-                }
-                {
-                    _mainContext.handleMod === 2 ? (
-                        <FormControl sx={{
-                            marginRight: "5px",
-                        }}>
-                            <LoadingButton
-                                size="small"
-                                onClick={autoSelectedAvailablesUrl}
-                                variant="contained"
-                                startIcon={<CheckCircleOutlineIcon />}
-                            >
-                                获取有效链接
-                            </LoadingButton>
-                        </FormControl>
-                    ) : ''
-                }
-                {
-                    _mainContext.handleMod === 2 ? (
-                        <FormControl sx={{
-                            marginRight: "5px",
-                        }}>
-                            <LoadingButton
-                                size="small"
-                                onClick={autoSelectedInAvailablesUrl}
-                                variant="outlined"
-                                startIcon={<ErrorOutlineIcon />}
-                            >
-                                获取无效链接
-                            </LoadingButton>
-                        </FormControl>
-                    ) : ''
-                }
-                {
-                    _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
-                        <FormControl sx={{
-                            marginRight: "5px",
-                        }}>
-                            <LoadingButton
-                                size="small"
-                                onClick={exportValidM3uData}
-                                variant="contained"
-                                startIcon={<ExitToAppIcon />}
-                            >
-                                导出选中的链接
-                            </LoadingButton>
-                        </FormControl>
-                    ) : ''
-                }
             </Box>
         </Box>
     )

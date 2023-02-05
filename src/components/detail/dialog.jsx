@@ -10,6 +10,8 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import PropTypes from 'prop-types';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 export default function SimpleDialog(props) {
   const _mainContext = useContext(MainContext);
@@ -101,7 +103,8 @@ export default function SimpleDialog(props) {
                 label="请求超时时间（毫秒）"
               />
             </FormControl>
-          </Box>) : ''
+          </Box>
+        ) : ''
       }
       {mod === 1 || mod === 2 ? (
         <FormControl sx={{ width: 550, margin: '10px' }}>
