@@ -77,26 +77,33 @@ const ParseM3u = {
     },
     parseQuoteFormat(body) {
         let rows = []
+        let groupTitle = "Undefined"
         let arr = body.split("\n")
         for(var i = 0; i < arr.length; i++) {
             if(arr[i] !== "") {
                 let item = arr[i].split(",")
-                if(item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
-                    rows.push({
-                        index: i,
-                        url: item[1],
-                        groupTitle: "",
-                        tvgLogo: "",
-                        tvgLanguage: "",
-                        tvgCountry: "",
-                        tvgId: "",
-                        status: 0,
-                        name: item[0],
-                        sName: item[0].toLowerCase(),
-                        originalData: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
-                        checked: false,
-                        raw: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
-                    })
+                if(item !== "") {
+                    if(item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
+                        rows.push({
+                            index: i,
+                            url: item[1],
+                            groupTitle: groupTitle,
+                            tvgLogo: "",
+                            tvgLanguage: "",
+                            tvgCountry: "",
+                            tvgId: "",
+                            status: 0,
+                            name: item[0],
+                            sName: item[0].toLowerCase(),
+                            originalData: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
+                            checked: false,
+                            raw: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
+                        })
+                    }else{
+                        groupTitle = item[0]
+                    }
+                }else{
+                    groupTitle = "Undefined"
                 }
             }
         }
@@ -106,7 +113,7 @@ const ParseM3u = {
         return rows
     },
     checkStrIsLink(_str) {
-        const regex = /(http|https):\/\/([\w.]+\/?)\S*/;
+        const regex = /(http|https|lwb|P2p|p2p|p9p|rmtp):\/\/([\w.]+\/?)\S*/;
 
         // Alternative syntax using RegExp constructor
         // const regex = new RegExp('(http|https):\\/\\/([\\w.]+\\/?)\\S*', '')
@@ -124,10 +131,14 @@ const ParseM3u = {
         return false
     },
     parseRowToData(index, one, two, raw) {
+        let groupTitle = ParseM3u.pregValue(one, "group-title")
+        if(groupTitle === '') {
+            groupTitle = 'Undefined'
+        }
         const row = {
             index: index,
             url: two,
-            groupTitle: ParseM3u.pregValue(one, "group-title"),
+            groupTitle: groupTitle,
             tvgLogo: ParseM3u.pregValue(one, "tvg-logo"),
             tvgLanguage: ParseM3u.parseLanguages(ParseM3u.pregValue(one, "tvg-language")),
             tvgCountry: ParseM3u.pregValue(one, "tvg-country"),

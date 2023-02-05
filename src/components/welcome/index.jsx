@@ -15,7 +15,7 @@ import MuiAlert from '@mui/material/Alert';
 import CountryJson from './../../assets/api/country.json'
 import WatchJson from './../../assets/api/watch.json'
 import Button from '@mui/material/Button';
-import ParseM3u from './../../context/utils'
+import ParseM3u from './../../utils/utils'
 import { useNavigate } from 'react-router-dom';
 import manifest from './../../../manifest';
 import LogoSvg from './../../assets/iptv-checker.svg'
@@ -80,6 +80,9 @@ TabPanel.propTypes = {
   mod: PropTypes.number.isRequired,
 };
 
+const lastHomeTab = 'lastHomeTab'
+const lastHomeUserInput = 'lastHomeUserInput'
+
 export default function HorizontalLinearStepper() {
 
   const navigate = useNavigate();
@@ -97,6 +100,19 @@ export default function HorizontalLinearStepper() {
   useEffect(() => {
     fetchCommonLink()
     fetchWatchOnlineData()
+    let _tab = localStorage.getItem(lastHomeTab)
+    if (_tab !== '' && _tab !== null) {
+      let _tabInt = parseInt(_tab, 10)
+      setMod(_tabInt)
+      let userInput = localStorage.getItem(lastHomeUserInput)
+      if (userInput !== '' && userInput !== null) {
+        if(_tabInt === ModIHaveM3uLink) {
+          setCustomUrl(userInput)
+        }else{
+          setBody(userInput)
+        }
+      }
+    }
   }, [])
 
   const fetchWatchOnlineData = async () => {
@@ -136,6 +152,7 @@ export default function HorizontalLinearStepper() {
       if (mod === ModPublicSource || mod === ModIHaveM3uLink) {
         let targetUrl = [];
         if (mod === ModPublicSource) {
+          localStorage.removeItem(lastHomeUserInput)
           for (let i = 0; i < selectedUrl.length; i++) {
             for (let j = 0; j < selectedUrl[i].length; j++) {
               targetUrl.push(selectedUrl[i][j])
@@ -143,6 +160,7 @@ export default function HorizontalLinearStepper() {
           }
         } else {
           if (customUrl !== '') {
+            localStorage.setItem(lastHomeUserInput, customUrl)
             targetUrl = customUrl.split(",")
           }
         }
@@ -159,6 +177,7 @@ export default function HorizontalLinearStepper() {
         _mainContext.changeOriginalM3uBodies(bodies)
       } else if (mod === ModIHaveM3uContent) {
         if (body !== '') {
+          localStorage.setItem(lastHomeUserInput, body)
           _mainContext.changeOriginalM3uBody(body)
         } else {
           throw new Error('获取数据失败')
@@ -188,6 +207,7 @@ export default function HorizontalLinearStepper() {
 
   const handleTabChange = (event, newValue) => {
     setMod(newValue);
+    localStorage.setItem(lastHomeTab, newValue)
   };
 
   return (

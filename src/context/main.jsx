@@ -1,7 +1,7 @@
 import { useState, createContext, useEffect } from "react"
 import axios from "axios"
 export const MainContext = createContext();
-import ParseM3u from './utils'
+import ParseM3u from '../utils/utils'
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 152
@@ -14,6 +14,7 @@ export const MainContextProvider = function ({ children }) {
     const [dialogBody, setBialogBody] = useState('')
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
     const [showUrl, setShowUrl] = useState(false)
+    const [uGroups, setUGroups] = useState([])
 
     const goToDetailScene = () => {
         setScene(1);
@@ -62,8 +63,28 @@ export const MainContextProvider = function ({ children }) {
         setHttpRequestTimeout(timeout)
     }
 
+    const getSelectedGroupTitle = () => {
+        let row = []
+        for(let i = 0;i <uGroups.length;i++ ) {
+            if(uGroups[i].checked) {
+                row.push(uGroups[i].key)
+            }
+        }
+        return row
+    }
+
+    const inArray = (arr, val) => {
+        for(let i = 0;i< arr.length; i++) {
+            if(arr[i] === val) {
+                return true
+            }
+        }
+        return false
+    }
+
     const filterM3u = (filterNames) => {
-        if (filterNames.length === 0) {
+        let selectedGroupTitles = getSelectedGroupTitle()
+        if (filterNames.length === 0 && selectedGroupTitles.length === 0) {
             setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
             return
         }
@@ -71,12 +92,23 @@ export const MainContextProvider = function ({ children }) {
         let rows = [];
         for (let i = 0; i < temp.length; i++) {
             let hit = false;
-            for (let j = 0; j < filterNames.length; j++) {
-                if (contains(temp[i].sName, filterNames[j]) && !hit) {
+            if(filterNames.length > 0) {
+                for (let j = 0; j < filterNames.length; j++) {
+                    let nameHit = contains(temp[i].sName, filterNames[j])
+                    let groupTitleHit = selectedGroupTitles.length > 0 ? inArray(selectedGroupTitles, temp[i].groupTitle)  : true
+                    if (nameHit && !hit && groupTitleHit) {
+                        let one = temp[i]
+                        one.index = rows.length
+                        rows.push(one);
+                        hit = true;
+                    }
+                }
+            }else{
+                let groupTitleHit = selectedGroupTitles.length > 0 ? inArray(selectedGroupTitles, temp[i].groupTitle)  : true
+                if(groupTitleHit) {
                     let one = temp[i]
                     one.index = rows.length
                     rows.push(one);
-                    hit = true;
                 }
             }
         }
@@ -87,7 +119,24 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBody = (body) => {
         clearDetailData()
         setOriginalM3uBody(body);
-        setShowM3uBody(ParseM3u.parseOriginalBodyToList(body))
+        let _res = ParseM3u.parseOriginalBodyToList(body)
+        setShowM3uBody(_res)
+        parseGroup(_res)
+    }
+
+    const parseGroup = (groupList) => {
+        let _group = {}
+        for(let i =0;i<groupList.length;i++) {
+            _group[groupList[i].groupTitle] = groupList[i].groupTitle
+        }
+        let _tempGroup = []
+        for (let i in _group) {
+            _tempGroup.push({
+                key:_group[i],
+                checked:false
+            })
+        }
+        setUGroups(_tempGroup)
     }
 
     const changeOriginalM3uBodies = (bodies) => {
@@ -101,6 +150,7 @@ export const MainContextProvider = function ({ children }) {
             }
         }
         setShowM3uBody(res)
+        parseGroup(res)
         setOriginalM3uBody(bodyStr);
     }
 
@@ -231,10 +281,11 @@ export const MainContextProvider = function ({ children }) {
     return (
         <MainContext.Provider value={{
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, dialogBody, hasCheckedCount, httpRequestTimeout, showUrl,
+            headerHeight, uGroups, 
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
-            changeOriginalM3uBodies, headerHeight
+            changeOriginalM3uBodies, setUGroups
         }}>
             {children}
         </MainContext.Provider>
