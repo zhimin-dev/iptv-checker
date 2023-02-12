@@ -1,6 +1,5 @@
 import { useState, useContext, useEffect } from 'react'
 import { MainContext } from './../../context/main';
-import DialogTitle from '@mui/material/DialogTitle';
 import Dialog from '@mui/material/Dialog';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
@@ -10,14 +9,15 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import PropTypes from 'prop-types';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
+import Sort from './sort'
+import SkipNextIcon from '@mui/icons-material/SkipNext';
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
 
 export default function SimpleDialog(props) {
   const _mainContext = useContext(MainContext);
 
   //mod == 1 下载界面 2预览原始m3u信息
-  const { onClose, open, body, mod, clearSelectedArrFunc } = props;
+  const { onClose, open, mod, clearSelectedArrFunc, setDialogMod } = props;
 
   const [showTextAreaLable, setShowTextAreaLable] = useState('')
 
@@ -28,6 +28,8 @@ export default function SimpleDialog(props) {
       setShowTextAreaLable('原始m3u信息')
     } else if (mod === 3) {
       setShowTextAreaLable('设置')
+    } else if (mod === 4) {
+      setShowTextAreaLable('排序(数据较多时,可能影响排序列表性能,建议分批操作)')
     }
   }, [mod])
 
@@ -49,7 +51,7 @@ export default function SimpleDialog(props) {
 
   const doDownload = () => {
     var a = document.createElement('a')
-    var blob = new Blob([body])
+    var blob = new Blob([_mainContext.exportDataStr])
     var url = window.URL.createObjectURL(blob)
     a.href = url
     a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
@@ -57,14 +59,23 @@ export default function SimpleDialog(props) {
   }
 
   const doDoAgain = () => {
-    _mainContext.changeOriginalM3uBody(body)
+    _mainContext.changeOriginalM3uBody(_mainContext.exportDataStr)
     clearSelectedArrFunc()
     onClose();
   }
 
+  const doNextStep = () => {
+    setDialogMod(1)
+    _mainContext.onChangeExportStr()
+  }
+
+  const doBackward = () => {
+    setDialogMod(4)
+  }
+
   return (
     <Dialog onClose={handleClose} open={open}>
-      <DialogTitle>{showTextAreaLable}</DialogTitle>
+      <Box style={{ minWidth: '600px', 'maxHeight': '600px', 'paddingTop': '10px', 'paddingLeft': '10px' }}>{showTextAreaLable}</Box>
       {
         mod === 3 ? (
           <Box sx={{
@@ -108,9 +119,34 @@ export default function SimpleDialog(props) {
       }
       {mod === 1 || mod === 2 ? (
         <FormControl sx={{ width: 550, margin: '10px' }}>
-          <TextField multiline sx={{ fontSize: '11px' }} label={showTextAreaLable} size="small" id="standard-multiline-static" rows={4} value={body} />
+          <TextField multiline sx={{ fontSize: '11px' }} label={showTextAreaLable} size="small" id="standard-multiline-static" rows={4} value={_mainContext.exportDataStr} />
         </FormControl>
       ) : ''}
+      {
+        mod === 4 ? (
+          <Box>
+            <Sort></Sort>
+            <Box>
+              <FormControl sx={{
+                width: 550,
+                margin: '10px',
+                display: 'flex',
+                flexDirection: 'revert'
+              }}>
+                <LoadingButton
+                  size="small"
+                  onClick={doNextStep}
+                  variant="outlined"
+                  style={{ marginRight: '10px' }}
+                  startIcon={<SkipNextIcon />}
+                >
+                  继续(下一步)
+                </LoadingButton>
+              </FormControl>
+            </Box>
+          </Box>
+        ) : ''
+      }
 
       {
         mod === 1 ? (
@@ -120,6 +156,15 @@ export default function SimpleDialog(props) {
             display: 'flex',
             flexDirection: 'revert'
           }}>
+            <LoadingButton
+              size="small"
+              onClick={doBackward}
+              variant="outlined"
+              style={{ marginRight: '10px' }}
+              startIcon={<SkipPreviousIcon />}
+            >
+              上一步
+            </LoadingButton>
             <LoadingButton
               size="small"
               onClick={doDownload}
@@ -147,6 +192,5 @@ export default function SimpleDialog(props) {
 SimpleDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
-  body: PropTypes.string.isRequired,
   mod: PropTypes.number.isRequired,
 };

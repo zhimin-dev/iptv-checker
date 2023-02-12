@@ -18,13 +18,11 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Chip from '@mui/material/Chip';
 import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
-
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -49,6 +47,8 @@ export default function Setting(props) {
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
     const [dialogMod, setDialogMod] = useState(1);
+    const [open, setOpen] = useState(false);
+
     const handleDeleteChip = (chipToDelete) => () => {
         setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
     }
@@ -88,7 +88,7 @@ export default function Setting(props) {
 
     const exportValidM3uData = () => {
         _mainContext.onExportValidM3uData()
-        setDialogMod(1)
+        setDialogMod(4)
         setOpen(true);
     }
 
@@ -102,8 +102,6 @@ export default function Setting(props) {
         setDialogMod(3)
         setOpen(true);
     }
-
-    const [open, setOpen] = useState(false);
 
     const handleClose = (value) => {
         setOpen(false);
@@ -155,7 +153,7 @@ export default function Setting(props) {
                 open={open}
                 onClose={handleClose}
                 clearSelectedArrFunc={clearSelectedArr}
-                body={_mainContext.dialogBody}
+                setDialogMod={setDialogMod}
                 mod={dialogMod}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -207,7 +205,7 @@ export default function Setting(props) {
                                         variant="contained"
                                         startIcon={<CheckCircleOutlineIcon />}
                                     >
-                                        获取有效链接
+                                        有效链接
                                     </LoadingButton>
                                 </FormControl>
                             ) : ''
@@ -223,7 +221,7 @@ export default function Setting(props) {
                                         variant="outlined"
                                         startIcon={<ErrorOutlineIcon />}
                                     >
-                                        获取无效链接
+                                        无效链接
                                     </LoadingButton>
                                 </FormControl>
                             ) : ''
@@ -239,7 +237,7 @@ export default function Setting(props) {
                                         variant="contained"
                                         startIcon={<ExitToAppIcon />}
                                     >
-                                        导出选中的链接
+                                        导出(下一步)
                                     </LoadingButton>
                                 </FormControl>
                             ) : ''
@@ -271,7 +269,7 @@ export default function Setting(props) {
                                     添加关键词
                                 </LoadingButton>
                             </FormControl>
-                            <FormControl sx={{ m: 1, width: 300, margin: 0,marginRight: '5px' }} size="small">
+                            <FormControl sx={{ m: 1, width: 300, margin: 0, marginRight: '5px' }} size="small">
                                 <InputLabel id="demo-select-small" size="small">过滤Group</InputLabel>
                                 <Select
                                     labelId="demo-select-small"
