@@ -11,8 +11,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import Button from '@mui/material/Button';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -23,6 +21,9 @@ import Select from '@mui/material/Select';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemText from '@mui/material/ListItemText';
+import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import FindInPageIcon from '@mui/icons-material/FindInPage';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -30,19 +31,22 @@ const ListItem = styled('li')(({ theme }) => ({
     display: 'initial',
 }));
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
+const ITEM_HEIGHT = 40;
 const MenuProps = {
     PaperProps: {
         style: {
-            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-            width: 250,
+            maxHeight: ITEM_HEIGHT * 3,
+            width: 200,
         },
     },
 };
 
 export default function Setting(props) {
+
+    const _mainContext = useContext(MainContext);
     const { selectedArr, setSelectedArr } = props;
+
+
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
@@ -52,7 +56,6 @@ export default function Setting(props) {
     const handleDeleteChip = (chipToDelete) => () => {
         setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
     }
-    const _mainContext = useContext(MainContext);
 
     const goback = () => {
         _mainContext.goToWelcomeScene()
@@ -138,6 +141,11 @@ export default function Setting(props) {
         _mainContext.setUGroups(uGroup)
     }
 
+    const doTransferGroup = () => {
+        setDialogMod(5)
+        setOpen(true);
+    }
+
     return (
         <Box sx={{
             position: 'fixed',
@@ -154,6 +162,7 @@ export default function Setting(props) {
                 onClose={handleClose}
                 clearSelectedArrFunc={clearSelectedArr}
                 setDialogMod={setDialogMod}
+                selectedArr={selectedArr}
                 mod={dialogMod}
             />
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -176,7 +185,7 @@ export default function Setting(props) {
                             }
                         </FormControl>
                         <FormControl sx={{ marginRight: '5px' }}>
-                            <Button startIcon={<VisibilityIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
+                            <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
                         </FormControl>
                         {
                             _mainContext.handleMod === 0 ? (
@@ -187,7 +196,7 @@ export default function Setting(props) {
                                         size="small"
                                         onClick={doCheckUrlIsValid}
                                         variant="outlined"
-                                        startIcon={<RadioButtonUncheckedIcon />}
+                                        startIcon={<HelpOutlineIcon />}
                                     >
                                         检查直播源链接是否有效
                                     </LoadingButton>
@@ -227,6 +236,22 @@ export default function Setting(props) {
                             ) : ''
                         }
                         {
+                            selectedArr.length > 0 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
+                                        onClick={doTransferGroup}
+                                        variant="outlined"
+                                        startIcon={<ChangeCircleIcon />}
+                                    >
+                                        更换分组
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
+                        {
                             _mainContext.handleMod === 2 || selectedArr.length > 0 ? (
                                 <FormControl sx={{
                                     marginRight: "5px",
@@ -250,7 +275,7 @@ export default function Setting(props) {
                                 display: 'flex',
                                 alignItems: 'flex-end'
                             }}>
-                            <FormControl sx={{ marginRight: '5px' }}>
+                            <FormControl sx={{ marginRight: '5px',width:'120px' }}>
                                 <TextField
                                     id="outlined-name"
                                     value={searchTitle}
@@ -266,11 +291,11 @@ export default function Setting(props) {
                                     variant="outlined"
                                     startIcon={<AddCircleOutlineIcon />}
                                 >
-                                    添加关键词
+                                    关键词
                                 </LoadingButton>
                             </FormControl>
-                            <FormControl sx={{ m: 1, width: 300, margin: 0, marginRight: '5px' }} size="small">
-                                <InputLabel id="demo-select-small" size="small">过滤Group</InputLabel>
+                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                <InputLabel id="demo-select-small" size="small">过滤分组</InputLabel>
                                 <Select
                                     labelId="demo-select-small"
                                     id="demo-select-small"
@@ -278,7 +303,7 @@ export default function Setting(props) {
                                     multiple
                                     value={selectedGroups}
                                     onChange={handleChangeGroup}
-                                    input={<OutlinedInput label="过滤Group" />}
+                                    input={<OutlinedInput size="small" label="过滤分组" />}
                                     renderValue={(selectedGroups) => selectedGroups.join(', ')}
                                     MenuProps={MenuProps}
                                 >
@@ -325,14 +350,14 @@ export default function Setting(props) {
                             chipData.length > 0 && selectedGroups.length > 0 ? '且' : ''
                         }
                         {
-                            selectedGroups.length > 0 ? '只显示组标签(GroupTitle)为[' + selectedGroups.join(',') + ']的数据' : ''
+                            selectedGroups.length > 0 ? '只显示分组为[' + selectedGroups.join(',') + ']的数据' : ''
                         }
                         {
                             chipData.length > 0 || selectedGroups.length ? ',需要点击【搜索】按钮进行筛选' : ''
                         }
                     </Box>
                 </Box>
-                <Box sx={{ paddingRight: "20px" }}>
+                <Box sx={{ paddingRight: "10px" }}>
                     <FormControl sx={{ marginRight: '5px' }}>
                         <LoadingButton
                             size="small"

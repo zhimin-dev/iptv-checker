@@ -6,7 +6,6 @@ import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Checkbox from '@mui/material/Checkbox';
 import PropTypes from 'prop-types';
-import PreviewIcon from '@mui/icons-material/Preview';
 import clsx from 'clsx';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import { styled } from '@mui/material/styles';
@@ -15,6 +14,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import InfoIcon from '@mui/icons-material/Info';
 
 export const classes = {
     flexContainer: 'ReactVirtualizedDemo-flexContainer',
@@ -81,7 +82,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl } = this.props;
+        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail } = this.props;
         return (
             <TableCell
                 component="div"
@@ -89,7 +90,10 @@ class MuiVirtualizedTable extends React.PureComponent {
                     [classes.noClick]: onRowClick == null,
                 })}
                 variant="body"
-                style={{ height: rowHeight }}
+                style={{ height: rowHeight, 
+                width: columns[columnIndex].width+" !important",
+                flex:"auto"
+                }}
             >
                 {
                     columnIndex === 0 ? (
@@ -117,9 +121,15 @@ class MuiVirtualizedTable extends React.PureComponent {
                                 </IconButton>
                             </Tooltip>
 
-                            <Tooltip title="点击观看">
-                                <IconButton onClick={() => watchThis(originalData[cellData])}>
-                                    <PreviewIcon color="success" />
+                            <Tooltip title="点击在线观看">
+                                <IconButton onClick={() => watchThis(originalData[this.getObjectIndexIndex(cellData)])}>
+                                    <VisibilityIcon color="success" />
+                                </IconButton>
+                            </Tooltip>
+
+                            <Tooltip title="查看详细数据">
+                                <IconButton onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>
+                                    <InfoIcon color="info" />
                                 </IconButton>
                             </Tooltip>
                         </Box>
@@ -130,23 +140,29 @@ class MuiVirtualizedTable extends React.PureComponent {
                         <Box>
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 0 ? (
-                                    <Avatar sx={{ width: 24, height: 24 }}>
-                                        <HorizontalRuleIcon />
-                                    </Avatar>
+                                    <Tooltip title="未检查">
+                                        <Avatar sx={{ width: 24, height: 24 }}>
+                                            <HorizontalRuleIcon />
+                                        </Avatar>
+                                    </Tooltip>
                                 ) : ''
                             }
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 1 ? (
-                                    <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
-                                        <CheckCircleIcon />
-                                    </Avatar>
+                                    <Tooltip title="有效">
+                                        <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
+                                            <CheckCircleIcon />
+                                        </Avatar>
+                                    </Tooltip>
                                 ) : ''
                             }
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 2 ? (
-                                    <Avatar sx={{ bgcolor: pink[500], width: 24, height: 24 }}>
-                                        <ErrorIcon />
-                                    </Avatar>
+                                    <Tooltip title="无效">
+                                        <Avatar sx={{ bgcolor: pink[500], width: 24, height: 24 }}>
+                                            <ErrorIcon />
+                                        </Avatar>
+                                    </Tooltip>
                                 ) : ''
                             }
                         </Box>
@@ -169,13 +185,17 @@ class MuiVirtualizedTable extends React.PureComponent {
     };
 
     headerRenderer = ({ label, columnIndex }) => {
-        const { headerHeight, selectedArr, originalData, selectAll } = this.props;
+        const { headerHeight, selectedArr, originalData, selectAll, columns } = this.props;
         return (
             <TableCell
                 component="div"
                 className={clsx(classes.tableCell, classes.flexContainer, classes.noClick)}
                 variant="head"
-                style={{ height: headerHeight }}
+                style={{ 
+                    height: headerHeight,
+                    width: columns[columnIndex].width+" !important",
+                    flex:"auto"
+                 }}
             >
                 {
                     columnIndex === 0 ? (
