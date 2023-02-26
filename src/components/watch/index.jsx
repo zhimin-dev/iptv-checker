@@ -92,16 +92,6 @@ export default function Watch() {
     }
 
     const destroyVideo = () => {
-        // if (hlsObj) {
-        //     hlsObj.stopLoad()
-        // }
-        // if (videoInstance) {
-        //     video.src = ""
-        //     videoInstance.pause()
-        //     videoInstance.removeAttribute('src');
-        //     videoInstance.load();
-        //     console.log("destroyVideo")
-        // }
         setIsPlaying(false)
     }
 
@@ -190,6 +180,7 @@ export default function Watch() {
                 </FormControl>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{display: 'flex',alignItems: 'center'}}>
                 <Box sx={{ marginLeft: "10px" }}>
                     {logoUrl !== '' ? (
                         <img src={logoUrl} height="50"></img>
@@ -224,6 +215,7 @@ export default function Watch() {
                         ) : ''
                     }
                 </h2>
+                </Box>
 
                 <FormControl sx={{ margin: '10px' }}>
                     {

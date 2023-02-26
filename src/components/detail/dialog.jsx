@@ -12,16 +12,48 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import Sort from './sort'
 import SkipNextIcon from '@mui/icons-material/SkipNext';
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import InputLabel from '@mui/material/InputLabel';
+import Button from '@mui/material/Button';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+import Typography from '@mui/material/Typography';
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
 
 export default function SimpleDialog(props) {
   const _mainContext = useContext(MainContext);
 
   //mod == 1 下载界面 2预览原始m3u信息
-  const { onClose, open, mod, clearSelectedArrFunc, setDialogMod } = props;
+  const { onClose, open, mod, clearSelectedArrFunc, setDialogMod, selectedArr } = props;
 
   const [showTextAreaLable, setShowTextAreaLable] = useState('')
+  const [selectedGroups, setSelectedGroups] = useState('')
+  const [groupTab, setGroupTab] = useState(0)
+  const [customGroupName, setCustomGroupName] = useState('')
 
   useEffect(() => {
+    setGroupTab(0)
+    setSelectedGroups('')
     if (mod === 1) {
       setShowTextAreaLable('您所选择的m3u信息')
     } else if (mod === 2) {
@@ -30,6 +62,8 @@ export default function SimpleDialog(props) {
       setShowTextAreaLable('设置')
     } else if (mod === 4) {
       setShowTextAreaLable('排序(数据较多时,可能影响排序列表性能,建议分批操作)')
+    } else if (mod === 5) {
+      setShowTextAreaLable('更改分组') 
     }
   }, [mod])
 
@@ -71,6 +105,27 @@ export default function SimpleDialog(props) {
 
   const doBackward = () => {
     setDialogMod(4)
+  }
+
+  const handleChangeGroup = (e) => {
+    setSelectedGroups(e.target.value)
+  }
+
+  const doTransferGroup = () => {
+    if(groupTab === 0) {
+      _mainContext.batchChangeGroupName(selectedArr, selectedGroups)
+    }else{
+      _mainContext.batchChangeGroupName(selectedArr, customGroupName)
+    }
+    onClose();
+  }
+
+  const handleChangeGroupTab = (event, newValue) => {
+    setGroupTab(newValue);
+  };
+
+  const changeCustomGroupName = (e) => {
+    setCustomGroupName(e.target.value)
   }
 
   return (
@@ -147,7 +202,6 @@ export default function SimpleDialog(props) {
           </Box>
         ) : ''
       }
-
       {
         mod === 1 ? (
           <FormControl sx={{
@@ -183,6 +237,47 @@ export default function SimpleDialog(props) {
               再次处理
             </LoadingButton>
           </FormControl>
+        ) : ''
+      }
+      {
+        mod === 5 ? (
+          <Box sx={{ width: 550, margin: '10px' }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={groupTab} onChange={handleChangeGroupTab} aria-label="basic tabs example">
+                <Tab label="已有分组" />
+                <Tab label="新增分组" />
+              </Tabs>
+            </Box>
+            <TabPanel value={groupTab} index={0}>
+              <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">更换分组</InputLabel>
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={selectedGroups}
+                  label="更换分组"
+                  onChange={handleChangeGroup}
+                >
+                  {_mainContext.uGroups.map((value, index) => (
+                    <MenuItem key={index} value={value.key}>{value.key}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </TabPanel>
+            <TabPanel value={groupTab} index={1}>
+              <FormControl fullWidth>
+                <TextField id="standard-basic" label="输入新分组名称" value={customGroupName} 
+                  variant="standard" onChange={changeCustomGroupName}/>
+                </FormControl>
+            </TabPanel>
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginTop: '5px'
+            }}>
+              <Button variant="outlined" onClick={doTransferGroup}>确定</Button>
+            </Box>
+          </Box>
         ) : ''
       }
     </Dialog>

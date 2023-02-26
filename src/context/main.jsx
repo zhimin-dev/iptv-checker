@@ -16,6 +16,11 @@ export const MainContextProvider = function ({ children }) {
     const [uGroups, setUGroups] = useState([])
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
+    const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
+
+    const changeChannelObj = (val) => {
+        setShowChannelObj(val)
+    }
 
     const goToDetailScene = () => {
         setScene(1);
@@ -95,7 +100,7 @@ export const MainContextProvider = function ({ children }) {
             let hit = false;
             if (filterNames.length > 0) {
                 for (let j = 0; j < filterNames.length; j++) {
-                    let nameHit = contains(temp[i].sName, filterNames[j])
+                    let nameHit = contains(temp[i].sName, filterNames[j].toLowerCase())
                     let groupTitleHit = selectedGroupTitles.length > 0 ? inArray(selectedGroupTitles, temp[i].groupTitle) : true
                     if (nameHit && !hit && groupTitleHit) {
                         let one = temp[i]
@@ -138,6 +143,23 @@ export const MainContextProvider = function ({ children }) {
             })
         }
         setUGroups(_tempGroup)
+    }
+
+    const addGroup = (name) => {
+        let exists = false
+        for (let i = 0; i < uGroups.length; i++) {
+            if (uGroups[i].key === name) {
+                exists = true
+            }
+        }
+        if (!exists) {
+            let row = deepCopyJson(uGroups)
+            row.push({
+                key: name,
+                checked: false
+            })
+            setUGroups(row)
+        }
     }
 
     const changeOriginalM3uBodies = (bodies) => {
@@ -292,22 +314,65 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const onChangeExportStr = () => {
-        let body = `#EXTM3U x-tvg-url="https://iptv-org.github.io/epg/guides/ao/guide.dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/ar/directv.com.ar.epg.xml,https://iptv-org.github.io/epg/guides/ar/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/bf/canalplus-afrique.com.epg.xml,https://iptv-org.github.io/epg/guides/bi/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/bo/comteco.com.bo.epg.xml,https://iptv-org.github.io/epg/guides/br/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/cn/tv.cctv.com.epg.xml,https://iptv-org.github.io/epg/guides/cz/m.tv.sms.cz.epg.xml,https://iptv-org.github.io/epg/guides/dk/allente.se.epg.xml,https://iptv-org.github.io/epg/guides/fr/chaines-tv.orange.fr.epg.xml,https://iptv-org.github.io/epg/guides/ga/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml,https://iptv-org.github.io/epg/guides/hk-en/nowplayer.now.com.epg.xml,https://iptv-org.github.io/epg/guides/id-en/mncvision.id.epg.xml,https://iptv-org.github.io/epg/guides/it/guidatv.sky.it.epg.xml,https://iptv-org.github.io/epg/guides/my/astro.com.my.epg.xml,https://iptv-org.github.io/epg/guides/ng/dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/nl/delta.nl.epg.xml,https://iptv-org.github.io/epg/guides/tr/digiturk.com.tr.epg.xml,https://iptv-org.github.io/epg/guides/uk/bt.com.epg.xml,https://iptv-org.github.io/epg/guides/us-pluto/i.mjh.nz.epg.xml,https://iptv-org.github.io/epg/guides/us/tvtv.us.epg.xml,https://iptv-org.github.io/epg/guides/za/guide.dstv.com.epg.xml"\n`;
-        for (let i = 0; i < exportData.length; i += 1) {
-            body += `${exportData[i].originalData}\n`;
+        setExportDataStr(_toOriginalStr(exportData))
+    }
+
+    const batchChangeGroupName = (selectArr, groupName) => {
+        for (let i = 0; i < showM3uBody.length; i++) {
+            if (inArray(selectArr, showM3uBody[i].index)) {
+                showM3uBody[i].groupTitle = groupName
+            }
         }
-        setExportDataStr(body)
+        addGroup(groupName)
+    }
+
+    const updateDataByIndex = (index, mapData) => {
+        let row = deepCopyJson(showM3uBody)
+        if (mapData["groupTitle"] !== undefined && mapData["groupTitle"] !== null) {
+            addGroup(mapData["groupTitle"])
+        }
+        for (let i = 0; i < row.length; i++) {
+            if (row[i].index === index) {
+                for (let j in mapData) {
+                    if (j === 'name') {
+                        row[i]['sName'] = mapData[j]
+                    }
+                    row[i][j] = mapData[j]
+                }
+            }
+        }
+        let data = ParseM3u.parseOriginalBodyToList(originalM3uBody)
+        for (let i = 0; i < data.length; i++) {
+            if (data[i].index === index) {
+                for (let j in mapData) {
+                    if (j === 'name') {
+                        data[i]['sName'] = mapData[j].toLowerCase()
+                    }
+                    data[i][j] = mapData[j]
+                }
+            }
+        }
+        setOriginalM3uBody(_toOriginalStr(data))
+        setShowM3uBody(row)
+    }
+
+    const _toOriginalStr = (data) => {
+        let body = `#EXTM3U x-tvg-url="https://iptv-org.github.io/epg/guides/ao/guide.dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/ar/directv.com.ar.epg.xml,https://iptv-org.github.io/epg/guides/ar/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/bf/canalplus-afrique.com.epg.xml,https://iptv-org.github.io/epg/guides/bi/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/bo/comteco.com.bo.epg.xml,https://iptv-org.github.io/epg/guides/br/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/cn/tv.cctv.com.epg.xml,https://iptv-org.github.io/epg/guides/cz/m.tv.sms.cz.epg.xml,https://iptv-org.github.io/epg/guides/dk/allente.se.epg.xml,https://iptv-org.github.io/epg/guides/fr/chaines-tv.orange.fr.epg.xml,https://iptv-org.github.io/epg/guides/ga/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml,https://iptv-org.github.io/epg/guides/hk-en/nowplayer.now.com.epg.xml,https://iptv-org.github.io/epg/guides/id-en/mncvision.id.epg.xml,https://iptv-org.github.io/epg/guides/it/guidatv.sky.it.epg.xml,https://iptv-org.github.io/epg/guides/my/astro.com.my.epg.xml,https://iptv-org.github.io/epg/guides/ng/dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/nl/delta.nl.epg.xml,https://iptv-org.github.io/epg/guides/tr/digiturk.com.tr.epg.xml,https://iptv-org.github.io/epg/guides/uk/bt.com.epg.xml,https://iptv-org.github.io/epg/guides/us-pluto/i.mjh.nz.epg.xml,https://iptv-org.github.io/epg/guides/us/tvtv.us.epg.xml,https://iptv-org.github.io/epg/guides/za/guide.dstv.com.epg.xml"\n`;
+        for (let i = 0; i < data.length; i += 1) {
+            body += `#EXTINF:-1 tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
+        }
+        return body
     }
 
     return (
         <MainContext.Provider value={{
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
-            headerHeight, uGroups,
+            headerHeight, uGroups, exportDataStr, exportData, showChannelObj,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
-            changeOriginalM3uBodies, setUGroups,
-            exportData, onChangeExportData, exportDataStr, setExportDataStr, onChangeExportStr
+            changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName
         }}>
             {children}
         </MainContext.Provider>
