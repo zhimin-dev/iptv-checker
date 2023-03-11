@@ -36,7 +36,7 @@ export default function Detail() {
   }
 
   const saveEditData = () => {
-    _mainContext.updateDataByIndex(_mainContext.showChannelObj.index, {
+    _mainContext.updateDataByIndex([_mainContext.showChannelObj.index], {
       name:editName,
       tvgLogo: editLogoUrl,
       url: editUrl,

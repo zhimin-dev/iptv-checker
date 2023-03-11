@@ -95,6 +95,7 @@ export const MainContextProvider = function ({ children }) {
             return
         }
         let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody)
+        console.log(temp)
         let rows = [];
         for (let i = 0; i < temp.length; i++) {
             let hit = false;
@@ -318,21 +319,20 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const batchChangeGroupName = (selectArr, groupName) => {
-        for (let i = 0; i < showM3uBody.length; i++) {
-            if (inArray(selectArr, showM3uBody[i].index)) {
-                showM3uBody[i].groupTitle = groupName
-            }
-        }
-        addGroup(groupName)
+        updateDataByIndex(selectArr, {"groupTitle": groupName})
     }
 
-    const updateDataByIndex = (index, mapData) => {
+    const addGroupName = (name) => {
+        addGroup(name)
+    }
+
+    const updateDataByIndex = (indexArr, mapData) => {
         let row = deepCopyJson(showM3uBody)
         if (mapData["groupTitle"] !== undefined && mapData["groupTitle"] !== null) {
             addGroup(mapData["groupTitle"])
         }
         for (let i = 0; i < row.length; i++) {
-            if (row[i].index === index) {
+            if (inArray(indexArr,row[i].index)) {
                 for (let j in mapData) {
                     if (j === 'name') {
                         row[i]['sName'] = mapData[j]
@@ -343,7 +343,7 @@ export const MainContextProvider = function ({ children }) {
         }
         let data = ParseM3u.parseOriginalBodyToList(originalM3uBody)
         for (let i = 0; i < data.length; i++) {
-            if (data[i].index === index) {
+            if (inArray(indexArr,row[i].index)) {
                 for (let j in mapData) {
                     if (j === 'name') {
                         data[i]['sName'] = mapData[j].toLowerCase()
@@ -372,7 +372,7 @@ export const MainContextProvider = function ({ children }) {
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName
         }}>
             {children}
         </MainContext.Provider>
