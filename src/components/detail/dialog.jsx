@@ -114,10 +114,11 @@ export default function SimpleDialog(props) {
   const doTransferGroup = () => {
     if(groupTab === 0) {
       _mainContext.batchChangeGroupName(selectedArr, selectedGroups)
+      onClose();
     }else{
-      _mainContext.batchChangeGroupName(selectedArr, customGroupName)
+      _mainContext.addGroupName(customGroupName)
+      setGroupTab(0)
     }
-    onClose();
   }
 
   const handleChangeGroupTab = (event, newValue) => {

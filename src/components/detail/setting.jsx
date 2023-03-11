@@ -35,7 +35,7 @@ const ITEM_HEIGHT = 40;
 const MenuProps = {
     PaperProps: {
         style: {
-            maxHeight: ITEM_HEIGHT * 3,
+            maxHeight: ITEM_HEIGHT * 5,
             width: 200,
         },
     },
