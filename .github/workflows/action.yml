@@ -34,7 +34,7 @@ jobs:
         run: npm install
         
       - name: build production
-        run: npm run build
+        run: npm run build --force
 
       - name: commit
         run: |
