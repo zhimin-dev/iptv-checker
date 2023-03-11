@@ -343,7 +343,7 @@ export const MainContextProvider = function ({ children }) {
         }
         let data = ParseM3u.parseOriginalBodyToList(originalM3uBody)
         for (let i = 0; i < data.length; i++) {
-            if (inArray(indexArr,row[i].index)) {
+            if (inArray(indexArr,data[i].index)) {
                 for (let j in mapData) {
                     if (j === 'name') {
                         data[i]['sName'] = mapData[j].toLowerCase()
