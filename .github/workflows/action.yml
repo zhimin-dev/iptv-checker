@@ -31,10 +31,10 @@ jobs:
           node-version: '16'
         
       - name: install modules
-        run: npm install
+        run: npm install --force
         
       - name: build production
-        run: npm run build --force
+        run: npm run build
 
       - name: commit
         run: |
