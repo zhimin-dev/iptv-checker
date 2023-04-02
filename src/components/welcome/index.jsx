@@ -27,12 +27,14 @@ const ModIHaveM3uLink = 0
 const ModIHaveM3uContent = 1
 const ModPublicSource = 2
 const ModWatchOnline = 3
+const ModUploadFromLocal = 4
 
 const selectOption = [
-  { 'mod': ModIHaveM3uLink, "name": "我有m3u订阅源链接" },
-  { 'mod': ModIHaveM3uContent, "name": "我有m3u订阅源内容" },
+  { 'mod': ModIHaveM3uLink, "name": "我有订阅源链接" },
+  { 'mod': ModIHaveM3uContent, "name": "我有订阅源内容" },
   { 'mod': ModPublicSource, "name": "公共订阅源" },
   { 'mod': ModWatchOnline, "name": "在线观看" },
+  { 'mod': ModUploadFromLocal, "name": "本地上传" },
 ]
 
 const Alert = React.forwardRef(function Alert(props, ref) {
@@ -96,6 +98,7 @@ export default function HorizontalLinearStepper() {
   const [errorMsg, setErrorMsg] = React.useState('')
   const [showError, setShowError] = React.useState(false)
   const [watchList, setWatchList] = React.useState([])
+  const [localFileName, setLocalFileName] = React.useState('')
 
   useEffect(() => {
     fetchCommonLink()
@@ -182,6 +185,12 @@ export default function HorizontalLinearStepper() {
         } else {
           throw new Error('获取数据失败')
         }
+      } else if (mod == ModUploadFromLocal) {
+        if (body !== '') {
+          _mainContext.changeOriginalM3uBody(body)
+        } else {
+          throw new Error('获取数据失败')
+        }
       }
       _mainContext.goToDetailScene()
     } catch (e) {
@@ -209,6 +218,15 @@ export default function HorizontalLinearStepper() {
     setMod(newValue);
     localStorage.setItem(lastHomeTab, newValue)
   };
+
+  const HandleLocalUpload = (e) => {
+    const file = new FileReader();
+    setLocalFileName(e.target.value)
+    file.readAsText(e.target.files[0])
+    file.onload = (e) => {
+      setBody(e.target.result)
+    }
+  }
 
   return (
     <Box sx={{
@@ -287,6 +305,12 @@ export default function HorizontalLinearStepper() {
               ))
             }
           </Box>
+        </TabPanel>
+        <TabPanel mod={mod} index={ModUploadFromLocal}>
+          <Button variant="contained" component="label">
+            {localFileName ==='' ? 'Upload': localFileName}
+            <input hidden type="file" onChange={HandleLocalUpload} />
+          </Button>
         </TabPanel>
         {
           mod !== ModWatchOnline ? (

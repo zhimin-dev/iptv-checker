@@ -191,6 +191,13 @@ const ParseM3u = {
             return value.split('" ')[0];
         }
         return "";
+    },
+    checkRespIsValudM3u8Data: (body) => {
+        let data = body.split('\n')
+        if (data[0].indexOf('#EXTM3U') !== -1) {
+            return true
+        }
+        return false
     }
 }
 
