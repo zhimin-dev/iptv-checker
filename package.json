@@ -25,7 +25,9 @@
     "react-virtualized": "^9.22.3",
     "video.js": "^8.0.3",
     "videojs-contrib-quality-levels": "^3.0.0",
-    "videojs-http-source-selector": "^1.1.6"
+    "videojs-http-source-selector": "^1.1.6",
+    "koa": "^2.14.1",
+    "koa-router": "^12.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.27",

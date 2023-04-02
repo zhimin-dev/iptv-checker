@@ -290,7 +290,7 @@ export const MainContextProvider = function ({ children }) {
             } else {
                 try {
                     let res = await axios.get(one.url, { timeout: httpRequestTimeout })
-                    if (res.status === 200 && checkRespIsValudM3u8Data(res.data)) {
+                    if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
                         setShowM3uBodyStatus(one.index, 1)
                     } else {
                         setShowM3uBodyStatus(one.index, 2)
