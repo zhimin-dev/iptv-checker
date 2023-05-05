@@ -172,7 +172,7 @@ export default function HorizontalLinearStepper() {
         }
         let bodies = []
         for (let i = 0; i < targetUrl.length; i++) {
-          let res = await axios.get(targetUrl[i])
+          let res = await axios.get(_mainContext.getCheckUrl(targetUrl[i]))
           if (res.status === 200) {
             bodies.push(res.data)
           }

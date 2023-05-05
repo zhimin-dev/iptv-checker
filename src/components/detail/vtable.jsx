@@ -82,7 +82,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail } = this.props;
+        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail, showWatch } = this.props;
         return (
             <TableCell
                 component="div"
@@ -120,12 +120,15 @@ class MuiVirtualizedTable extends React.PureComponent {
                                     <DeleteIcon sx={{ color: red[400] }} />
                                 </IconButton>
                             </Tooltip>
-
-                            <Tooltip title="点击在线观看">
-                                <IconButton onClick={() => watchThis(originalData[this.getObjectIndexIndex(cellData)])}>
-                                    <VisibilityIcon color="success" />
-                                </IconButton>
-                            </Tooltip>
+                            {
+                                showWatch? (
+                                    <Tooltip title="点击在线观看">
+                                        <IconButton onClick={() => watchThis(originalData[this.getObjectIndexIndex(cellData)])}>
+                                            <VisibilityIcon color="success" />
+                                        </IconButton>
+                                    </Tooltip>
+                                ):''
+                            }
 
                             <Tooltip title="查看详细数据">
                                 <IconButton onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>

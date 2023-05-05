@@ -242,12 +242,12 @@ export const MainContextProvider = function ({ children }) {
         return ids
     }
 
-    const checkRespIsValudM3u8Data = (body) => {
-        let data = body.split('\n')
-        if (data[0].indexOf('#EXTM3U') !== -1) {
-            return true
+    const getCheckUrl = (url, timeout) => {
+        let item = localStorage.getItem('mode')
+        if (item === '1') {
+            return url
         }
-        return false
+        return '/check-url-is-available?url=' + url + "&timeout=" + timeout
     }
 
     const onCheckTheseLinkIsAvailable = async () => {
@@ -289,7 +289,7 @@ export const MainContextProvider = function ({ children }) {
                 continue
             } else {
                 try {
-                    let res = await axios.get(one.url, { timeout: httpRequestTimeout })
+                    let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
                     if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
                         setShowM3uBodyStatus(one.index, 1)
                     } else {
@@ -319,7 +319,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const batchChangeGroupName = (selectArr, groupName) => {
-        updateDataByIndex(selectArr, {"groupTitle": groupName})
+        updateDataByIndex(selectArr, { "groupTitle": groupName })
     }
 
     const addGroupName = (name) => {
@@ -332,7 +332,7 @@ export const MainContextProvider = function ({ children }) {
             addGroup(mapData["groupTitle"])
         }
         for (let i = 0; i < row.length; i++) {
-            if (inArray(indexArr,row[i].index)) {
+            if (inArray(indexArr, row[i].index)) {
                 for (let j in mapData) {
                     if (j === 'name') {
                         row[i]['sName'] = mapData[j]
@@ -343,7 +343,7 @@ export const MainContextProvider = function ({ children }) {
         }
         let data = ParseM3u.parseOriginalBodyToList(originalM3uBody)
         for (let i = 0; i < data.length; i++) {
-            if (inArray(indexArr,data[i].index)) {
+            if (inArray(indexArr, data[i].index)) {
                 for (let j in mapData) {
                     if (j === 'name') {
                         data[i]['sName'] = mapData[j].toLowerCase()
@@ -372,7 +372,7 @@ export const MainContextProvider = function ({ children }) {
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl
         }}>
             {children}
         </MainContext.Provider>

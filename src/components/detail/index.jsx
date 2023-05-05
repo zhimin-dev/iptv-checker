@@ -20,6 +20,7 @@ export default function Detail() {
   const [editUrl, setEditUrl] = useState('')
   const [editLogoUrl, setEditLogoUrl] = useState('')
   const [editGroupName, setEditGroupName] = useState('')
+  const [showWatch, setShowWatch] = useState(true)
 
   const onChangeEditName = (e) => {
     setEditName(e.target.value)
@@ -46,6 +47,9 @@ export default function Detail() {
   }
 
   useEffect(() => {
+    if (localStorage.getItem("mode") !== "1") {
+      setShowWatch(false)
+    }
     setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)
     window.addEventListener("resize", e => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
@@ -143,6 +147,7 @@ export default function Detail() {
           showOriginalUrl={_mainContext.showUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
+          showWatch={showWatch}
           columns={[
             {
               width: 80,
