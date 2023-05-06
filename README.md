@@ -8,13 +8,13 @@
 
 如果基于源码启动`npm run dev`时,出现`No matching export in "node_modules/react-virtualized/dist/es/WindowScroller/WindowScroller.js" for import "bpfrpt_proptype_WindowScroller"` 这样的错误，请输入`npx patch-package`可解决
 
-## chorme扩展安装方法
+## Chorme扩展安装方法
 
 - 下载本扩展并解压（选择最新的releases版本下载或者选择**production分支**下载zip包，**请勿直接**使用main分支代码）
 - 下载chrome浏览器，打开浏览器，选择设置-扩展-加载未打包的扩展，选择解压后的文件夹
 - 在扩展中点击iptv-checker图标
 
-## docker使用方法
+## Docker本地编译使用方法
 
 下载源码，执行下面命令，再访问浏览器`http://127.0.0.1:8081/`即可
 
@@ -22,6 +22,17 @@
 docker build -t ipserver .
 docker run -d -p 8081:8080 --name myIp ipserver
 ```
+
+## Docker官方包使用方法
+
+首先下载已经打包好的镜像（执行下面命令），[DockerHub](https://hub.docker.com/r/zmisgod/iptvchecker)地址
+
+```bash
+docker pull zmisgod/iptvchecker:2.13.0
+docker run -d -p 8081:8080 --name myIp zmisgod/iptvchecker:2.13.0
+```
+
+再打开浏览器访问`http://127.0.0.1:8081/`即可
 
 ## 变更日志
 
