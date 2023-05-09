@@ -243,8 +243,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const getCheckUrl = (url, timeout) => {
-        let item = localStorage.getItem('mode')
-        if (item === '1') {
+        if (canCrossOrigin()) {
             return url
         }
         return '/check-url-is-available?url=' + url + "&timeout=" + timeout
@@ -364,6 +363,10 @@ export const MainContextProvider = function ({ children }) {
         return body
     }
 
+    const canCrossOrigin = () => {
+        return localStorage.getItem("mode") === "1"
+    }
+
     return (
         <MainContext.Provider value={{
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
@@ -372,7 +375,7 @@ export const MainContextProvider = function ({ children }) {
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin
         }}>
             {children}
         </MainContext.Provider>

@@ -26,14 +26,21 @@ import Tab from '@mui/material/Tab';
 const ModIHaveM3uLink = 0
 const ModIHaveM3uContent = 1
 const ModPublicSource = 2
-const ModWatchOnline = 3
-const ModUploadFromLocal = 4
+const ModUploadFromLocal = 3
+const ModWatchOnline = 4
 
-const selectOption = [
+let selectOption = [
   { 'mod': ModIHaveM3uLink, "name": "我有订阅源链接" },
   { 'mod': ModIHaveM3uContent, "name": "我有订阅源内容" },
   { 'mod': ModPublicSource, "name": "公共订阅源" },
+  { 'mod': ModUploadFromLocal, "name": "本地上传" },
   { 'mod': ModWatchOnline, "name": "在线观看" },
+]
+
+let selectOptionWithNoWatch = [
+  { 'mod': ModIHaveM3uLink, "name": "我有订阅源链接" },
+  { 'mod': ModIHaveM3uContent, "name": "我有订阅源内容" },
+  { 'mod': ModPublicSource, "name": "公共订阅源" },
   { 'mod': ModUploadFromLocal, "name": "本地上传" },
 ]
 
@@ -117,6 +124,14 @@ export default function HorizontalLinearStepper() {
       }
     }
   }, [])
+
+  const getTabs = () => {
+    if(_mainContext.canCrossOrigin()) {
+      return selectOption
+    }else{
+      return selectOptionWithNoWatch
+    }
+  }
 
   const fetchWatchOnlineData = async () => {
     let list = []
@@ -247,7 +262,7 @@ export default function HorizontalLinearStepper() {
         <Box >
           <Tabs value={mod} onChange={handleTabChange} aria-label="basic tabs example">
             {
-              selectOption.map((value, index) => (
+              getTabs().map((value, index) => (
                 <Tab label={value.name} key={index} />
               ))
             }

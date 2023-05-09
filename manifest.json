@@ -1,7 +1,7 @@
 {
   "name": "iptv-checker",
   "description": "for chrome extension",
-  "version": "2.13.0",
+  "version": "2.13.1",
   "manifest_version": 3,
   "author": "知敏studio",
   "permissions": [
