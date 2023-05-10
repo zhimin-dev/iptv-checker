@@ -47,7 +47,7 @@ export default function Detail() {
   }
 
   useEffect(() => {
-    if (localStorage.getItem("mode") !== "1") {
+    if (!_mainContext.canCrossOrigin()) {
       setShowWatch(false)
     }
     setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)

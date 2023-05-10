@@ -28,14 +28,16 @@ docker run -d -p 8081:8080 --name myIp ipserver
 首先下载已经打包好的镜像（执行下面命令），[DockerHub](https://hub.docker.com/r/zmisgod/iptvchecker)地址
 
 ```bash
-docker pull zmisgod/iptvchecker:2.13.0
-docker run -d -p 8081:8080 --name myIp zmisgod/iptvchecker:2.13.0
+docker pull zmisgod/iptvchecker
+docker run -d -p 8081:8080 --name myIp zmisgod/iptvchecker
 ```
 
 再打开浏览器访问`http://127.0.0.1:8081/`即可
 
 ## 变更日志
 
+- v2.13.1
+  - 将docker模式中观看入口去掉
 - v2.13
   - 支持docker
 - v2.12
