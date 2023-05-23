@@ -34,6 +34,14 @@ docker run -d -p 8081:8080 --name myIp zmisgod/iptvchecker
 
 再打开浏览器访问`http://127.0.0.1:8081/`即可
 
+## Docker本地打多平台包方法
+
+```bash
+docker buildx create --name mybuilder
+docker buildx inspect --bootstrap
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push .
+```
+
 ## 变更日志
 
 - v2.13.1
