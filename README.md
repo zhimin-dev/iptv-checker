@@ -42,6 +42,12 @@ docker buildx inspect --bootstrap
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push .
 ```
 
+## Docker-Compose 部署
+
+```bash
+docker-compose up -d
+```
+
 ## 变更日志
 
 - v2.13.1
