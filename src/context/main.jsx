@@ -1,4 +1,4 @@
-import { useState, createContext, useEffect } from "react"
+import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
@@ -9,14 +9,18 @@ export const MainContextProvider = function ({ children }) {
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
-    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//检查url最多的
+    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//下一次请求间隔
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
-    const [showUrl, setShowUrl] = useState(false)
-    const [uGroups, setUGroups] = useState([])
+    const [showUrl, setShowUrl] = useState(false)//是否显示原始m3u8链接
+    const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
     const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
+    const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
+    const [checkData, setCheckData] = useState([])//待检查数据列表
+
+    const nowCheckUrlModRef = useRef()
 
     const changeChannelObj = (val) => {
         setShowChannelObj(val)
@@ -188,6 +192,12 @@ export const MainContextProvider = function ({ children }) {
         )
     }
 
+    const setCheckDataStatus = (index, status) => {
+        setCheckData(prev =>
+            prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
+        )
+    }
+
     const changeCheckMillisSeconds = (mill) => {
         setCheckMillisSeconds(mill)
     }
@@ -249,12 +259,7 @@ export const MainContextProvider = function ({ children }) {
         return '/check-url-is-available?url=' + url + "&timeout=" + timeout
     }
 
-    const onCheckTheseLinkIsAvailable = async () => {
-        if (handleMod === 1) {
-            return
-        }
-        setHandleMod(1)
-        let nowIsCheckingHostMap = {};
+    const prepareCheckData = () => {
         let _temp = deepCopyJson(showM3uBody)
         let _tempMap = {}
         for (let i = 0; i < _temp.length; i++) {
@@ -264,10 +269,12 @@ export const MainContextProvider = function ({ children }) {
             }
             _tempMap[hostName].push(_temp[i])
         }
+        console.log("_tempMap", _tempMap)
         let maxId = 0;
         for (const key in _tempMap) {
             maxId = maxId > _tempMap[key].length ? maxId : _tempMap[key].length
         }
+        console.log("maxId", maxId)
         let randomArr = [];
         for (let i = 0; i < maxId; i++) {
             for (const key in _tempMap) {
@@ -276,37 +283,79 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        let nowCount = 0
-        while (randomArr.length !== 0) {
-            let one = randomArr.shift()
-            let hostName = parseUrlHost(one.url)
-            if (nowIsCheckingHostMap[hostName] === undefined) {
-                nowIsCheckingHostMap[hostName] = getMillisSeconds()
-            }
-            if (getMillisSeconds() - nowIsCheckingHostMap[hostName] < checkMillisSeconds) {
-                randomArr.push(one)
+        console.log("randomArr", randomArr)
+        setCheckData(randomArr)
+        return randomArr
+    }
+
+    const sleep = (time) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, time);
+        });
+    }
+
+    const doCheck = async (data) => {
+        let nowCount = hasCheckedCount
+        // let nowIsCheckingHostMap = {};
+        for (let i = 0; i < data.length; i++) {
+            
+            if (data[i].status !== 0) {
                 continue
-            } else {
+            }
+            if (nowCheckUrlModRef.current === 2) {
+                continue
+            }
+            let one = data[i]
+            console.log(data[i].url)
+            // let hostName = parseUrlHost(one.url)
+            // if (nowIsCheckingHostMap[hostName] === undefined) {
+            //     nowIsCheckingHostMap[hostName] = getMillisSeconds()
+            // }
+            // if (getMillisSeconds() - nowIsCheckingHostMap[hostName] < checkMillisSeconds) {
+            //     data.push(one)
+            //     continue
+            // } else {
                 try {
                     let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
                     if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
                         setShowM3uBodyStatus(one.index, 1)
+                        setCheckDataStatus(one.index, 1)
                     } else {
                         setShowM3uBodyStatus(one.index, 2)
+                        setCheckDataStatus(one.index, 2)
                     }
                     nowCount++
                     setHasCheckedCount(nowCount)
-                    nowIsCheckingHostMap[hostName] = getMillisSeconds()
+                    // nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 } catch (e) {
                     nowCount++
                     setHasCheckedCount(nowCount)
                     setShowM3uBodyStatus(one.index, 2)
-                    nowIsCheckingHostMap[hostName] = getMillisSeconds()
+                    // nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 }
-            }
+            // }
+            await sleep(checkMillisSeconds)
         }
         console.log("check finished.....")
-        setHandleMod(2)
+        if (nowCheckUrlModRef.current === 1) {
+            setHandleMod(2)
+            setCheckUrlMod(0)
+            nowCheckUrlModRef.current = 0
+        }
+    }
+
+    const onCheckTheseLinkIsAvailable = async () => {
+        if (handleMod === 1) {
+            return
+        }
+        setCheckUrlMod(1)
+        nowCheckUrlModRef.current = 1
+        setHandleMod(1)
+        console.log("checkUrlMod", checkUrlMod)
+        let data = prepareCheckData()
+        doCheck(data)
     }
 
     const onChangeExportData = (value) => {
@@ -367,15 +416,29 @@ export const MainContextProvider = function ({ children }) {
         return localStorage.getItem("mode") === "1"
     }
 
+    const pauseCheckUrlData = () => {
+        setCheckUrlMod(2)
+        nowCheckUrlModRef.current = 2
+        console.log("set mod = 2")
+    }
+
+    const resumeCheckUrlData = async () => {
+        setCheckUrlMod(1)
+        nowCheckUrlModRef.current = 1
+        await sleep(100)
+        doCheck(checkData)
+    }
+
     return (
         <MainContext.Provider value={{
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
-            headerHeight, uGroups, exportDataStr, exportData, showChannelObj,
+            headerHeight, uGroups, exportDataStr, exportData, showChannelObj, checkUrlMod,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin,
+            pauseCheckUrlData, resumeCheckUrlData
         }}>
             {children}
         </MainContext.Provider>
