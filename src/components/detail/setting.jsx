@@ -24,6 +24,8 @@ import ListItemText from '@mui/material/ListItemText';
 import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -46,7 +48,6 @@ export default function Setting(props) {
     const _mainContext = useContext(MainContext);
     const { selectedArr, setSelectedArr } = props;
 
-
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
@@ -63,6 +64,14 @@ export default function Setting(props) {
 
     const handleChangeSearchTitle = (e) => {
         setSearchTitle(e.target.value)
+    }
+
+    const doPauseCheck = async () => {
+        _mainContext.pauseCheckUrlData()
+    }
+
+    const doRemuseCheck = async () => {
+        _mainContext.resumeCheckUrlData()
     }
 
     const addNewSearchFilter = () => {
@@ -178,14 +187,14 @@ export default function Setting(props) {
                             </LoadingButton>
                         </FormControl>
                         <FormControl sx={{ marginRight: '5px' }}>
+                            <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
+                        </FormControl>
+                        <FormControl sx={{ marginRight: '5px' }}>
                             {
                                 _mainContext.handleMod === 1 ? (
                                     <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
                                 ) : ''
                             }
-                        </FormControl>
-                        <FormControl sx={{ marginRight: '5px' }}>
-                            <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
                         </FormControl>
                         {
                             _mainContext.handleMod === 0 ? (
@@ -202,6 +211,30 @@ export default function Setting(props) {
                                     </LoadingButton>
                                 </FormControl>
                             ) : ''
+                        }
+                        {
+                            _mainContext.checkUrlMod === 1 ? (
+                                <LoadingButton
+                                    size="small"
+                                    onClick={doPauseCheck}
+                                    variant="outlined"
+                                    startIcon={<PauseIcon />}
+                                >
+                                    暂停检查
+                                </LoadingButton>
+                            ):''
+                        }
+                        {
+                            _mainContext.checkUrlMod === 2 ? (
+                                <LoadingButton
+                                    size="small"
+                                    onClick={doRemuseCheck}
+                                    variant="outlined"
+                                    startIcon={<PlayArrowIcon />}
+                                >
+                                    恢复检查
+                                </LoadingButton>
+                            ):''
                         }
                         {
                             _mainContext.handleMod === 2 ? (

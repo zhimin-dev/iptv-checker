@@ -82,7 +82,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail, showWatch } = this.props;
+        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail, showWatch, handleMod } = this.props;
         return (
             <TableCell
                 component="div"
@@ -115,11 +115,15 @@ class MuiVirtualizedTable extends React.PureComponent {
                 {
                     columnIndex === 2 ? (
                         <Box>
-                            <Tooltip title="删除">
-                                <IconButton onClick={() => delRow(cellData, columnIndex)}>
-                                    <DeleteIcon sx={{ color: red[400] }} />
-                                </IconButton>
-                            </Tooltip>
+                            {
+                                handleMod !== 1 ? (
+                                    <Tooltip title="删除">
+                                        <IconButton onClick={() => delRow(cellData, columnIndex)}>
+                                            <DeleteIcon sx={{ color: red[400] }} />
+                                        </IconButton>
+                                    </Tooltip>
+                                ):''
+                            }
                             {
                                 showWatch? (
                                     <Tooltip title="点击在线观看">
@@ -129,12 +133,15 @@ class MuiVirtualizedTable extends React.PureComponent {
                                     </Tooltip>
                                 ):''
                             }
-
-                            <Tooltip title="查看详细数据">
-                                <IconButton onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>
-                                    <InfoIcon color="info" />
-                                </IconButton>
-                            </Tooltip>
+                            {
+                                handleMod !== 1 ? (
+                                    <Tooltip title="查看详细数据">
+                                        <IconButton onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>
+                                            <InfoIcon color="info" />
+                                        </IconButton>
+                                    </Tooltip>
+                                ):''
+                            }
                         </Box>
                     ) : ''
                 }

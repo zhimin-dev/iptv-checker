@@ -1,4 +1,4 @@
-import { useState, createContext, useEffect } from "react"
+import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
@@ -9,14 +9,23 @@ export const MainContextProvider = function ({ children }) {
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
-    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//检查url最多的
+    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//下一次请求间隔
     const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
-    const [showUrl, setShowUrl] = useState(false)
-    const [uGroups, setUGroups] = useState([])
+    const [showUrl, setShowUrl] = useState(false)//是否显示原始m3u8链接
+    const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
     const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
+    const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
+    const [checkData, setCheckData] = useState([])//待检查数据列表
+
+    const nowCheckUrlModRef = useRef()
+    const hasCheckedCountRef = useRef()
+
+    useEffect(()=> {
+        hasCheckedCountRef.current= 0
+    }, [])
 
     const changeChannelObj = (val) => {
         setShowChannelObj(val)
@@ -34,6 +43,7 @@ export const MainContextProvider = function ({ children }) {
     const clearDetailData = () => {
         setShowUrl(false)
         setHasCheckedCount(0)
+        hasCheckedCountRef.current = 0
         setExportDataStr('')
         setHandleMod(0)
         setShowM3uBody([])
@@ -42,10 +52,6 @@ export const MainContextProvider = function ({ children }) {
 
     const goToWatchPage = () => {
         setScene(2)
-    }
-
-    const getMillisSeconds = () => {
-        return (new Date()).getTime()
     }
 
     const changeShowUrl = (b) => {
@@ -66,7 +72,9 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeHttpRequestTimeout = (timeout) => {
-        setHttpRequestTimeout(timeout)
+        if(!isNaN(timeout)) {
+            setHttpRequestTimeout(timeout)
+        }
     }
 
     const getSelectedGroupTitle = () => {
@@ -95,7 +103,6 @@ export const MainContextProvider = function ({ children }) {
             return
         }
         let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody)
-        console.log(temp)
         let rows = [];
         for (let i = 0; i < temp.length; i++) {
             let hit = false;
@@ -121,6 +128,16 @@ export const MainContextProvider = function ({ children }) {
         }
         setShowM3uBody(rows)
         setHandleMod(0)
+    }
+
+    const strToCsv = (body) => {
+        let _res = ParseM3u.parseOriginalBodyToList(body)
+        let csvBodyArr = []
+        csvBodyArr.push(["名称", "链接", "分组", "台标"])
+        for (let i = 0; i < _res.length; i++) {
+            csvBodyArr.push([_res[i].name, _res[i].url, _res[i].groupTitle, _res[i].tvgLogo])
+        }
+        return csvBodyArr
     }
 
     const changeOriginalM3uBody = (body) => {
@@ -188,8 +205,16 @@ export const MainContextProvider = function ({ children }) {
         )
     }
 
+    const setCheckDataStatus = (index, status) => {
+        setCheckData(prev =>
+            prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
+        )
+    }
+
     const changeCheckMillisSeconds = (mill) => {
-        setCheckMillisSeconds(mill)
+        if(!isNaN(mill)) {
+            setCheckMillisSeconds(mill)
+        }
     }
 
     const onExportValidM3uData = () => {
@@ -211,6 +236,12 @@ export const MainContextProvider = function ({ children }) {
         const objIndex = updatedList.findIndex(obj => obj.index == index);
         updatedList[objIndex].checked = !updatedList[objIndex].checked;
         setShowM3uBody(updatedList)
+    }
+
+    const findM3uBodyByIndex = (index)=> {
+        let updatedList = [...showM3uBody]
+        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        return showM3uBody[objIndex]
     }
 
     const onSelectedOrNotAll = (mod) => {
@@ -249,12 +280,7 @@ export const MainContextProvider = function ({ children }) {
         return '/check-url-is-available?url=' + url + "&timeout=" + timeout
     }
 
-    const onCheckTheseLinkIsAvailable = async () => {
-        if (handleMod === 1) {
-            return
-        }
-        setHandleMod(1)
-        let nowIsCheckingHostMap = {};
+    const prepareCheckData = () => {
         let _temp = deepCopyJson(showM3uBody)
         let _tempMap = {}
         for (let i = 0; i < _temp.length; i++) {
@@ -276,37 +302,64 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        let nowCount = 0
-        while (randomArr.length !== 0) {
-            let one = randomArr.shift()
-            let hostName = parseUrlHost(one.url)
-            if (nowIsCheckingHostMap[hostName] === undefined) {
-                nowIsCheckingHostMap[hostName] = getMillisSeconds()
-            }
-            if (getMillisSeconds() - nowIsCheckingHostMap[hostName] < checkMillisSeconds) {
-                randomArr.push(one)
+        setCheckData(randomArr)
+        return randomArr
+    }
+
+    const sleep = (time) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, time);
+        });
+    }
+
+    const doCheck = async (data) => {
+        console.log(hasCheckedCountRef.current)
+        for (let i = 0; i < data.length; i++) {
+            if (nowCheckUrlModRef.current === 2) {
                 continue
-            } else {
-                try {
-                    let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
-                    if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
-                        setShowM3uBodyStatus(one.index, 1)
-                    } else {
-                        setShowM3uBodyStatus(one.index, 2)
-                    }
-                    nowCount++
-                    setHasCheckedCount(nowCount)
-                    nowIsCheckingHostMap[hostName] = getMillisSeconds()
-                } catch (e) {
-                    nowCount++
-                    setHasCheckedCount(nowCount)
-                    setShowM3uBodyStatus(one.index, 2)
-                    nowIsCheckingHostMap[hostName] = getMillisSeconds()
-                }
             }
+            let one = data[i]
+            let getData = findM3uBodyByIndex(one.index)
+            if(getData.status !== 0) {
+                continue
+            }
+            try {
+                let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
+                if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
+                    setShowM3uBodyStatus(one.index, 1)
+                    setCheckDataStatus(one.index, 1)
+                } else {
+                    setShowM3uBodyStatus(one.index, 2)
+                    setCheckDataStatus(one.index, 2)
+                }
+                hasCheckedCountRef.current += 1
+                setHasCheckedCount(hasCheckedCountRef.current)
+            } catch (e) {
+                setShowM3uBodyStatus(one.index, 2)
+                hasCheckedCountRef.current += 1
+                setHasCheckedCount(hasCheckedCountRef.current)
+            }
+            await sleep(checkMillisSeconds)
         }
         console.log("check finished.....")
-        setHandleMod(2)
+        if (nowCheckUrlModRef.current === 1) {
+            setHandleMod(2)
+            setCheckUrlMod(0)
+            nowCheckUrlModRef.current = 0
+        }
+    }
+
+    const onCheckTheseLinkIsAvailable = async () => {
+        if (handleMod === 1) {
+            return
+        }
+        setCheckUrlMod(1)
+        nowCheckUrlModRef.current = 1
+        setHandleMod(1)
+        let data = prepareCheckData()
+        doCheck(data)
     }
 
     const onChangeExportData = (value) => {
@@ -356,7 +409,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const _toOriginalStr = (data) => {
-        let body = `#EXTM3U x-tvg-url="https://iptv-org.github.io/epg/guides/ao/guide.dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/ar/directv.com.ar.epg.xml,https://iptv-org.github.io/epg/guides/ar/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/bf/canalplus-afrique.com.epg.xml,https://iptv-org.github.io/epg/guides/bi/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/bo/comteco.com.bo.epg.xml,https://iptv-org.github.io/epg/guides/br/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/cn/tv.cctv.com.epg.xml,https://iptv-org.github.io/epg/guides/cz/m.tv.sms.cz.epg.xml,https://iptv-org.github.io/epg/guides/dk/allente.se.epg.xml,https://iptv-org.github.io/epg/guides/fr/chaines-tv.orange.fr.epg.xml,https://iptv-org.github.io/epg/guides/ga/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml,https://iptv-org.github.io/epg/guides/hk-en/nowplayer.now.com.epg.xml,https://iptv-org.github.io/epg/guides/id-en/mncvision.id.epg.xml,https://iptv-org.github.io/epg/guides/it/guidatv.sky.it.epg.xml,https://iptv-org.github.io/epg/guides/my/astro.com.my.epg.xml,https://iptv-org.github.io/epg/guides/ng/dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/nl/delta.nl.epg.xml,https://iptv-org.github.io/epg/guides/tr/digiturk.com.tr.epg.xml,https://iptv-org.github.io/epg/guides/uk/bt.com.epg.xml,https://iptv-org.github.io/epg/guides/us-pluto/i.mjh.nz.epg.xml,https://iptv-org.github.io/epg/guides/us/tvtv.us.epg.xml,https://iptv-org.github.io/epg/guides/za/guide.dstv.com.epg.xml"\n`;
+        let body = `#EXTM3U\n`;
         for (let i = 0; i < data.length; i += 1) {
             body += `#EXTINF:-1 tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
         }
@@ -367,15 +420,28 @@ export const MainContextProvider = function ({ children }) {
         return localStorage.getItem("mode") === "1"
     }
 
+    const pauseCheckUrlData = () => {
+        setCheckUrlMod(2)
+        nowCheckUrlModRef.current = 2
+    }
+
+    const resumeCheckUrlData = async () => {
+        setCheckUrlMod(1)
+        nowCheckUrlModRef.current = 1
+        await sleep(100)
+        doCheck(checkData)
+    }
+
     return (
         <MainContext.Provider value={{
             scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
-            headerHeight, uGroups, exportDataStr, exportData, showChannelObj,
+            headerHeight, uGroups, exportDataStr, exportData, showChannelObj, checkUrlMod,
             onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin,
+            pauseCheckUrlData, resumeCheckUrlData, strToCsv
         }}>
             {children}
         </MainContext.Provider>

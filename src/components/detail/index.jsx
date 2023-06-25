@@ -148,6 +148,7 @@ export default function Detail() {
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
           showWatch={showWatch}
+          handleMod={_mainContext.handleMod}
           columns={[
             {
               width: 80,
