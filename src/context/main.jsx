@@ -23,6 +23,10 @@ export const MainContextProvider = function ({ children }) {
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
 
+    useEffect(()=> {
+        hasCheckedCountRef.current= 0
+    }, [])
+
     const changeChannelObj = (val) => {
         setShowChannelObj(val)
     }
@@ -50,10 +54,6 @@ export const MainContextProvider = function ({ children }) {
         setScene(2)
     }
 
-    const getMillisSeconds = () => {
-        return (new Date()).getTime()
-    }
-
     const changeShowUrl = (b) => {
         setShowUrl(b)
     }
@@ -72,7 +72,9 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeHttpRequestTimeout = (timeout) => {
-        setHttpRequestTimeout(timeout)
+        if(!isNaN(timeout)) {
+            setHttpRequestTimeout(timeout)
+        }
     }
 
     const getSelectedGroupTitle = () => {
@@ -101,7 +103,6 @@ export const MainContextProvider = function ({ children }) {
             return
         }
         let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody)
-        console.log(temp)
         let rows = [];
         for (let i = 0; i < temp.length; i++) {
             let hit = false;
@@ -129,11 +130,11 @@ export const MainContextProvider = function ({ children }) {
         setHandleMod(0)
     }
 
-    const strToCsv=(body)=>{
+    const strToCsv = (body) => {
         let _res = ParseM3u.parseOriginalBodyToList(body)
         let csvBodyArr = []
         csvBodyArr.push(["名称", "链接", "分组", "台标"])
-        for(let i = 0;i<_res.length;i++) {
+        for (let i = 0; i < _res.length; i++) {
             csvBodyArr.push([_res[i].name, _res[i].url, _res[i].groupTitle, _res[i].tvgLogo])
         }
         return csvBodyArr
@@ -211,7 +212,9 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeCheckMillisSeconds = (mill) => {
-        setCheckMillisSeconds(mill)
+        if(!isNaN(mill)) {
+            setCheckMillisSeconds(mill)
+        }
     }
 
     const onExportValidM3uData = () => {
@@ -233,6 +236,12 @@ export const MainContextProvider = function ({ children }) {
         const objIndex = updatedList.findIndex(obj => obj.index == index);
         updatedList[objIndex].checked = !updatedList[objIndex].checked;
         setShowM3uBody(updatedList)
+    }
+
+    const findM3uBodyByIndex = (index)=> {
+        let updatedList = [...showM3uBody]
+        const objIndex = updatedList.findIndex(obj => obj.index == index);
+        return showM3uBody[objIndex]
     }
 
     const onSelectedOrNotAll = (mod) => {
@@ -306,43 +315,32 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const doCheck = async (data) => {
-        // let nowIsCheckingHostMap = {};
+        console.log(hasCheckedCountRef.current)
         for (let i = 0; i < data.length; i++) {
-            if (data[i].status !== 0) {
-                continue
-            }
             if (nowCheckUrlModRef.current === 2) {
                 continue
             }
             let one = data[i]
-            console.log(data[i].url)
-            // let hostName = parseUrlHost(one.url)
-            // if (nowIsCheckingHostMap[hostName] === undefined) {
-            //     nowIsCheckingHostMap[hostName] = getMillisSeconds()
-            // }
-            // if (getMillisSeconds() - nowIsCheckingHostMap[hostName] < checkMillisSeconds) {
-            //     data.push(one)
-            //     continue
-            // } else {
-                try {
-                    let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
-                    if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
-                        setShowM3uBodyStatus(one.index, 1)
-                        setCheckDataStatus(one.index, 1)
-                    } else {
-                        setShowM3uBodyStatus(one.index, 2)
-                        setCheckDataStatus(one.index, 2)
-                    }
-                    hasCheckedCountRef.current +=1
-                    setHasCheckedCount(hasCheckedCountRef.current)
-                    // nowIsCheckingHostMap[hostName] = getMillisSeconds()
-                } catch (e) {
-                    hasCheckedCountRef.current +=1
-                    setHasCheckedCount(hasCheckedCountRef.current)
+            let getData = findM3uBodyByIndex(one.index)
+            if(getData.status !== 0) {
+                continue
+            }
+            try {
+                let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
+                if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
+                    setShowM3uBodyStatus(one.index, 1)
+                    setCheckDataStatus(one.index, 1)
+                } else {
                     setShowM3uBodyStatus(one.index, 2)
-                    // nowIsCheckingHostMap[hostName] = getMillisSeconds()
+                    setCheckDataStatus(one.index, 2)
                 }
-            // }
+                hasCheckedCountRef.current += 1
+                setHasCheckedCount(hasCheckedCountRef.current)
+            } catch (e) {
+                setShowM3uBodyStatus(one.index, 2)
+                hasCheckedCountRef.current += 1
+                setHasCheckedCount(hasCheckedCountRef.current)
+            }
             await sleep(checkMillisSeconds)
         }
         console.log("check finished.....")
@@ -360,7 +358,6 @@ export const MainContextProvider = function ({ children }) {
         setCheckUrlMod(1)
         nowCheckUrlModRef.current = 1
         setHandleMod(1)
-        console.log("checkUrlMod", checkUrlMod)
         let data = prepareCheckData()
         doCheck(data)
     }
@@ -412,7 +409,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const _toOriginalStr = (data) => {
-        let body = `#EXTM3U x-tvg-url="https://iptv-org.github.io/epg/guides/ao/guide.dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/ar/directv.com.ar.epg.xml,https://iptv-org.github.io/epg/guides/ar/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/bf/canalplus-afrique.com.epg.xml,https://iptv-org.github.io/epg/guides/bi/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/bo/comteco.com.bo.epg.xml,https://iptv-org.github.io/epg/guides/br/mi.tv.epg.xml,https://iptv-org.github.io/epg/guides/cn/tv.cctv.com.epg.xml,https://iptv-org.github.io/epg/guides/cz/m.tv.sms.cz.epg.xml,https://iptv-org.github.io/epg/guides/dk/allente.se.epg.xml,https://iptv-org.github.io/epg/guides/fr/chaines-tv.orange.fr.epg.xml,https://iptv-org.github.io/epg/guides/ga/startimestv.com.epg.xml,https://iptv-org.github.io/epg/guides/gr/cosmote.gr.epg.xml,https://iptv-org.github.io/epg/guides/hk-en/nowplayer.now.com.epg.xml,https://iptv-org.github.io/epg/guides/id-en/mncvision.id.epg.xml,https://iptv-org.github.io/epg/guides/it/guidatv.sky.it.epg.xml,https://iptv-org.github.io/epg/guides/my/astro.com.my.epg.xml,https://iptv-org.github.io/epg/guides/ng/dstv.com.epg.xml,https://iptv-org.github.io/epg/guides/nl/delta.nl.epg.xml,https://iptv-org.github.io/epg/guides/tr/digiturk.com.tr.epg.xml,https://iptv-org.github.io/epg/guides/uk/bt.com.epg.xml,https://iptv-org.github.io/epg/guides/us-pluto/i.mjh.nz.epg.xml,https://iptv-org.github.io/epg/guides/us/tvtv.us.epg.xml,https://iptv-org.github.io/epg/guides/za/guide.dstv.com.epg.xml"\n`;
+        let body = `#EXTM3U\n`;
         for (let i = 0; i < data.length; i += 1) {
             body += `#EXTINF:-1 tvg-id="${data[i].tvgId}" tvg-logo="${data[i].tvgLogo}" group-title="${data[i].groupTitle}",${data[i].name}\n${data[i].url}\n`
         }
@@ -426,7 +423,6 @@ export const MainContextProvider = function ({ children }) {
     const pauseCheckUrlData = () => {
         setCheckUrlMod(2)
         nowCheckUrlModRef.current = 2
-        console.log("set mod = 2")
     }
 
     const resumeCheckUrlData = async () => {

@@ -66,11 +66,11 @@ export default function Setting(props) {
         setSearchTitle(e.target.value)
     }
 
-    const doPauseCheck = () => {
+    const doPauseCheck = async () => {
         _mainContext.pauseCheckUrlData()
     }
 
-    const doRemuseCheck = () => {
+    const doRemuseCheck = async () => {
         _mainContext.resumeCheckUrlData()
     }
 
