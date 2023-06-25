@@ -21,6 +21,7 @@ export const MainContextProvider = function ({ children }) {
     const [checkData, setCheckData] = useState([])//待检查数据列表
 
     const nowCheckUrlModRef = useRef()
+    const hasCheckedCountRef = useRef()
 
     const changeChannelObj = (val) => {
         setShowChannelObj(val)
@@ -38,6 +39,7 @@ export const MainContextProvider = function ({ children }) {
     const clearDetailData = () => {
         setShowUrl(false)
         setHasCheckedCount(0)
+        hasCheckedCountRef.current = 0
         setExportDataStr('')
         setHandleMod(0)
         setShowM3uBody([])
@@ -125,6 +127,16 @@ export const MainContextProvider = function ({ children }) {
         }
         setShowM3uBody(rows)
         setHandleMod(0)
+    }
+
+    const strToCsv=(body)=>{
+        let _res = ParseM3u.parseOriginalBodyToList(body)
+        let csvBodyArr = []
+        csvBodyArr.push(["名称", "链接", "分组", "台标"])
+        for(let i = 0;i<_res.length;i++) {
+            csvBodyArr.push([_res[i].name, _res[i].url, _res[i].groupTitle, _res[i].tvgLogo])
+        }
+        return csvBodyArr
     }
 
     const changeOriginalM3uBody = (body) => {
@@ -269,12 +281,10 @@ export const MainContextProvider = function ({ children }) {
             }
             _tempMap[hostName].push(_temp[i])
         }
-        console.log("_tempMap", _tempMap)
         let maxId = 0;
         for (const key in _tempMap) {
             maxId = maxId > _tempMap[key].length ? maxId : _tempMap[key].length
         }
-        console.log("maxId", maxId)
         let randomArr = [];
         for (let i = 0; i < maxId; i++) {
             for (const key in _tempMap) {
@@ -283,7 +293,6 @@ export const MainContextProvider = function ({ children }) {
                 }
             }
         }
-        console.log("randomArr", randomArr)
         setCheckData(randomArr)
         return randomArr
     }
@@ -297,10 +306,8 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const doCheck = async (data) => {
-        let nowCount = hasCheckedCount
         // let nowIsCheckingHostMap = {};
         for (let i = 0; i < data.length; i++) {
-            
             if (data[i].status !== 0) {
                 continue
             }
@@ -326,12 +333,12 @@ export const MainContextProvider = function ({ children }) {
                         setShowM3uBodyStatus(one.index, 2)
                         setCheckDataStatus(one.index, 2)
                     }
-                    nowCount++
-                    setHasCheckedCount(nowCount)
+                    hasCheckedCountRef.current +=1
+                    setHasCheckedCount(hasCheckedCountRef.current)
                     // nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 } catch (e) {
-                    nowCount++
-                    setHasCheckedCount(nowCount)
+                    hasCheckedCountRef.current +=1
+                    setHasCheckedCount(hasCheckedCountRef.current)
                     setShowM3uBodyStatus(one.index, 2)
                     // nowIsCheckingHostMap[hostName] = getMillisSeconds()
                 }
@@ -438,7 +445,7 @@ export const MainContextProvider = function ({ children }) {
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
             onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin,
-            pauseCheckUrlData, resumeCheckUrlData
+            pauseCheckUrlData, resumeCheckUrlData, strToCsv
         }}>
             {children}
         </MainContext.Provider>

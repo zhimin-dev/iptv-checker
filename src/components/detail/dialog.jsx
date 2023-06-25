@@ -19,6 +19,7 @@ import Button from '@mui/material/Button';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Typography from '@mui/material/Typography';
+import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -90,6 +91,24 @@ export default function SimpleDialog(props) {
     a.href = url
     a.download = 'iptv-checker-' + (new Date()).getTime() + ".m3u"
     a.click()
+  }
+
+  const  doCsvDownload =() => {
+    let csvArr = _mainContext.strToCsv(_mainContext.exportDataStr)
+    // 将数据行转换为 CSV 字符串
+    const csvContent = csvArr.map(e => e.join(",")).join("\n");
+
+    // 创建下载链接并将 CSV 文件下载到本地
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "iptv-checker-"+ (new Date()).getTime() +".csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    onClose();
   }
 
   const doDoAgain = () => {
@@ -227,7 +246,16 @@ export default function SimpleDialog(props) {
               style={{ marginRight: '10px' }}
               startIcon={<GetAppIcon />}
             >
-              下载
+              下载m3u文件
+            </LoadingButton>
+            <LoadingButton
+              size="small"
+              onClick={doCsvDownload}
+              variant="outlined"
+              style={{ marginRight: '10px' }}
+              startIcon={<InsertDriveFileIcon />}
+            >
+              下载csv文件
             </LoadingButton>
             <LoadingButton
               size="small"
