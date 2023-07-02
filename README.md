@@ -19,6 +19,7 @@
 下载源码，执行下面命令，再访问浏览器`http://127.0.0.1:8081/`即可
 
 ```bash
+npm run build
 docker build -t ipserver .
 docker run -d -p 8081:8080 --name myIp ipserver
 ```
