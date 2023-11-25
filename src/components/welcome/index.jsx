@@ -17,7 +17,7 @@ import WatchJson from './../../assets/api/watch.json'
 import Button from '@mui/material/Button';
 import ParseM3u from './../../utils/utils'
 import { useNavigate } from 'react-router-dom';
-import manifest from './../../../manifest';
+import _package from './../../../package';
 import LogoSvg from './../../assets/iptv-checker.svg'
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
@@ -48,10 +48,10 @@ const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const nowVersion = manifest.version;
+const nowVersion = _package.version;
 
-const githubLink = manifest.homepage_url
-const copyright = manifest.author
+const githubLink = _package.homepage_url
+const copyright = _package.author
 
 const boxMaxWith = 600
 

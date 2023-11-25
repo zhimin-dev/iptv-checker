@@ -49,7 +49,7 @@ docker-compose up -d
 
 - v2.15.0
   - 支持node 18(替换sort : https://dndkit.com/)
-  - 支持视频宽高、音频信息查看
+  - 支持视频宽高、音频信息查看,并支持清晰度筛选
   - ⚠️不再支持chrome扩展，历史兼容chrome扩展代码已删除
 - v2.14.0
   - 修复设置超时输入框输入字母后会出现NaN的问题
