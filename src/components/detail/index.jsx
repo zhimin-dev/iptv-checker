@@ -47,9 +47,7 @@ export default function Detail() {
   }
 
   useEffect(() => {
-    if (!_mainContext.canCrossOrigin()) {
-      setShowWatch(false)
-    }
+    setShowWatch(false)
     setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)
     window.addEventListener("resize", e => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)

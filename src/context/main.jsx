@@ -2,6 +2,8 @@ import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL, fetchFile } from "@ffmpeg/util";
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 152
@@ -23,8 +25,61 @@ export const MainContextProvider = function ({ children }) {
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
 
-    useEffect(()=> {
-        hasCheckedCountRef.current= 0
+    const [loadFfmpeg, setLoadFfmpeg] = useState(false);
+    const ffmpegRef = useRef(new FFmpeg())
+    const doLoadFfmpeg = async () => {
+    //     // const baseURL = ''
+    //     const baseURL = './js/lib'
+    //     const ffmpeg = ffmpegRef.current;
+    //     ffmpeg.on('log', ({ message }) => {
+    //         console.log("load ffmpeg", message);
+    //     });
+    //     console.log('load----')
+    //     // toBlobURL is used to bypass CORS issue, urls with the same
+    //     // domain can be used directly.
+    //     let data = await ffmpeg.load({
+    //         coreURL: `${baseURL}/ffmpeg-core.js`,
+    //         wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+    //         workerURL: `${baseURL}/ffmpeg-core.worker.js`,
+    //     });
+    //     console.log("----set load", data)
+    //     setLoadFfmpeg(true);
+    //     console.log("----set load finish")
+    }
+
+    let debugMode = true
+
+    const log = (...args) => {
+        if (debugMode) {
+            console.log(...args)
+        }
+    }
+
+    // const doLoadFfmpeg = async () => {
+    //     const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
+    //     const ffmpeg = ffmpegRef.current;
+    //     ffmpeg.on("log", ({ message }) => {
+    //         console.log(message);
+    //     });
+    //     console.log('load----')
+    //     // toBlobURL is used to bypass CORS issue, urls with the same
+    //     // domain can be used directly.
+    //     await ffmpeg.load({
+    //         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+    //         wasmURL: await toBlobURL(
+    //             `${baseURL}/ffmpeg-core.wasm`,
+    //             "application/wasm"
+    //         ),
+    //         workerURL: await toBlobURL(
+    //             `${baseURL}/ffmpeg-core.worker.js`,
+    //             "text/javascript"
+    //         ),
+    //     });
+    //     setLoadFfmpeg(true);
+    // }
+
+    useEffect(() => {
+        hasCheckedCountRef.current = 0
     }, [])
 
     const changeChannelObj = (val) => {
@@ -72,7 +127,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeHttpRequestTimeout = (timeout) => {
-        if(!isNaN(timeout)) {
+        if (!isNaN(timeout)) {
             setHttpRequestTimeout(timeout)
         }
     }
@@ -199,9 +254,20 @@ export const MainContextProvider = function ({ children }) {
         return JSON.parse(JSON.stringify(obj))
     }
 
-    const setShowM3uBodyStatus = (index, status) => {
-        setShowM3uBody(prev =>
-            prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
+    const setShowM3uBodyStatus = (index, status, videoObj, audioObj) => {
+        setShowM3uBody(list =>
+            list.map((item, idx) => {
+                if (idx === index) {
+                    let data = {
+                        ...item,
+                        status: status,
+                        video: videoObj,
+                        audio: audioObj
+                    };
+                    return data
+                }
+                return item;
+            })
         )
     }
 
@@ -212,7 +278,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const changeCheckMillisSeconds = (mill) => {
-        if(!isNaN(mill)) {
+        if (!isNaN(mill)) {
             setCheckMillisSeconds(mill)
         }
     }
@@ -238,7 +304,7 @@ export const MainContextProvider = function ({ children }) {
         setShowM3uBody(updatedList)
     }
 
-    const findM3uBodyByIndex = (index)=> {
+    const findM3uBodyByIndex = (index) => {
         let updatedList = [...showM3uBody]
         const objIndex = updatedList.findIndex(obj => obj.index == index);
         return showM3uBody[objIndex]
@@ -274,10 +340,19 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const getCheckUrl = (url, timeout) => {
-        if (canCrossOrigin()) {
-            return url
-        }
         return '/check-url-is-available?url=' + url + "&timeout=" + timeout
+    }
+
+    const getM3uBody = (url, timeout) => {
+        log(url, timeout)
+        return '/fetch-m3u-body?url=' + url + "&timeout=" + timeout
+    }
+
+    const ffmpegGetInfo = async (videoURL) => {
+        console.log(videoURL)
+        const ffmpeg = ffmpegRef.current;
+        let data = await ffmpeg.exec(["-i", videoURL]);
+        console.log(data)
     }
 
     const prepareCheckData = () => {
@@ -315,35 +390,48 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const doCheck = async (data) => {
-        console.log(hasCheckedCountRef.current)
+        console.log(hasCheckedCountRef.current, data)
         for (let i = 0; i < data.length; i++) {
             if (nowCheckUrlModRef.current === 2) {
+                log("----0")
                 continue
             }
             let one = data[i]
             let getData = findM3uBodyByIndex(one.index)
-            if(getData.status !== 0) {
+            if (getData.status !== 0) {
+                log("----1")
                 continue
             }
             try {
-                let res = await axios.get(getCheckUrl(one.url, httpRequestTimeout), { timeout: httpRequestTimeout })
-                if (res.status === 200 && ParseM3u.checkRespIsValudM3u8Data(res.data)) {
-                    setShowM3uBodyStatus(one.index, 1)
+                let config = {
+                    timeout: httpRequestTimeout
+                }
+                let _url = getCheckUrl(one.url, httpRequestTimeout)
+                log(_url)
+                let res = await axios.get(_url, config)
+                log(res.data.video)
+                if (res.status === 200) {
+                    log("====5")
+                    setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio)
                     setCheckDataStatus(one.index, 1)
                 } else {
-                    setShowM3uBodyStatus(one.index, 2)
+                    log("====666")
+                    setShowM3uBodyStatus(one.index, 2, null, null)
                     setCheckDataStatus(one.index, 2)
                 }
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             } catch (e) {
-                setShowM3uBodyStatus(one.index, 2)
+                log(e)
+                setShowM3uBodyStatus(one.index, 2, null, null)
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             }
             await sleep(checkMillisSeconds)
         }
         console.log("check finished.....")
+        await sleep(1000)
+        log(showM3uBody)
         if (nowCheckUrlModRef.current === 1) {
             setHandleMod(2)
             setCheckUrlMod(0)
@@ -416,10 +504,6 @@ export const MainContextProvider = function ({ children }) {
         return body
     }
 
-    const canCrossOrigin = () => {
-        return localStorage.getItem("mode") === "1"
-    }
-
     const pauseCheckUrlData = () => {
         setCheckUrlMod(2)
         nowCheckUrlModRef.current = 2
@@ -440,8 +524,9 @@ export const MainContextProvider = function ({ children }) {
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
             changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl, canCrossOrigin,
-            pauseCheckUrlData, resumeCheckUrlData, strToCsv
+            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
+            pauseCheckUrlData, resumeCheckUrlData, strToCsv,
+            loadFfmpeg, doLoadFfmpeg, ffmpegGetInfo, getM3uBody
         }}>
             {children}
         </MainContext.Provider>

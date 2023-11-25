@@ -116,9 +116,9 @@ export default function HorizontalLinearStepper() {
       setMod(_tabInt)
       let userInput = localStorage.getItem(lastHomeUserInput)
       if (userInput !== '' && userInput !== null) {
-        if(_tabInt === ModIHaveM3uLink) {
+        if (_tabInt === ModIHaveM3uLink) {
           setCustomUrl(userInput)
-        }else{
+        } else {
           setBody(userInput)
         }
       }
@@ -126,11 +126,7 @@ export default function HorizontalLinearStepper() {
   }, [])
 
   const getTabs = () => {
-    if(_mainContext.canCrossOrigin()) {
-      return selectOption
-    }else{
-      return selectOptionWithNoWatch
-    }
+    return selectOptionWithNoWatch
   }
 
   const fetchWatchOnlineData = async () => {
@@ -187,7 +183,7 @@ export default function HorizontalLinearStepper() {
         }
         let bodies = []
         for (let i = 0; i < targetUrl.length; i++) {
-          let res = await axios.get(_mainContext.getCheckUrl(targetUrl[i]))
+          let res = await axios.get(_mainContext.getM3uBody(targetUrl[i]))
           if (res.status === 200) {
             bodies.push(res.data)
           }
@@ -323,7 +319,7 @@ export default function HorizontalLinearStepper() {
         </TabPanel>
         <TabPanel mod={mod} index={ModUploadFromLocal}>
           <Button variant="contained" component="label">
-            {localFileName ==='' ? 'Upload': localFileName}
+            {localFileName === '' ? 'Upload' : localFileName}
             <input hidden type="file" onChange={HandleLocalUpload} />
           </Button>
         </TabPanel>
@@ -346,6 +342,30 @@ export default function HorizontalLinearStepper() {
             </Box>
           ) : ''
         }
+
+        {/* {
+          _mainContext.loadFfmpeg ? (
+            <LoadingButton
+              size="small"
+              onClick={() => _mainContext.ffmpegGetInfo("http://127.0.0.1:8080/img/1699619339-1-1666204618.hls.ts")}
+              loading={loading}
+              variant="contained"
+              startIcon={<CheckIcon />}
+            >
+              check
+            </LoadingButton>
+          ) : (
+            <LoadingButton
+              size="small"
+              onClick={() => _mainContext.doLoadFfmpeg()}
+              loading={loading}
+              variant="contained"
+              startIcon={<CheckIcon />}
+            >
+              load
+            </LoadingButton>
+          )
+        } */}
       </Box>
       <Box sx={{
         position: 'absolute',

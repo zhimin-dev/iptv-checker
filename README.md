@@ -2,17 +2,13 @@
 
 <img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/react-version/img/icon.png" height=80>
 
-本扩展支持m3u链接、m3u源文件以及提供公共的源，选择对应的操作，然后点击确定，可以帮助你检查这些源是否有效，并将这些有效的另存为新的m3u文件
+支持m3u链接、m3u源文件以及提供公共的源，选择对应的操作，然后点击确定，可以帮助你检查这些源是否有效，并将这些有效的另存为新的m3u文件
+
+iptv-checker不再支持chrome扩展，后续chrome扩展将改为在线播放m3u小工具，[项目地址](https://github.com/zhimin-dev/iptv-player)
 
 ## 二次开发
 
 如果基于源码启动`npm run dev`时,出现`No matching export in "node_modules/react-virtualized/dist/es/WindowScroller/WindowScroller.js" for import "bpfrpt_proptype_WindowScroller"` 这样的错误，请输入`npx patch-package`可解决
-
-## Chorme扩展安装方法
-
-- 下载本扩展并解压（选择最新的releases版本下载或者选择**production分支**下载zip包，**请勿直接**使用main分支代码）
-- 下载chrome浏览器，打开浏览器，选择设置-扩展-加载未打包的扩展，选择解压后的文件夹
-- 在扩展中点击iptv-checker图标
 
 ## Docker本地编译使用方法
 
@@ -51,6 +47,10 @@ docker-compose up -d
 
 ## 变更日志
 
+- v2.15.0
+  - 支持node 18(替换sort : https://dndkit.com/)
+  - 支持视频宽高、音频信息查看
+  - ⚠️不再支持chrome扩展，历史兼容chrome扩展代码已删除
 - v2.14.0
   - 修复设置超时输入框输入字母后会出现NaN的问题
   - 增加检查直播源链接时的暂停功能

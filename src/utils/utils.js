@@ -98,6 +98,8 @@ const ParseM3u = {
                             originalData: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
                             checked: false,
                             raw: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
+                            video:null,
+                            audio:null
                         })
                     }else{
                         groupTitle = item[0]
@@ -149,6 +151,8 @@ const ParseM3u = {
             originalData: `${one}\n${two}`,
             checked: false,
             raw: raw,
+            video:null,
+            audio:null
         };
         return row;
     },
