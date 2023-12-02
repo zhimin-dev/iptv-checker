@@ -196,7 +196,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     };
 
     headerRenderer = ({ label, columnIndex }) => {
-        const { headerHeight, selectedArr, originalData, selectAll, columns } = this.props;
+        const { headerHeight, selectedArr, originalData, selectAll, columns, handleMod } = this.props;
         return (
             <TableCell
                 component="div"

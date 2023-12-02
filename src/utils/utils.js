@@ -36,7 +36,7 @@ const ParseM3u = {
         }
         return []
     },
-    parseOriginalBodyToList: (originalM3uBody) => {
+    parseOriginalBodyToList: (originalM3uBody, videoInfoMap) => {
         const regex = /#EXTINF:(.*)\n(#EXTVLCOPT:.*\n)*(http[s]*)(.*)/gm;
         let rows = [];
         let m;
@@ -60,16 +60,24 @@ const ParseM3u = {
             )) !== null
         }
         if (resultList.length === 0) {
-            return ParseM3u.removeRepeatList(ParseM3u.parseQuoteFormat(originalM3uBody))
+            return ParseM3u.removeRepeatList(ParseM3u.parseQuoteFormat(originalM3uBody), videoInfoMap)
         }
-        return ParseM3u.removeRepeatList(resultList)
+        return ParseM3u.removeRepeatList(resultList,videoInfoMap)
     },
-    removeRepeatList(list) {
+    removeRepeatList(list, videoInfoMap) {
         let saveMap = {};
         let _rows = []
         for (let i = 0; i < list.length; i++) {
             if (saveMap[list[i].url] === undefined) {
-                _rows.push(list[i]);
+                let item = list[i]
+                if(videoInfoMap !== undefined && videoInfoMap[list[i].url] !== undefined &&  
+                    videoInfoMap[list[i].url] !== null) {
+                    item = {
+                        ...item,
+                        ...videoInfoMap[list[i].url]
+                    }
+                }
+                _rows.push(item);
                 saveMap[list[i].url] = true
             }
         }

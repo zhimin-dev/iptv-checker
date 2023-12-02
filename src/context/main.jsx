@@ -10,9 +10,8 @@ export const MainContextProvider = function ({ children }) {
     const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//下一次请求间隔
-    const [httpRequestTimeout, setHttpRequestTimeout] = useState(3000);//http超时3000毫秒
+    const [httpRequestTimeout, setHttpRequestTimeout] = useState(0);//http超时,0表示 无限制
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
     const [showUrl, setShowUrl] = useState(false)//是否显示原始m3u8链接
     const [uGroups, setUGroups] = useState([])//当前分组
@@ -20,11 +19,14 @@ export const MainContextProvider = function ({ children }) {
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
     const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
     const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
+    const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkData, setCheckData] = useState([])//待检查数据列表
     const [videoResolution, setVideoResolution] = useState([])
 
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
+
+    const videoInfoRef = useRef({})
 
     const [loadFfmpeg, setLoadFfmpeg] = useState(false);
     // const ffmpegRef = useRef(new FFmpeg())
@@ -106,6 +108,7 @@ export const MainContextProvider = function ({ children }) {
         hasCheckedCountRef.current = 0
         setExportDataStr('')
         setHandleMod(0)
+        setCheckUrlMod(0)
         setShowM3uBody([])
         setOriginalM3uBody('')
     }
@@ -170,10 +173,10 @@ export const MainContextProvider = function ({ children }) {
         let selectedGroupTitles = getSelectedGroupTitle()
         let videoResArr = videoResolutionGetChecked()
         if (filterNames.length === 0 && selectedGroupTitles.length === 0 && videoResArr.length === 0) {
-            setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody))
+            setShowM3uBody(ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current))
             return
         }
-        let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody)
+        let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current)
         let rows = [];
         for (let i = 0; i < temp.length; i++) {
             // 检查当前视频清晰度是否命中
@@ -212,7 +215,6 @@ export const MainContextProvider = function ({ children }) {
         }
         console.log(rows)
         setShowM3uBody(rows)
-        setHandleMod(0)
     }
 
     const strToCsv = (body) => {
@@ -438,19 +440,32 @@ export const MainContextProvider = function ({ children }) {
                 continue
             }
             try {
-                let config = {
-                    // timeout: httpRequestTimeout
+                let config = {}
+                if(httpRequestTimeout > 0 ) {
+                    config["timeout"] = httpRequestTimeout
                 }
-                let _url = getCheckUrl(one.url, httpRequestTimeout)
+                let _url = getCheckUrl(one.url, 0)
                 log(_url)
                 let res = await axios.get(_url, config)
                 log(res.data.video)
                 if (res.status === 200) {
                     log("====5")
+                    let videoInfoMap = videoInfoRef.current
+                    console.log(videoInfoMap)
+                    videoInfoMap[one.url] = {
+                        "video": res.data.video,
+                        "audio":  res.data.audio,
+                        "videoType" : ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
+                        "status": 1,
+                    }
                     setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio)
                     setCheckDataStatus(one.index, 1)
                 } else {
                     log("====666")
+                    let videoInfoMap = videoInfoRef.current
+                    videoInfoMap[one.url] = {
+                        "status": 2,
+                    }
                     setShowM3uBodyStatus(one.index, 2, null, null)
                     setCheckDataStatus(one.index, 2)
                 }
@@ -459,6 +474,10 @@ export const MainContextProvider = function ({ children }) {
             } catch (e) {
                 log(e)
                 setShowM3uBodyStatus(one.index, 2, null, null)
+                let videoInfoMap = videoInfoRef.current
+                videoInfoMap[one.url] = {
+                    "status": 2,
+                }
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             }

@@ -28,15 +28,13 @@ function useExec(shell) {
 
 router.get('/check-url-is-available', async (ctx) => {
     const { url, timeout } = ctx.query
-    let _timeout = 3000
-    if (timeout !== undefined) {
-        _timeout = parseInt(timeout, 10)
-    }
     let data = await useExec("ffprobe -v quiet -print_format json -show_format -show_streams "+url)
     let stdout = data.stdout
     try{
         stdout = JSON.parse(stdout)
-    }catch(e) {}
+    }catch(e) {
+        console.log(e)
+    }
     let result = {
         "video": {"width":0, "height":0, "codec":'','bitRate':''},
         'audio':{"codec":'','channels':0,'bitRate':''}

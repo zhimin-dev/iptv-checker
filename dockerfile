@@ -1,7 +1,7 @@
 FROM ubuntu:latest
-RUN apt update -y
-RUN apt install ffmpeg -y
-RUN apt install nodejs -y
+RUN apt-get update -y
+RUN apt-get install ffmpeg -y
+RUN apt-get install nodejs -y
 RUN mkdir /app
 ADD . /app
 WORKDIR /app
