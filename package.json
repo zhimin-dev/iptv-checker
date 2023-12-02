@@ -1,17 +1,21 @@
 {
-  "name": "iptv-checker-app",
+  "name": "iptv-checker",
   "private": true,
-  "version": "0.0.0",
+  "description": "check your playlist is available",
+  "author": "知敏studio",
+  "homepage_url": "https://github.com/zhimin-dev/iptv-checker",
+  "version": "2.15.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "build-local": "vite build && mkdir -p dist/img && mkdir -p dist/js && cp -r img/ dist/img/ && cp -r js/ dist/js/ && cp manifest.json dist/manifest.json && cp popup.html dist/popup.html"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
+    "@ffmpeg/ffmpeg": "^0.12.7",
+    "@ffmpeg/util": "^0.12.1",
     "@mui/icons-material": "^5.11.0",
     "@mui/lab": "^5.0.0-alpha.118",
     "@mui/material": "^5.11.7",

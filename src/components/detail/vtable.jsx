@@ -187,6 +187,7 @@ class MuiVirtualizedTable extends React.PureComponent {
                                     <div style={{ fontSize: '12px', color: '#7a7a7a' }}><i>{originalData[this.getObjectIndexIndex(cellData)].url}</i></div>
                                 ) : ''
                             }
+                            <div style={{ fontSize: '12px', color: '#7a7a7a' }}>{originalData[this.getObjectIndexIndex(cellData)].video?""+originalData[this.getObjectIndexIndex(cellData)].video.width+"x"+originalData[this.getObjectIndexIndex(cellData)].video.height+"-"+originalData[this.getObjectIndexIndex(cellData)].video.codec+"":''}{'-'}{originalData[this.getObjectIndexIndex(cellData)].audio?""+originalData[this.getObjectIndexIndex(cellData)].audio.codec+"-"+originalData[this.getObjectIndexIndex(cellData)].audio.channels+" audio channels":''}</div>
                         </div>
                     ) : ''
                 }
@@ -195,7 +196,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     };
 
     headerRenderer = ({ label, columnIndex }) => {
-        const { headerHeight, selectedArr, originalData, selectAll, columns } = this.props;
+        const { headerHeight, selectedArr, originalData, selectAll, columns, handleMod } = this.props;
         return (
             <TableCell
                 component="div"
