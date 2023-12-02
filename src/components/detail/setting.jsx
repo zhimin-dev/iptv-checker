@@ -88,7 +88,6 @@ export default function Setting(props) {
         for(let i = 0;i<list.length;i++) {
             save.push({...list[i], checked: false})
         }
-        console.log(save)
         _mainContext.changeVideoResolution(save)
     }
 

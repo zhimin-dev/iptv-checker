@@ -213,7 +213,7 @@ export const MainContextProvider = function ({ children }) {
                 rows.push(one);
             }
         }
-        console.log(rows)
+        log("setShowM3uBody---", rows)
         setShowM3uBody(rows)
     }
 
@@ -427,7 +427,6 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const doCheck = async (data) => {
-        console.log(hasCheckedCountRef.current, data)
         for (let i = 0; i < data.length; i++) {
             if (nowCheckUrlModRef.current === 2) {
                 log("----0")
@@ -451,7 +450,6 @@ export const MainContextProvider = function ({ children }) {
                 if (res.status === 200) {
                     log("====5")
                     let videoInfoMap = videoInfoRef.current
-                    console.log(videoInfoMap)
                     videoInfoMap[one.url] = {
                         "video": res.data.video,
                         "audio":  res.data.audio,
