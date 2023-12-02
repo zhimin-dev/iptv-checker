@@ -98,16 +98,6 @@ export default function Detail() {
     }
   }
 
-  const watchThisRow = (val) => {
-    let query = {}
-    if (val !== null) {
-      query.original = encodeURIComponent(val.raw)
-    }
-    navigate("/watch", {
-      state: query,
-    })
-  }
-
   const seeDetail = (val) => {
     setShowChannelMod(0)
     _mainContext.changeChannelObj(val)
@@ -140,7 +130,6 @@ export default function Detail() {
           delRow={deleteThisRow}
           selectAllRow={handleSelectCheckedAll}
           selectRow={onSelectedThisRow}
-          watchThis={watchThisRow}
           seeDetail={seeDetail}
           showOriginalUrl={_mainContext.showUrl}
           selectedArr={selectedArr}
@@ -154,23 +143,23 @@ export default function Detail() {
               dataKey: 'index',
             },
             {
-              width: 80,
-              label: 'index',
+              width: 100,
+              label: '索引',
               dataKey: 'index',
             },
             {
-              width: 220,
+              width: 160,
               label: '操作',
               dataKey: 'index',
             },
             {
               width: 100,
-              label: 'status',
+              label: '延迟',
               dataKey: 'index',
             },
             {
               width: 600,
-              label: 'name',
+              label: '名称',
               dataKey: 'index',
             },
           ]}

@@ -70,7 +70,7 @@ router.get('/check-url-is-available', async (ctx) => {
     let result = {
         "video": { "width": 0, "height": 0, "codec": '', 'bitRate': '' },
         'audio': { "codec": '', 'channels': 0, 'bitRate': '' },
-        'ttl': ttl,
+        'delay': ttl,
     }
     let streams = (stdout.streams !== undefined && stdout.streams !== null) ? stdout.streams : []
     if (streams.length === 0) {

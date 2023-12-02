@@ -58,7 +58,7 @@ export default function SimpleDialog(props) {
     if (mod === 1) {
       setShowTextAreaLable('您所选择的m3u信息')
     } else if (mod === 2) {
-      setShowTextAreaLable('原始m3u信息')
+      setShowTextAreaLable('原始数据')
     } else if (mod === 3) {
       setShowTextAreaLable('设置')
     } else if (mod === 4) {

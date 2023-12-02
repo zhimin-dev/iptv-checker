@@ -129,7 +129,8 @@ const ParseM3u = {
             checked: false,// 当前是否检查过
             video: null,// 视频信息
             audio: null,// 音频信息
-            videoType: '',//
+            videoType: '',//视频类型 ，sd、hd...
+            delay:0,//网络延迟，单位ms
         }
     },
     getVideoResolutionList () {

@@ -203,7 +203,7 @@ export const MainContextProvider = function ({ children }) {
             let hitGroup = true
             if (selectedGroupTitles.length > 0) {
                 hitGroup = false
-                if (inArray(selectedGroupTitles, temp[i].groupTitle) ) {
+                if (inArray(selectedGroupTitles, temp[i].groupTitle)) {
                     hitGroup = true
                 }
             }
@@ -286,7 +286,7 @@ export const MainContextProvider = function ({ children }) {
         return JSON.parse(JSON.stringify(obj))
     }
 
-    const setShowM3uBodyStatus = (index, status, videoObj, audioObj) => {
+    const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
         setShowM3uBody(list =>
             list.map((item, idx) => {
                 if (idx === index) {
@@ -300,6 +300,7 @@ export const MainContextProvider = function ({ children }) {
                         video: videoObj,
                         audio: audioObj,
                         videoType: videoType,
+                        delay: delay,
                     };
                     return data
                 }
@@ -439,24 +440,20 @@ export const MainContextProvider = function ({ children }) {
                 continue
             }
             try {
-                let config = {}
-                if(httpRequestTimeout > 0 ) {
-                    config["timeout"] = httpRequestTimeout
-                }
-                let _url = getCheckUrl(one.url, 0)
-                log(_url)
-                let res = await axios.get(_url, config)
+                let _url = getCheckUrl(one.url, httpRequestTimeout)
+                let res = await axios.get(_url)
                 log(res.data.video)
                 if (res.status === 200) {
                     log("====5")
                     let videoInfoMap = videoInfoRef.current
                     videoInfoMap[one.url] = {
                         "video": res.data.video,
-                        "audio":  res.data.audio,
-                        "videoType" : ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
+                        "audio": res.data.audio,
+                        "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
                         "status": 1,
+                        'delay': res.data.delay,
                     }
-                    setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio)
+                    setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
                     setCheckDataStatus(one.index, 1)
                 } else {
                     log("====666")
@@ -464,14 +461,14 @@ export const MainContextProvider = function ({ children }) {
                     videoInfoMap[one.url] = {
                         "status": 2,
                     }
-                    setShowM3uBodyStatus(one.index, 2, null, null)
+                    setShowM3uBodyStatus(one.index, 2, null, null, 0)
                     setCheckDataStatus(one.index, 2)
                 }
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             } catch (e) {
                 log(e)
-                setShowM3uBodyStatus(one.index, 2, null, null)
+                setShowM3uBodyStatus(one.index, 2, null, null, 0)
                 let videoInfoMap = videoInfoRef.current
                 videoInfoMap[one.url] = {
                     "status": 2,
