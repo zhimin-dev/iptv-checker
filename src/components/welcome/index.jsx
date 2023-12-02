@@ -22,6 +22,7 @@ import LogoSvg from './../../assets/iptv-checker.svg'
 import PropTypes from 'prop-types';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import utils from './../../utils/common'
 
 const ModIHaveM3uLink = 0
 const ModIHaveM3uContent = 1
@@ -183,9 +184,11 @@ export default function HorizontalLinearStepper() {
         }
         let bodies = []
         for (let i = 0; i < targetUrl.length; i++) {
-          let res = await axios.get(_mainContext.getM3uBody(targetUrl[i]))
-          if (res.status === 200) {
-            bodies.push(res.data)
+          if(utils.isValidUrl(targetUrl[i])) {
+            let res = await axios.get(_mainContext.getM3uBody(targetUrl[i]))
+            if (res.status === 200) {
+              bodies.push(res.data)
+            }
           }
         }
         _mainContext.changeOriginalM3uBodies(bodies)

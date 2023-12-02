@@ -26,6 +26,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FindInPageIcon from '@mui/icons-material/FindInPage';
 import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import utils from '../../utils/common';
+import ParseM3u from '../../utils/utils';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -47,15 +49,47 @@ export default function Setting(props) {
 
     const _mainContext = useContext(MainContext);
     const { selectedArr, setSelectedArr } = props;
-
+    // const [videoResolution, setVideoResolution] = useState([])
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
     const [dialogMod, setDialogMod] = useState(1);
     const [open, setOpen] = useState(false);
+    const [selectedVideoTypes, setSelectedVideoTypes] = useState([]);
 
     const handleDeleteChip = (chipToDelete) => () => {
         setChipData((chips) => chips.filter((val, i) => i !== chipToDelete));
+    }
+
+    const handleChangeVideoTypes = (e) => {
+        setSelectedVideoTypes(e.target.value)
+        let _aMap = {}
+        for (let i = 0; i < e.target.value.length; i++) {
+            _aMap[e.target.value[i]] = e.target.value[i]
+        }
+        let uGroup = _mainContext.videoResolution
+        for (let i = 0; i < uGroup.length; i++) {
+            let checked = false
+            if (_aMap[uGroup[i].value] !== undefined) {
+                checked = true
+            }
+            uGroup[i].checked = checked
+        }
+        _mainContext.changeVideoResolution(uGroup)
+    }
+
+    useEffect(()=> {
+        initVideoResolution()
+    }, [])
+
+    const initVideoResolution = () => {
+        let list = ParseM3u.getVideoResolutionList()
+        let save = []
+        for(let i = 0;i<list.length;i++) {
+            save.push({...list[i], checked: false})
+        }
+        console.log(save)
+        _mainContext.changeVideoResolution(save)
     }
 
     const goback = () => {
@@ -348,6 +382,31 @@ export default function Setting(props) {
                                     ))}
                                 </Select>
                             </FormControl>
+                            {
+                            _mainContext.handleMod === 2 ? (
+                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                <InputLabel id="demo-select-small" size="small">过滤视频清晰度</InputLabel>
+                                <Select
+                                    labelId="demo-select-small"
+                                    id="demo-select-small"
+                                    size="small"
+                                    multiple
+                                    value={selectedVideoTypes}
+                                    onChange={handleChangeVideoTypes}
+                                    input={<OutlinedInput size="small" label="过滤视频清晰度" />}
+                                    renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
+                                    MenuProps={MenuProps}
+                                >
+                                    {_mainContext.videoResolution.map((value, index) => (
+                                        <MenuItem key={index} value={value.value}>
+                                            <Checkbox checked={value.checked} />
+                                            <ListItemText primary={value.name} />
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                            ):''
+                                    }
                             <FormControl sx={{ marginRight: '5px' }}>
                                 <LoadingButton
                                     size="small"

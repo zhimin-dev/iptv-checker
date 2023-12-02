@@ -59,16 +59,16 @@ const ParseM3u = {
                 rows[i][0]
             )) !== null
         }
-        if(resultList.length === 0) {
+        if (resultList.length === 0) {
             return ParseM3u.removeRepeatList(ParseM3u.parseQuoteFormat(originalM3uBody))
         }
         return ParseM3u.removeRepeatList(resultList)
     },
-    removeRepeatList (list) {
+    removeRepeatList(list) {
         let saveMap = {};
         let _rows = []
-        for(let i= 0;i<list.length;i++) {
-            if(saveMap[list[i].url] === undefined) {
+        for (let i = 0; i < list.length; i++) {
+            if (saveMap[list[i].url] === undefined) {
                 _rows.push(list[i]);
                 saveMap[list[i].url] = true
             }
@@ -79,40 +79,87 @@ const ParseM3u = {
         let rows = []
         let groupTitle = "Undefined"
         let arr = body.split("\n")
-        for(var i = 0; i < arr.length; i++) {
-            if(arr[i] !== "") {
+        for (var i = 0; i < arr.length; i++) {
+            if (arr[i] !== "") {
                 let item = arr[i].split(",")
-                if(item !== "") {
-                    if(item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
-                        rows.push({
-                            index: i,
-                            url: item[1],
-                            groupTitle: groupTitle,
-                            tvgLogo: "",
-                            tvgLanguage: "",
-                            tvgCountry: "",
-                            tvgId: "",
-                            status: 0,
-                            name: item[0],
-                            sName: item[0].toLowerCase(),
-                            originalData: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
-                            checked: false,
-                            raw: `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",`+item[0]+`\n`+item[1],
-                            video:null,
-                            audio:null
-                        })
-                    }else{
+                if (item !== "") {
+                    if (item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
+                        let originalData = `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",` + item[0] + `\n` + item[1]
+                        let raw = `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",` + item[0] + `\n` + item[1]
+                        let data = this.buildM3uBaseObject(i, item[1],
+                            groupTitle, "", "", "", "",
+                            item[0], originalData, raw)
+                        rows.push(data)
+                    } else {
                         groupTitle = item[0]
                     }
-                }else{
+                } else {
                     groupTitle = "Undefined"
                 }
             }
         }
-        if(rows.length === 0) {
+        if (rows.length === 0) {
             throw new Error("未成功解析到数据，请检查输入")
         }
         return rows
+    },
+    buildM3uBaseObject(index, url, groupTitle, tvgLogo, tvgLanguage, tvgCountry, tvgId, name, originalData, raw) {
+        return {
+            index: index,
+            url: url,
+            groupTitle: groupTitle,
+            tvgLogo: tvgLogo,
+            tvgLanguage: tvgLanguage,
+            tvgCountry: tvgCountry,
+            tvgId: tvgId,
+            name: name,
+            sName: name.toLowerCase(),
+            originalData: originalData,
+            raw: raw,
+
+            status: 0,// 状态 0未检查 1成功 2失败
+            checked: false,// 当前是否检查过
+            video: null,// 视频信息
+            audio: null,// 音频信息
+            videoType: '',//
+        }
+    },
+    getVideoResolutionList () {
+        return [
+            {
+                'name':'普清',
+                'value':'SD'
+            },
+            {
+                'name':'高清720P',
+                'value':'HD'
+            },
+            {
+                'name':'全高清1080P',
+                'value':'FHD'
+            },
+            {
+                'name':'超高清4K',
+                'value':'UHD'
+            },
+            {
+                'name':'全超高清8K',
+                'value':'FUHD'
+            }
+        ]
+    },
+    getVideoResolution(width, height) {
+        if (width < 1280 || height < 720) {
+            return "SD";
+        } else if (width < 1920 || height < 1080) {
+            return "HD";
+        } else if (width < 3840 || height < 2160) {
+            return "FHD";
+        } else if (width < 8192 || height < 4320) {
+            return "UHD";
+        } else {
+            return "FUHD";
+        }
     },
     checkStrIsLink(_str) {
         const regex = /(http|https|lwb|P2p|p2p|p9p|rmtp):\/\/([\w.]+\/?)\S*/;
@@ -120,41 +167,35 @@ const ParseM3u = {
         // Alternative syntax using RegExp constructor
         // const regex = new RegExp('(http|https):\\/\\/([\\w.]+\\/?)\\S*', '')
         let m = [];
-        
+
         if ((m = regex.exec(_str)) !== null) {
             // The result can be accessed through the `m`-variable.
             m.forEach((match, groupIndex) => {
                 m.push(match)
             });
         }
-        if(m!== null && m.length > 0) {
+        if (m !== null && m.length > 0) {
             return true
         }
         return false
     },
     parseRowToData(index, one, two, raw) {
         let groupTitle = ParseM3u.pregValue(one, "group-title")
-        if(groupTitle === '') {
+        if (groupTitle === '') {
             groupTitle = 'Undefined'
         }
-        const row = {
-            index: index,
-            url: two,
-            groupTitle: groupTitle,
-            tvgLogo: ParseM3u.pregValue(one, "tvg-logo"),
-            tvgLanguage: ParseM3u.parseLanguages(ParseM3u.pregValue(one, "tvg-language")),
-            tvgCountry: ParseM3u.pregValue(one, "tvg-country"),
-            tvgId: ParseM3u.pregValue(one, "tvg-id"),
-            status: 0,
-            name: ParseM3u.parseName(one),
-            sName: ParseM3u.parseName(one).toLowerCase(),
-            originalData: `${one}\n${two}`,
-            checked: false,
-            raw: raw,
-            video:null,
-            audio:null
-        };
-        return row;
+        let originalData = `${one}\n${two}`
+        let data = this.buildM3uBaseObject(index,
+            two,
+            groupTitle,
+            ParseM3u.pregValue(one, "tvg-logo"),
+            ParseM3u.parseLanguages(ParseM3u.pregValue(one, "tvg-language")),
+            ParseM3u.pregValue(one, "tvg-country"),
+            ParseM3u.pregValue(one, "tvg-id"),
+            ParseM3u.parseName(one),
+            originalData,
+            raw)
+        return data;
     },
     parseName: (name) => {
         const row = name.split(",");
