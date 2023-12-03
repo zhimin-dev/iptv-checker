@@ -38,10 +38,10 @@ export default function Detail() {
 
   const saveEditData = () => {
     _mainContext.updateDataByIndex([_mainContext.showChannelObj.index], {
-      name:editName,
+      name: editName,
       tvgLogo: editLogoUrl,
       url: editUrl,
-      groupTitle:editGroupName,
+      groupTitle: editGroupName,
     })
     _mainContext.changeChannelObj(null)
   }
@@ -143,13 +143,8 @@ export default function Detail() {
               dataKey: 'index',
             },
             {
-              width: 100,
-              label: '索引',
-              dataKey: 'index',
-            },
-            {
-              width: 160,
-              label: '操作',
+              width: 600,
+              label: '名称',
               dataKey: 'index',
             },
             {
@@ -157,26 +152,22 @@ export default function Detail() {
               label: '延迟',
               dataKey: 'index',
             },
-            {
-              width: 600,
-              label: '名称',
-              dataKey: 'index',
-            },
           ]}
         />
       </Paper>
-      <Box sx={{
-        position: 'fixed',
-        'bottom': 0,
-        'width': 400,
-        'right': 0,
-        'backgroundColor': '#fff',
-        border: '1px solid #eee',
-        borderRadius: '2px',
-        padding: '5px'
-      }}>
-        {
-          _mainContext.showChannelObj !== null ? (
+      {
+        _mainContext.showChannelObj !== null ? (
+          <Box sx={{
+            position: 'fixed',
+            'bottom': 100,
+            'width': 600,
+            'right': 0,
+            'backgroundColor': '#eee',
+            border: '3px solid #eee',
+            borderRadius: '10px',
+            padding: '10px'
+          }}>
+
             <Box>
               {showChannelMod === 0 ? (
                 <Box>
@@ -187,22 +178,26 @@ export default function Detail() {
                     <Box sx={{
                       display: "flex"
                     }}>
-                      {
-                        _mainContext.showChannelObj.tvgLogo !== '' ? (
-                          <img src={_mainContext.showChannelObj.tvgLogo} height="20"></img>
-                        ) : ''
-                      }
                       <Box><b>{_mainContext.showChannelObj.name}</b></Box>
+                      {/* {
+                        _mainContext.showChannelObj.tvgLogo !== '' ? (
+                          <div>
+                            <img src={_mainContext.showChannelObj.tvgLogo} height="20"></img>
+                          </div>
+                        ) : ''
+                      } */}
                     </Box>
                     <Box sx={{ display: "flex" }}>
-                      <Box onClick={changeShowObj}
-                        sx={{
-                          cursor: 'pointer',
-                          padding: '2px',
-                          border: "1px solid green",
-                          borderRadius: '2px',
-                          marginRight: '3px'
-                        }}>编辑</Box>
+                      {_mainContext.handleMod !== 1 ? (
+                        <Box onClick={changeShowObj}
+                          sx={{
+                            cursor: 'pointer',
+                            padding: '2px',
+                            border: "1px solid green",
+                            borderRadius: '2px',
+                            marginRight: '3px'
+                          }}>编辑</Box>
+                      ) : ''}
                       <Box onClick={closeShowChangeObj} title="点击关闭"
                         sx={{
                           cursor: 'pointer',
@@ -275,9 +270,8 @@ export default function Detail() {
                 </Box>
               ) : ''}
             </Box>
-          ) : ''
-        }
-      </Box>
+          </Box>
+        ) : ''}
     </Box>
   )
 }
