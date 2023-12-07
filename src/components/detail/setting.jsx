@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
 import { MainContext } from './../../context/main';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
@@ -48,9 +49,9 @@ const MenuProps = {
 
 export default function Setting(props) {
 
+    const navigate = useNavigate();
     const _mainContext = useContext(MainContext);
     const { selectedArr, setSelectedArr } = props;
-    // const [videoResolution, setVideoResolution] = useState([])
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
@@ -93,7 +94,7 @@ export default function Setting(props) {
     }
 
     const goback = () => {
-        _mainContext.goToWelcomeScene()
+        navigate("/")
     }
 
     const handleChangeSearchTitle = (e) => {

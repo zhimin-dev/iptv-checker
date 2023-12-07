@@ -2,12 +2,9 @@ import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
-// import { FFmpeg } from "@ffmpeg/ffmpeg";
-// import { toBlobURL, fetchFile } from "@ffmpeg/util";
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 152
-    const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
@@ -29,28 +26,6 @@ export const MainContextProvider = function ({ children }) {
     const hasCheckedCountRef = useRef()
     const videoInfoRef = useRef({})
 
-    const [loadFfmpeg, setLoadFfmpeg] = useState(false);
-    // const ffmpegRef = useRef(new FFmpeg())
-    const doLoadFfmpeg = async () => {
-        //     // const baseURL = ''
-        //     const baseURL = './js/lib'
-        //     const ffmpeg = ffmpegRef.current;
-        //     ffmpeg.on('log', ({ message }) => {
-        //         console.log("load ffmpeg", message);
-        //     });
-        //     console.log('load----')
-        //     // toBlobURL is used to bypass CORS issue, urls with the same
-        //     // domain can be used directly.
-        //     let data = await ffmpeg.load({
-        //         coreURL: `${baseURL}/ffmpeg-core.js`,
-        //         wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-        //         workerURL: `${baseURL}/ffmpeg-core.worker.js`,
-        //     });
-        //     console.log("----set load", data)
-        //     setLoadFfmpeg(true);
-        //     console.log("----set load finish")
-    }
-
     let debugMode = true
 
     const log = (...args) => {
@@ -59,29 +34,6 @@ export const MainContextProvider = function ({ children }) {
         }
     }
 
-    // const doLoadFfmpeg = async () => {
-    //     const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
-    //     const ffmpeg = ffmpegRef.current;
-    //     ffmpeg.on("log", ({ message }) => {
-    //         console.log(message);
-    //     });
-    //     console.log('load----')
-    //     // toBlobURL is used to bypass CORS issue, urls with the same
-    //     // domain can be used directly.
-    //     await ffmpeg.load({
-    //         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-    //         wasmURL: await toBlobURL(
-    //             `${baseURL}/ffmpeg-core.wasm`,
-    //             "application/wasm"
-    //         ),
-    //         workerURL: await toBlobURL(
-    //             `${baseURL}/ffmpeg-core.worker.js`,
-    //             "text/javascript"
-    //         ),
-    //     });
-    //     setLoadFfmpeg(true);
-    // }
-
     useEffect(() => {
         hasCheckedCountRef.current = 0
     }, [])
@@ -89,15 +41,6 @@ export const MainContextProvider = function ({ children }) {
     const onChangeSettings = (value) => {
         console.log(value)
         setSettings(value);
-    }
-
-    const goToDetailScene = () => {
-        setScene(1);
-    }
-
-    const goToWelcomeScene = () => {
-        clearDetailData()
-        setScene(0)
     }
 
     const changeVideoResolution = (val) => {
@@ -112,10 +55,6 @@ export const MainContextProvider = function ({ children }) {
         setCheckUrlMod(0)
         setShowM3uBody([])
         setOriginalM3uBody('')
-    }
-
-    const goToWatchPage = () => {
-        setScene(2)
     }
 
     const contains = (str, substr) => {
@@ -552,15 +491,15 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, hasCheckedCount,
+            originalM3uBody, showM3uBody, handleMod, hasCheckedCount,
             headerHeight, uGroups, exportDataStr, exportData, checkUrlMod,
-            onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u,
+            onCheckTheseLinkIsAvailable, changeOriginalM3uBody, filterM3u,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeDialogBodyData, goToWatchPage, goToWelcomeScene,
+            changeDialogBodyData,
             changeOriginalM3uBodies, setUGroups, updateDataByIndex,
             onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
             pauseCheckUrlData, resumeCheckUrlData, strToCsv,
-            loadFfmpeg, doLoadFfmpeg, ffmpegGetInfo, getM3uBody, 
+            ffmpegGetInfo, getM3uBody, 
             videoResolution, changeVideoResolution, 
             settings, onChangeSettings
         }}>
