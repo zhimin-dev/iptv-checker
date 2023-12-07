@@ -49,6 +49,7 @@ docker-compose up -d
 
 - v2.15.1
   - 支持显示直播源速度
+  - 优化代码
 - v2.15.0
   - 支持node 18(替换sort : https://dndkit.com/)
   - 支持视频宽高、音频信息查看,并支持清晰度筛选

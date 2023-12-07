@@ -14,6 +14,7 @@ export default function Detail() {
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
 
+  const [selectedArr, setSelectedArr] = useState([])//已选中的id
   const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
   const [showDetailObj, setShowDetailObj] = useState(null)// 选中查看对象
 
@@ -41,8 +42,6 @@ export default function Detail() {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
     })
   })
-
-  const [selectedArr, setSelectedArr] = useState([])
 
   const deleteThisRow = (index, tableIndex) => {
     let row = []
@@ -114,7 +113,7 @@ export default function Detail() {
           selectAllRow={handleSelectCheckedAll}
           selectRow={onSelectedThisRow}
           seeDetail={seeDetail}
-          showOriginalUrl={_mainContext.showUrl}
+          showOriginalUrl={_mainContext.settings.showFullUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
           handleMod={_mainContext.handleMod}

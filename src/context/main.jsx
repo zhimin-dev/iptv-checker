@@ -10,22 +10,23 @@ export const MainContextProvider = function ({ children }) {
     const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [checkMillisSeconds, setCheckMillisSeconds] = useState(300);//下一次请求间隔
-    const [httpRequestTimeout, setHttpRequestTimeout] = useState(8000);//http超时,0表示 无限制
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
-    const [showUrl, setShowUrl] = useState(false)//是否显示原始m3u8链接
     const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
-    const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
     const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkData, setCheckData] = useState([])//待检查数据列表
-    const [videoResolution, setVideoResolution] = useState([])
+    const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
+
+    const [settings, setSettings] = useState({
+        checkSleepTime:300,// 检查下一次请求间隔(毫秒)
+        httpRequestTimeout: 8000,// http请求超时,0表示 无限制
+        showFullUrl: false,//是否显示url
+    })
 
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
-
     const videoInfoRef = useRef({})
 
     const [loadFfmpeg, setLoadFfmpeg] = useState(false);
@@ -85,8 +86,9 @@ export const MainContextProvider = function ({ children }) {
         hasCheckedCountRef.current = 0
     }, [])
 
-    const changeChannelObj = (val) => {
-        setShowChannelObj(val)
+    const onChangeSettings = (value) => {
+        console.log(value)
+        setSettings(value);
     }
 
     const goToDetailScene = () => {
@@ -103,7 +105,6 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const clearDetailData = () => {
-        setShowUrl(false)
         setHasCheckedCount(0)
         hasCheckedCountRef.current = 0
         setExportDataStr('')
@@ -117,10 +118,6 @@ export const MainContextProvider = function ({ children }) {
         setScene(2)
     }
 
-    const changeShowUrl = (b) => {
-        setShowUrl(b)
-    }
-
     const contains = (str, substr) => {
         return str.indexOf(substr) != -1;
     }
@@ -132,12 +129,6 @@ export const MainContextProvider = function ({ children }) {
 
     const deleteShowM3uRow = (index) => {
         setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
-    }
-
-    const changeHttpRequestTimeout = (timeout) => {
-        if (!isNaN(timeout)) {
-            setHttpRequestTimeout(timeout)
-        }
     }
 
     const getSelectedGroupTitle = () => {
@@ -315,12 +306,6 @@ export const MainContextProvider = function ({ children }) {
         )
     }
 
-    const changeCheckMillisSeconds = (mill) => {
-        if (!isNaN(mill)) {
-            setCheckMillisSeconds(mill)
-        }
-    }
-
     const onExportValidM3uData = () => {
         let _export = []
         for (let i = 0; i < showM3uBody.length; i += 1) {
@@ -440,7 +425,7 @@ export const MainContextProvider = function ({ children }) {
                 continue
             }
             try {
-                let _url = getCheckUrl(one.url, httpRequestTimeout)
+                let _url = getCheckUrl(one.url, settings.httpRequestTimeout)
                 let res = await axios.get(_url)
                 log(res.data.video)
                 if (res.status === 200) {
@@ -476,7 +461,7 @@ export const MainContextProvider = function ({ children }) {
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             }
-            await sleep(checkMillisSeconds)
+            await sleep(settings.checkSleepTime)
         }
         console.log("check finished.....")
         await sleep(1000)
@@ -567,15 +552,17 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
-            headerHeight, uGroups, exportDataStr, exportData, showChannelObj, checkUrlMod,
-            onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
+            scene, originalM3uBody, showM3uBody, handleMod, hasCheckedCount,
+            headerHeight, uGroups, exportDataStr, exportData, checkUrlMod,
+            onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u,
             deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
-            changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
+            changeDialogBodyData, goToWatchPage, goToWelcomeScene,
+            changeOriginalM3uBodies, setUGroups, updateDataByIndex,
             onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
             pauseCheckUrlData, resumeCheckUrlData, strToCsv,
-            loadFfmpeg, doLoadFfmpeg, ffmpegGetInfo, getM3uBody, videoResolution, changeVideoResolution
+            loadFfmpeg, doLoadFfmpeg, ffmpegGetInfo, getM3uBody, 
+            videoResolution, changeVideoResolution, 
+            settings, onChangeSettings
         }}>
             {children}
         </MainContext.Provider>
