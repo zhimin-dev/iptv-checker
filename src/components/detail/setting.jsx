@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect } from 'react'
 import { MainContext } from './../../context/main';
+import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
@@ -28,6 +29,8 @@ import PauseIcon from '@mui/icons-material/Pause';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import utils from '../../utils/common';
 import ParseM3u from '../../utils/utils';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -47,9 +50,9 @@ const MenuProps = {
 
 export default function Setting(props) {
 
+    const navigate = useNavigate();
     const _mainContext = useContext(MainContext);
     const { selectedArr, setSelectedArr } = props;
-    // const [videoResolution, setVideoResolution] = useState([])
     const [selectedGroups, setSelectedGroups] = useState([]);
     const [searchTitle, setSearchTitle] = useState('')
     const [chipData, setChipData] = useState([]);
@@ -78,22 +81,21 @@ export default function Setting(props) {
         _mainContext.changeVideoResolution(uGroup)
     }
 
-    useEffect(()=> {
+    useEffect(() => {
         initVideoResolution()
     }, [])
 
     const initVideoResolution = () => {
         let list = ParseM3u.getVideoResolutionList()
         let save = []
-        for(let i = 0;i<list.length;i++) {
-            save.push({...list[i], checked: false})
+        for (let i = 0; i < list.length; i++) {
+            save.push({ ...list[i], checked: false })
         }
-        console.log(save)
         _mainContext.changeVideoResolution(save)
     }
 
     const goback = () => {
-        _mainContext.goToWelcomeScene()
+        navigate("/")
     }
 
     const handleChangeSearchTitle = (e) => {
@@ -167,6 +169,10 @@ export default function Setting(props) {
         setSelectedArr([])
     }
 
+    const handleNeedFastSource = (e) => {
+        _mainContext.onChangeNeedFastSource(e.target.checked)
+    }
+
     const handleChangeGroup = (e) => {
         setSelectedGroups(e.target.value)
         let _aMap = {}
@@ -187,6 +193,13 @@ export default function Setting(props) {
     const doTransferGroup = () => {
         setDialogMod(5)
         setOpen(true);
+    }
+
+    const doDelSelected = () => {
+        for (let i = 0; i < selectedArr.length; i++) {
+            _mainContext.deleteShowM3uRow(selectedArr[i])
+        }
+        setSelectedArr([])
     }
 
     return (
@@ -221,9 +234,6 @@ export default function Setting(props) {
                             </LoadingButton>
                         </FormControl>
                         <FormControl sx={{ marginRight: '5px' }}>
-                            <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始m3u信息</Button>
-                        </FormControl>
-                        <FormControl sx={{ marginRight: '5px' }}>
                             {
                                 _mainContext.handleMod === 1 ? (
                                     <Box>检查进度：{_mainContext.hasCheckedCount}/{_mainContext.showM3uBody.length}</Box>
@@ -256,7 +266,7 @@ export default function Setting(props) {
                                 >
                                     暂停检查
                                 </LoadingButton>
-                            ):''
+                            ) : ''
                         }
                         {
                             _mainContext.checkUrlMod === 2 ? (
@@ -268,7 +278,7 @@ export default function Setting(props) {
                                 >
                                     恢复检查
                                 </LoadingButton>
-                            ):''
+                            ) : ''
                         }
                         {
                             _mainContext.handleMod === 2 ? (
@@ -283,6 +293,10 @@ export default function Setting(props) {
                                     >
                                         有效链接
                                     </LoadingButton>
+                                    <FormControlLabel 
+                                    size="small"
+                                    control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />} 
+                                    label="选择延迟最低的源" />
                                 </FormControl>
                             ) : ''
                         }
@@ -309,11 +323,28 @@ export default function Setting(props) {
                                 }}>
                                     <LoadingButton
                                         size="small"
+                                        color="error"
+                                        onClick={doDelSelected}
+                                        variant="outlined"
+                                        startIcon={<DeleteIcon />}
+                                    >
+                                        删除选中
+                                    </LoadingButton>
+                                </FormControl>
+                            ) : ''
+                        }
+                        {
+                            selectedArr.length > 0 ? (
+                                <FormControl sx={{
+                                    marginRight: "5px",
+                                }}>
+                                    <LoadingButton
+                                        size="small"
                                         onClick={doTransferGroup}
                                         variant="outlined"
                                         startIcon={<ChangeCircleIcon />}
                                     >
-                                        更换分组
+                                        更换选中分组
                                     </LoadingButton>
                                 </FormControl>
                             ) : ''
@@ -342,7 +373,7 @@ export default function Setting(props) {
                                 display: 'flex',
                                 alignItems: 'flex-end'
                             }}>
-                            <FormControl sx={{ marginRight: '5px',width:'120px' }}>
+                            <FormControl sx={{ marginRight: '5px', width: '120px' }}>
                                 <TextField
                                     id="outlined-name"
                                     value={searchTitle}
@@ -383,30 +414,30 @@ export default function Setting(props) {
                                 </Select>
                             </FormControl>
                             {
-                            _mainContext.handleMod === 2 ? (
-                            <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
-                                <InputLabel id="demo-select-small" size="small">过滤视频清晰度</InputLabel>
-                                <Select
-                                    labelId="demo-select-small"
-                                    id="demo-select-small"
-                                    size="small"
-                                    multiple
-                                    value={selectedVideoTypes}
-                                    onChange={handleChangeVideoTypes}
-                                    input={<OutlinedInput size="small" label="过滤视频清晰度" />}
-                                    renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
-                                    MenuProps={MenuProps}
-                                >
-                                    {_mainContext.videoResolution.map((value, index) => (
-                                        <MenuItem key={index} value={value.value}>
-                                            <Checkbox checked={value.checked} />
-                                            <ListItemText primary={value.name} />
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            ):''
-                                    }
+                                _mainContext.handleMod === 2 ? (
+                                    <FormControl sx={{ width: 200, margin: 0, marginRight: '5px' }} size="small">
+                                        <InputLabel id="demo-select-small" size="small">过滤视频清晰度</InputLabel>
+                                        <Select
+                                            labelId="demo-select-small"
+                                            id="demo-select-small"
+                                            size="small"
+                                            multiple
+                                            value={selectedVideoTypes}
+                                            onChange={handleChangeVideoTypes}
+                                            input={<OutlinedInput size="small" label="过滤视频清晰度" />}
+                                            renderValue={(selectedVideoTypes) => selectedVideoTypes.join(', ')}
+                                            MenuProps={MenuProps}
+                                        >
+                                            {_mainContext.videoResolution.map((value, index) => (
+                                                <MenuItem key={index} value={value.value}>
+                                                    <Checkbox checked={value.checked} />
+                                                    <ListItemText primary={value.name} />
+                                                </MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                ) : ''
+                            }
                             <FormControl sx={{ marginRight: '5px' }}>
                                 <LoadingButton
                                     size="small"
@@ -450,6 +481,9 @@ export default function Setting(props) {
                     </Box>
                 </Box>
                 <Box sx={{ paddingRight: "10px" }}>
+                    <FormControl sx={{ marginRight: '5px' }}>
+                        <Button startIcon={<FindInPageIcon />} size="small" onClick={showOriginalM3uBodyInfo} variant="outlined">原始数据</Button>
+                    </FormControl>
                     <FormControl sx={{ marginRight: '5px' }}>
                         <LoadingButton
                             size="small"

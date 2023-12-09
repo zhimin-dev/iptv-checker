@@ -2,53 +2,31 @@ import { useState, createContext, useEffect, useRef } from "react"
 import axios from "axios"
 export const MainContext = createContext();
 import ParseM3u from '../utils/utils'
-// import { FFmpeg } from "@ffmpeg/ffmpeg";
-// import { toBlobURL, fetchFile } from "@ffmpeg/util";
 
 export const MainContextProvider = function ({ children }) {
     const headerHeight = 152
-    const [scene, setScene] = useState(0);//0欢迎页 1详情页 2观看页
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [checkMillisSeconds, setCheckMillisSeconds] = useState(1000);//下一次请求间隔
-    const [httpRequestTimeout, setHttpRequestTimeout] = useState(0);//http超时,0表示 无限制
     const [hasCheckedCount, setHasCheckedCount] = useState(0)
-    const [showUrl, setShowUrl] = useState(false)//是否显示原始m3u8链接
     const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
-    const [showChannelObj, setShowChannelObj] = useState(null)//当前显示详情
     const [checkUrlMod, setCheckUrlMod] = useState(0)//检查当前链接是否有效模式 0未在检查中 1正在检查 2暂停检查
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkData, setCheckData] = useState([])//待检查数据列表
-    const [videoResolution, setVideoResolution] = useState([])
+    const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
+    const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
+
+    const [settings, setSettings] = useState({
+        checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
+        httpRequestTimeout: 8000,// http请求超时,0表示 无限制
+        showFullUrl: false,//是否显示url
+    })
 
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
-
     const videoInfoRef = useRef({})
-
-    const [loadFfmpeg, setLoadFfmpeg] = useState(false);
-    // const ffmpegRef = useRef(new FFmpeg())
-    const doLoadFfmpeg = async () => {
-        //     // const baseURL = ''
-        //     const baseURL = './js/lib'
-        //     const ffmpeg = ffmpegRef.current;
-        //     ffmpeg.on('log', ({ message }) => {
-        //         console.log("load ffmpeg", message);
-        //     });
-        //     console.log('load----')
-        //     // toBlobURL is used to bypass CORS issue, urls with the same
-        //     // domain can be used directly.
-        //     let data = await ffmpeg.load({
-        //         coreURL: `${baseURL}/ffmpeg-core.js`,
-        //         wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-        //         workerURL: `${baseURL}/ffmpeg-core.worker.js`,
-        //     });
-        //     console.log("----set load", data)
-        //     setLoadFfmpeg(true);
-        //     console.log("----set load finish")
-    }
+    const videoFastNameMapRef = useRef({})
 
     let debugMode = true
 
@@ -58,44 +36,16 @@ export const MainContextProvider = function ({ children }) {
         }
     }
 
-    // const doLoadFfmpeg = async () => {
-    //     const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
-    //     const ffmpeg = ffmpegRef.current;
-    //     ffmpeg.on("log", ({ message }) => {
-    //         console.log(message);
-    //     });
-    //     console.log('load----')
-    //     // toBlobURL is used to bypass CORS issue, urls with the same
-    //     // domain can be used directly.
-    //     await ffmpeg.load({
-    //         coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-    //         wasmURL: await toBlobURL(
-    //             `${baseURL}/ffmpeg-core.wasm`,
-    //             "application/wasm"
-    //         ),
-    //         workerURL: await toBlobURL(
-    //             `${baseURL}/ffmpeg-core.worker.js`,
-    //             "text/javascript"
-    //         ),
-    //     });
-    //     setLoadFfmpeg(true);
-    // }
-
     useEffect(() => {
         hasCheckedCountRef.current = 0
     }, [])
 
-    const changeChannelObj = (val) => {
-        setShowChannelObj(val)
+    const onChangeNeedFastSource = (val) => {
+        setNeedFastSource(val)
     }
 
-    const goToDetailScene = () => {
-        setScene(1);
-    }
-
-    const goToWelcomeScene = () => {
-        clearDetailData()
-        setScene(0)
+    const onChangeSettings = (value) => {
+        setSettings(value);
     }
 
     const changeVideoResolution = (val) => {
@@ -103,7 +53,6 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const clearDetailData = () => {
-        setShowUrl(false)
         setHasCheckedCount(0)
         hasCheckedCountRef.current = 0
         setExportDataStr('')
@@ -111,14 +60,6 @@ export const MainContextProvider = function ({ children }) {
         setCheckUrlMod(0)
         setShowM3uBody([])
         setOriginalM3uBody('')
-    }
-
-    const goToWatchPage = () => {
-        setScene(2)
-    }
-
-    const changeShowUrl = (b) => {
-        setShowUrl(b)
     }
 
     const contains = (str, substr) => {
@@ -132,12 +73,6 @@ export const MainContextProvider = function ({ children }) {
 
     const deleteShowM3uRow = (index) => {
         setShowM3uBody(prev => prev.filter((v, i) => v.index !== index))
-    }
-
-    const changeHttpRequestTimeout = (timeout) => {
-        if (!isNaN(timeout)) {
-            setHttpRequestTimeout(timeout)
-        }
     }
 
     const getSelectedGroupTitle = () => {
@@ -178,6 +113,7 @@ export const MainContextProvider = function ({ children }) {
         }
         let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current)
         let rows = [];
+        let _index = 1
         for (let i = 0; i < temp.length; i++) {
             // 检查当前视频清晰度是否命中
             let hitVideoRes = true
@@ -203,17 +139,18 @@ export const MainContextProvider = function ({ children }) {
             let hitGroup = true
             if (selectedGroupTitles.length > 0) {
                 hitGroup = false
-                if (inArray(selectedGroupTitles, temp[i].groupTitle) ) {
+                if (inArray(selectedGroupTitles, temp[i].groupTitle)) {
                     hitGroup = true
                 }
             }
             if (hitGroup && hitVideoRes && hitTitleSearch) {
                 let one = temp[i]
-                one.index = rows.length
+                one.index = _index
                 rows.push(one);
+                _index++
             }
         }
-        console.log(rows)
+        log("setShowM3uBody---", rows)
         setShowM3uBody(rows)
     }
 
@@ -270,11 +207,14 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBodies = (bodies) => {
         let res = []
         let bodyStr = ''
+        let index = 1;
         for (let i = 0; i < bodies.length; i++) {
             bodyStr += bodies[i] + "\n"
             let one = ParseM3u.parseOriginalBodyToList(bodies[i])
             for (let j = 0; j < one.length; j++) {
+                one[j].index = index
                 res.push(one[j])
+                index++
             }
         }
         setShowM3uBody(res)
@@ -286,10 +226,10 @@ export const MainContextProvider = function ({ children }) {
         return JSON.parse(JSON.stringify(obj))
     }
 
-    const setShowM3uBodyStatus = (index, status, videoObj, audioObj) => {
+    const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
         setShowM3uBody(list =>
             list.map((item, idx) => {
-                if (idx === index) {
+                if (item.index === index) {
                     let videoType = ''
                     if (videoObj !== null) {
                         videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
@@ -300,6 +240,7 @@ export const MainContextProvider = function ({ children }) {
                         video: videoObj,
                         audio: audioObj,
                         videoType: videoType,
+                        delay: delay,
                     };
                     return data
                 }
@@ -312,12 +253,6 @@ export const MainContextProvider = function ({ children }) {
         setCheckData(prev =>
             prev.map((item, idx) => idx === index ? { ...item, status: status } : item)
         )
-    }
-
-    const changeCheckMillisSeconds = (mill) => {
-        if (!isNaN(mill)) {
-            setCheckMillisSeconds(mill)
-        }
     }
 
     const onExportValidM3uData = () => {
@@ -365,7 +300,24 @@ export const MainContextProvider = function ({ children }) {
         let ids = []
         let updatedList = [...showM3uBody]
         for (let i = 0; i < updatedList.length; i++) {
-            if (showM3uBody[i].status === mod) {
+            let isChecked = false
+            // 需要最快延迟的数据
+            if (needFastSource) {
+                if (showM3uBody[i].status === mod) {
+                    if (videoFastNameMapRef.current[showM3uBody[i].sName] === undefined) {
+                        isChecked = true
+                    } else {
+                        if (videoFastNameMapRef.current[showM3uBody[i].sName].index === updatedList[i].index) {
+                            isChecked = true
+                        }
+                    }
+                }
+            } else {
+                if (showM3uBody[i].status === mod) {
+                    isChecked = true
+                }
+            }
+            if (isChecked) {
                 updatedList[i].checked = true
                 ids.push(showM3uBody[i].index)
             } else {
@@ -383,13 +335,6 @@ export const MainContextProvider = function ({ children }) {
     const getM3uBody = (url, timeout) => {
         log(url, timeout)
         return '/fetch-m3u-body?url=' + url + "&timeout=" + timeout
-    }
-
-    const ffmpegGetInfo = async (videoURL) => {
-        // console.log(videoURL)
-        // const ffmpeg = ffmpegRef.current;
-        // let data = await ffmpeg.exec(["-i", videoURL]);
-        // console.log(data)
     }
 
     const prepareCheckData = () => {
@@ -427,53 +372,57 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const doCheck = async (data) => {
-        console.log(hasCheckedCountRef.current, data)
         for (let i = 0; i < data.length; i++) {
             if (nowCheckUrlModRef.current === 2) {
-                log("----0")
                 continue
             }
             let one = data[i]
             let getData = findM3uBodyByIndex(one.index)
             if (getData.status !== 0) {
-                log("----1")
                 continue
             }
             try {
-                let config = {}
-                if(httpRequestTimeout > 0 ) {
-                    config["timeout"] = httpRequestTimeout
-                }
-                let _url = getCheckUrl(one.url, 0)
-                log(_url)
-                let res = await axios.get(_url, config)
+                let _url = getCheckUrl(one.url, settings.httpRequestTimeout)
+                let res = await axios.get(_url)
                 log(res.data.video)
                 if (res.status === 200) {
-                    log("====5")
                     let videoInfoMap = videoInfoRef.current
-                    console.log(videoInfoMap)
                     videoInfoMap[one.url] = {
                         "video": res.data.video,
-                        "audio":  res.data.audio,
-                        "videoType" : ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
+                        "audio": res.data.audio,
+                        "videoType": ParseM3u.getVideoResolution(res.data.video.width, res.data.video.height),
                         "status": 1,
+                        'delay': res.data.delay,
                     }
-                    setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio)
+                    let videoFastNameMap = videoFastNameMapRef.current
+                    if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+                        videoFastNameMap[one.sName] = {
+                            index: one.index,
+                            delay: res.data.delay
+                        }
+                    } else {
+                        if (videoFastNameMap[one.sName].delay >= res.data.delay) {
+                            videoFastNameMap[one.sName] = {
+                                index: one.index,
+                                delay: res.data.delay
+                            }
+                        }
+                    }
+                    setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
                     setCheckDataStatus(one.index, 1)
                 } else {
-                    log("====666")
                     let videoInfoMap = videoInfoRef.current
                     videoInfoMap[one.url] = {
                         "status": 2,
                     }
-                    setShowM3uBodyStatus(one.index, 2, null, null)
+                    setShowM3uBodyStatus(one.index, 2, null, null, 0)
                     setCheckDataStatus(one.index, 2)
                 }
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             } catch (e) {
                 log(e)
-                setShowM3uBodyStatus(one.index, 2, null, null)
+                setShowM3uBodyStatus(one.index, 2, null, null, 0)
                 let videoInfoMap = videoInfoRef.current
                 videoInfoMap[one.url] = {
                     "status": 2,
@@ -481,11 +430,11 @@ export const MainContextProvider = function ({ children }) {
                 hasCheckedCountRef.current += 1
                 setHasCheckedCount(hasCheckedCountRef.current)
             }
-            await sleep(checkMillisSeconds)
+            await sleep(settings.checkSleepTime)
         }
-        console.log("check finished.....")
-        await sleep(1000)
-        log(showM3uBody)
+        log("check finished.....")
+        log("showM3uBody", showM3uBody)
+        log("videoInfoRef.current", videoInfoRef.current)
         if (nowCheckUrlModRef.current === 1) {
             setHandleMod(2)
             setCheckUrlMod(0)
@@ -572,15 +521,23 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            scene, originalM3uBody, showM3uBody, handleMod, checkMillisSeconds, hasCheckedCount, httpRequestTimeout, showUrl,
-            headerHeight, uGroups, exportDataStr, exportData, showChannelObj, checkUrlMod,
-            onCheckTheseLinkIsAvailable, goToDetailScene, changeOriginalM3uBody, filterM3u, changeCheckMillisSeconds,
-            deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
-            changeHttpRequestTimeout, changeDialogBodyData, changeShowUrl, goToWatchPage, goToWelcomeScene,
-            changeOriginalM3uBodies, setUGroups, changeChannelObj, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
+            originalM3uBody, changeOriginalM3uBody,
+            exportDataStr, setExportDataStr,
+            exportData, onChangeExportData,
+            uGroups, setUGroups,
+            videoResolution, changeVideoResolution,
+            settings, onChangeSettings,
+            showM3uBody, handleMod, hasCheckedCount,
+            headerHeight, checkUrlMod,
+            onCheckTheseLinkIsAvailable, filterM3u,
+            deleteShowM3uRow, onExportValidM3uData,
+            onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
+            changeDialogBodyData,
+            changeOriginalM3uBodies, updateDataByIndex,
+            onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
             pauseCheckUrlData, resumeCheckUrlData, strToCsv,
-            loadFfmpeg, doLoadFfmpeg, ffmpegGetInfo, getM3uBody, videoResolution, changeVideoResolution
+            getM3uBody,
+            needFastSource, onChangeNeedFastSource
         }}>
             {children}
         </MainContext.Provider>

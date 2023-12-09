@@ -14,48 +14,43 @@ export default function Detail() {
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
 
-  const [showChannelMod, setShowChannelMod] = useState(0)
+  const navigate = useNavigate();
+  const [selectedArr, setSelectedArr] = useState([])//已选中的id
+  const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
+  const [showDetailObj, setShowDetailObj] = useState(null)// 选中查看对象
 
-  const [editName, setEditName] = useState('')
-  const [editUrl, setEditUrl] = useState('')
-  const [editLogoUrl, setEditLogoUrl] = useState('')
-  const [editGroupName, setEditGroupName] = useState('')
-  const [showWatch, setShowWatch] = useState(true)
-
-  const onChangeEditName = (e) => {
-    setEditName(e.target.value)
-  }
-
-  const onChangeEditUrl = (e) => {
-    setEditUrl(e.target.value)
-  }
-  const onChangeEditLogoUrl = (e) => {
-    setEditLogoUrl(e.target.value)
-  }
-  const onChangeEditGroupName = (e) => {
-    setEditGroupName(e.target.value)
-  }
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setShowDetailObj(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
 
   const saveEditData = () => {
-    _mainContext.updateDataByIndex([_mainContext.showChannelObj.index], {
-      name:editName,
-      tvgLogo: editLogoUrl,
-      url: editUrl,
-      groupTitle:editGroupName,
+    _mainContext.updateDataByIndex([showDetailObj.index], {
+      name: showDetailObj.name,
+      tvgLogo: showDetailObj.tvgLogo,
+      url: showDetailObj.url,
+      groupTitle: showDetailObj.groupTitle,
     })
-    _mainContext.changeChannelObj(null)
+    setShowChannelMod(1)
   }
 
   useEffect(() => {
-    setShowWatch(false)
     setVTableHeight(window.innerHeight - _mainContext.headerHeight - 50)
     window.addEventListener("resize", e => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
     })
-  })
-
-  const navigate = useNavigate();
-  const [selectedArr, setSelectedArr] = useState([])
+    window.addEventListener('beforeunload', (e) => {
+      e.preventDefault()
+      let returnValue = '刷新后将跳转首页'
+      e.returnValue = returnValue
+    })
+    if(_mainContext.showM3uBody.length === 0) {
+      navigate("/")
+    }
+  }, [])
 
   const deleteThisRow = (index, tableIndex) => {
     let row = []
@@ -98,31 +93,17 @@ export default function Detail() {
     }
   }
 
-  const watchThisRow = (val) => {
-    let query = {}
-    if (val !== null) {
-      query.original = encodeURIComponent(val.raw)
-    }
-    navigate("/watch", {
-      state: query,
-    })
-  }
-
   const seeDetail = (val) => {
-    setShowChannelMod(0)
-    _mainContext.changeChannelObj(val)
+    setShowChannelMod(1)
+    setShowDetailObj(val)
   }
 
   const closeShowChangeObj = () => {
-    _mainContext.changeChannelObj(null)
+    setShowChannelMod(0)
   }
 
   const changeShowObj = () => {
-    setShowChannelMod(1)
-    setEditLogoUrl(_mainContext.showChannelObj.tvgLogo)
-    setEditGroupName(_mainContext.showChannelObj.groupTitle)
-    setEditUrl(_mainContext.showChannelObj.url)
-    setEditName(_mainContext.showChannelObj.name)
+    setShowChannelMod(2)
   }
 
   return (
@@ -140,12 +121,10 @@ export default function Detail() {
           delRow={deleteThisRow}
           selectAllRow={handleSelectCheckedAll}
           selectRow={onSelectedThisRow}
-          watchThis={watchThisRow}
           seeDetail={seeDetail}
-          showOriginalUrl={_mainContext.showUrl}
+          showOriginalUrl={_mainContext.settings.showFullUrl}
           selectedArr={selectedArr}
           selectAll={handleSelectCheckedAll}
-          showWatch={showWatch}
           handleMod={_mainContext.handleMod}
           columns={[
             {
@@ -154,141 +133,80 @@ export default function Detail() {
               dataKey: 'index',
             },
             {
-              width: 80,
-              label: 'index',
-              dataKey: 'index',
-            },
-            {
-              width: 220,
-              label: '操作',
+              width: 600,
+              label: '名称',
               dataKey: 'index',
             },
             {
               width: 100,
-              label: 'status',
-              dataKey: 'index',
-            },
-            {
-              width: 600,
-              label: 'name',
+              label: '延迟',
               dataKey: 'index',
             },
           ]}
         />
       </Paper>
-      <Box sx={{
-        position: 'fixed',
-        'bottom': 0,
-        'width': 400,
-        'right': 0,
-        'backgroundColor': '#fff',
-        border: '1px solid #eee',
-        borderRadius: '2px',
-        padding: '5px'
-      }}>
-        {
-          _mainContext.showChannelObj !== null ? (
+      {
+        showChannelMod !== 0 ? (
+          <Box sx={{
+            position: 'fixed',
+            'bottom': 100,
+            'width': 600,
+            'right': 0,
+            'backgroundColor': '#fff',
+            border: '3px solid #eee',
+            borderRadius: '10px',
+            padding: '10px'
+          }}>
             <Box>
-              {showChannelMod === 0 ? (
-                <Box>
-                  <Box sx={{
-                    display: "flex",
-                    justifyContent: 'space-between'
-                  }}>
-                    <Box sx={{
-                      display: "flex"
-                    }}>
-                      {
-                        _mainContext.showChannelObj.tvgLogo !== '' ? (
-                          <img src={_mainContext.showChannelObj.tvgLogo} height="20"></img>
-                        ) : ''
-                      }
-                      <Box><b>{_mainContext.showChannelObj.name}</b></Box>
-                    </Box>
-                    <Box sx={{ display: "flex" }}>
-                      <Box onClick={changeShowObj}
-                        sx={{
-                          cursor: 'pointer',
-                          padding: '2px',
-                          border: "1px solid green",
-                          borderRadius: '2px',
-                          marginRight: '3px'
-                        }}>编辑</Box>
-                      <Box onClick={closeShowChangeObj} title="点击关闭"
-                        sx={{
-                          cursor: 'pointer',
-                          padding: '2px',
-                          border: "1px solid green",
-                          borderRadius: '2px',
-                          justifyContent: 'space-between'
-                        }}>关闭</Box>
-                    </Box>
-                  </Box>
-                  <Box>m3u8地址：{_mainContext.showChannelObj.url}</Box>
+              <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <FormControl sx={{ marginBottom: '25px', marginTop: '10px' }} fullWidth>
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label='频道名称' name="name" size="small" id="standard-multiline-static" value={showDetailObj.name} onChange={handleChange} />
+                </FormControl>
+                <FormControl sx={{ marginBottom: '25px' }} fullWidth>
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label='m3u8地址' name="url"  size="small" id="standard-multiline-static" value={showDetailObj.url} onChange={handleChange} />
+                </FormControl>
+                <FormControl sx={{ marginBottom: '25px' }} fullWidth>
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label='logoUrl' name="tvgLogo"  size="small" id="standard-multiline-static" value={showDetailObj.tvgLogo} onChange={handleChange} />
+                </FormControl>
+                <FormControl sx={{ marginBottom: '15px' }} fullWidth>
+                  <TextField disabled={showChannelMod === 1} sx={{ fontSize: '11px' }} label='分组名称' name="groupTitle"  size="small" id="standard-multiline-static" value={showDetailObj.groupTitle} onChange={handleChange} />
+                </FormControl>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                   {
-                    _mainContext.showChannelObj.groupTitle !== '' ? (
-                      <Box>分组名称：{_mainContext.showChannelObj.groupTitle}</Box>
+                    showChannelMod === 2 ? (
+                      <Button
+                        size="small"
+                        onClick={saveEditData}
+                        variant="contained"
+                        sx={{ marginRight: '5px' }}
+                      >
+                        保存并关闭
+                      </Button>
                     ) : ''
                   }
                   {
-                    _mainContext.showChannelObj.tvgLogo !== '' ? (
-                      <Box>tvgLogo：{_mainContext.showChannelObj.tvgLogo}</Box>
-                    ) : ''
-                  }
-                  {
-                    _mainContext.showChannelObj.tvgLanguage.length > 0 ? (
-                      <Box>语言: {_mainContext.showChannelObj.tvgLanguage.toString()}</Box>
-                    ) : ''
-                  }
-                  {
-                    _mainContext.showChannelObj.tvgCountry !== '' ? (
-                      <Box>国家: {_mainContext.showChannelObj.tvgCountry}</Box>
-                    ) : ''
-                  }
-                  {
-                    _mainContext.showChannelObj.tvgId !== '' ? (
-                      <Box>tvgId: {_mainContext.showChannelObj.tvgId}</Box>
-                    ) : ''
-                  }
+                    showChannelMod === 1 ? (
+                      <Button
+                        size="small"
+                        onClick={changeShowObj}
+                        variant="contained"
+                        sx={{ marginRight: '5px' }}
+                      >
+                        编辑
+                      </Button>
+                    ) : ''}
+                  <Button
+                    size="small"
+                    onClick={closeShowChangeObj}
+                    variant="contained"
+                  >
+                    取消/关闭
+                  </Button>
                 </Box>
-              ) : ""}
-              {showChannelMod === 1 ? (
-                <Box sx={{ display: "flex", flexDirection: "column" }}>
-                  <FormControl sx={{ marginBottom: '5px' }} fullWidth>
-                    <TextField sx={{ fontSize: '11px' }} label='频道名称' size="small" id="standard-multiline-static" value={editName} onChange={onChangeEditName} />
-                  </FormControl>
-                  <FormControl sx={{ marginBottom: '5px' }} fullWidth>
-                    <TextField sx={{ fontSize: '11px' }} label='m3u8地址' size="small" id="standard-multiline-static" value={editUrl} onChange={onChangeEditUrl} />
-                  </FormControl>
-                  <FormControl sx={{ marginBottom: '5px' }} fullWidth>
-                    <TextField sx={{ fontSize: '11px' }} label='logoUrl' size="small" id="standard-multiline-static" value={editLogoUrl} onChange={onChangeEditLogoUrl} />
-                  </FormControl>
-                  <FormControl sx={{ marginBottom: '5px' }} fullWidth>
-                    <TextField sx={{ fontSize: '11px' }} label='分组名称' size="small" id="standard-multiline-static" value={editGroupName} onChange={onChangeEditGroupName} />
-                  </FormControl>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <Button
-                      size="small"
-                      onClick={saveEditData}
-                      variant="contained"
-                      sx={{ marginRight: '5px' }}
-                    >
-                      保存
-                    </Button>
-                    <Button
-                      size="small"
-                      onClick={closeShowChangeObj}
-                      variant="contained"
-                    >
-                      取消
-                    </Button>
-                  </Box>
-                </Box>
-              ) : ''}
+              </Box>
             </Box>
-          ) : ''
-        }
-      </Box>
+          </Box>
+        ) : ''}
     </Box>
   )
 }

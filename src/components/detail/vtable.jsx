@@ -10,11 +10,9 @@ import clsx from 'clsx';
 import { AutoSizer, Column, Table } from 'react-virtualized';
 import { styled } from '@mui/material/styles';
 import { green, pink, red } from '@mui/material/colors';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import InfoIcon from '@mui/icons-material/Info';
 
 export const classes = {
@@ -82,7 +80,7 @@ class MuiVirtualizedTable extends React.PureComponent {
     }
 
     cellRenderer = ({ cellData, columnIndex }) => {
-        const { rowHeight, onRowClick, selectRow, delRow, watchThis, originalData, showOriginalUrl,columns, seeDetail, showWatch, handleMod } = this.props;
+        const { rowHeight, onRowClick, selectRow, delRow, originalData, showOriginalUrl, columns, seeDetail, handleMod } = this.props;
         return (
             <TableCell
                 component="div"
@@ -90,9 +88,10 @@ class MuiVirtualizedTable extends React.PureComponent {
                     [classes.noClick]: onRowClick == null,
                 })}
                 variant="body"
-                style={{ height: rowHeight, 
-                width: columns[columnIndex].width+" !important",
-                flex:"auto"
+                style={{
+                    height: rowHeight,
+                    width: columns[columnIndex].width + " !important",
+                    flex: "auto"
                 }}
             >
                 {
@@ -109,44 +108,30 @@ class MuiVirtualizedTable extends React.PureComponent {
                 }
                 {
                     columnIndex === 1 ? (
-                        cellData
+                        <div>
+                            <div style={{ fontWeight: '600', cursor:'pointer' }}>
+                                {cellData} - <span onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>{originalData[this.getObjectIndexIndex(cellData)].name}</span>
+                                {
+                                    handleMod !== 1 ? (
+                                        <Tooltip title="删除">
+                                            <IconButton size="small" onClick={() => delRow(cellData, columnIndex)}>
+                                                <DeleteIcon fontSize="small" sx={{ color: red[400] }} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    ) : ''
+                                }
+                            </div>
+                            {
+                                showOriginalUrl ? (
+                                    <div style={{ fontSize: '12px', color: '#7a7a7a' }}><i>{originalData[this.getObjectIndexIndex(cellData)].url}</i></div>
+                                ) : ''
+                            }
+                            <div style={{ fontSize: '12px', color: '#7a7a7a' }}>{originalData[this.getObjectIndexIndex(cellData)].video ? "" + originalData[this.getObjectIndexIndex(cellData)].video.width + "x" + originalData[this.getObjectIndexIndex(cellData)].video.height + "-" + originalData[this.getObjectIndexIndex(cellData)].video.codec + "" : ''}{'-'}{originalData[this.getObjectIndexIndex(cellData)].audio ? "" + originalData[this.getObjectIndexIndex(cellData)].audio.codec + "-" + originalData[this.getObjectIndexIndex(cellData)].audio.channels + " audio channels" : ''}</div>
+                        </div>
                     ) : ''
                 }
                 {
                     columnIndex === 2 ? (
-                        <Box>
-                            {
-                                handleMod !== 1 ? (
-                                    <Tooltip title="删除">
-                                        <IconButton onClick={() => delRow(cellData, columnIndex)}>
-                                            <DeleteIcon sx={{ color: red[400] }} />
-                                        </IconButton>
-                                    </Tooltip>
-                                ):''
-                            }
-                            {
-                                showWatch? (
-                                    <Tooltip title="点击在线观看">
-                                        <IconButton onClick={() => watchThis(originalData[this.getObjectIndexIndex(cellData)])}>
-                                            <VisibilityIcon color="success" />
-                                        </IconButton>
-                                    </Tooltip>
-                                ):''
-                            }
-                            {
-                                handleMod !== 1 ? (
-                                    <Tooltip title="查看详细数据">
-                                        <IconButton onClick={() => seeDetail(originalData[this.getObjectIndexIndex(cellData)])}>
-                                            <InfoIcon color="info" />
-                                        </IconButton>
-                                    </Tooltip>
-                                ):''
-                            }
-                        </Box>
-                    ) : ''
-                }
-                {
-                    columnIndex === 3 ? (
                         <Box>
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 0 ? (
@@ -159,11 +144,10 @@ class MuiVirtualizedTable extends React.PureComponent {
                             }
                             {
                                 originalData[this.getObjectIndexIndex(cellData)].status === 1 ? (
-                                    <Tooltip title="有效">
-                                        <Avatar sx={{ bgcolor: green[500], width: 24, height: 24 }}>
-                                            <CheckCircleIcon />
-                                        </Avatar>
-                                    </Tooltip>
+                                    <div style={{
+                                        color: originalData[this.getObjectIndexIndex(cellData)].delay < 500 ? 'green' : 'red',
+                                        fontWeight: "bold",
+                                    }}>{originalData[this.getObjectIndexIndex(cellData)].delay}ms</div>
                                 ) : ''
                             }
                             {
@@ -178,19 +162,6 @@ class MuiVirtualizedTable extends React.PureComponent {
                         </Box>
                     ) : ''
                 }
-                {
-                    columnIndex === 4 ? (
-                        <div>
-                            <div style={{ fontWeight: '600' }}>{originalData[this.getObjectIndexIndex(cellData)].name}</div>
-                            {
-                                showOriginalUrl ? (
-                                    <div style={{ fontSize: '12px', color: '#7a7a7a' }}><i>{originalData[this.getObjectIndexIndex(cellData)].url}</i></div>
-                                ) : ''
-                            }
-                            <div style={{ fontSize: '12px', color: '#7a7a7a' }}>{originalData[this.getObjectIndexIndex(cellData)].video?""+originalData[this.getObjectIndexIndex(cellData)].video.width+"x"+originalData[this.getObjectIndexIndex(cellData)].video.height+"-"+originalData[this.getObjectIndexIndex(cellData)].video.codec+"":''}{'-'}{originalData[this.getObjectIndexIndex(cellData)].audio?""+originalData[this.getObjectIndexIndex(cellData)].audio.codec+"-"+originalData[this.getObjectIndexIndex(cellData)].audio.channels+" audio channels":''}</div>
-                        </div>
-                    ) : ''
-                }
             </TableCell>
         );
     };
@@ -202,11 +173,11 @@ class MuiVirtualizedTable extends React.PureComponent {
                 component="div"
                 className={clsx(classes.tableCell, classes.flexContainer, classes.noClick)}
                 variant="head"
-                style={{ 
+                style={{
                     height: headerHeight,
-                    width: columns[columnIndex].width+" !important",
-                    flex:"auto"
-                 }}
+                    width: columns[columnIndex].width + " !important",
+                    flex: "auto"
+                }}
             >
                 {
                     columnIndex === 0 ? (

@@ -1,6 +1,6 @@
-# iptv-checker
-
 <img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/react-version/src/assets/icon.png" height=80>
+
+# iptv-checker
 
 支持m3u链接、m3u源文件以及提供公共的源，选择对应的操作，然后点击确定，可以帮助你检查这些源是否有效，并将这些有效的另存为新的m3u文件
 
@@ -47,8 +47,12 @@ docker-compose up -d
 
 ## 变更日志
 
+- v2.15.1
+  - 支持显示直播源速度,并支持自动选择最快的源数据
+  - 优化代码，删除无用代码
+  - 更换排序组建(替换sort : https://dndkit.com/)
+  - 支持node 18
 - v2.15.0
-  - 支持node 18(替换sort : https://dndkit.com/)
   - 支持视频宽高、音频信息查看,并支持清晰度筛选
   - ⚠️不再支持chrome扩展，历史兼容chrome扩展代码已删除
 - v2.14.0

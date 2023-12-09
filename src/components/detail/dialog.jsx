@@ -52,37 +52,31 @@ export default function SimpleDialog(props) {
   const [groupTab, setGroupTab] = useState(0)
   const [customGroupName, setCustomGroupName] = useState('')
 
+  const [configSettings, setConfigSettings] = useState({
+    checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
+    httpRequestTimeout: 8000,// http请求超时,0表示 无限制
+    showFullUrl: false,//是否显示url
+  })
+
   useEffect(() => {
     setGroupTab(0)
     setSelectedGroups('')
     if (mod === 1) {
       setShowTextAreaLable('您所选择的m3u信息')
     } else if (mod === 2) {
-      setShowTextAreaLable('原始m3u信息')
+      setShowTextAreaLable('原始数据')
     } else if (mod === 3) {
       setShowTextAreaLable('设置')
     } else if (mod === 4) {
       setShowTextAreaLable('排序(数据较多时,可能影响排序列表性能,建议分批操作)')
     } else if (mod === 5) {
-      setShowTextAreaLable('更改分组') 
+      setShowTextAreaLable('更改分组')
     }
   }, [mod])
 
   const handleClose = () => {
     onClose();
   };
-
-  const handleChangeCheckMillisSeconds = (e) => {
-    _mainContext.changeCheckMillisSeconds(parseInt(e.target.value, 10))
-  }
-
-  const handleChangeHttpRequestTimeout = (e) => {
-    _mainContext.changeHttpRequestTimeout(parseInt(e.target.value, 10))
-  }
-
-  const handleChangeShowUrl = (event) => {
-    _mainContext.changeShowUrl(event.target.checked);
-  }
 
   const doDownload = () => {
     var a = document.createElement('a')
@@ -93,7 +87,7 @@ export default function SimpleDialog(props) {
     a.click()
   }
 
-  const  doCsvDownload =() => {
+  const doCsvDownload = () => {
     let csvArr = _mainContext.strToCsv(_mainContext.exportDataStr)
     // 将数据行转换为 CSV 字符串
     const csvContent = csvArr.map(e => e.join(",")).join("\n");
@@ -103,7 +97,7 @@ export default function SimpleDialog(props) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "iptv-checker-"+ (new Date()).getTime() +".csv");
+    link.setAttribute("download", "iptv-checker-" + (new Date()).getTime() + ".csv");
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -131,10 +125,10 @@ export default function SimpleDialog(props) {
   }
 
   const doTransferGroup = () => {
-    if(groupTab === 0) {
+    if (groupTab === 0) {
       _mainContext.batchChangeGroupName(selectedArr, selectedGroups)
       onClose();
-    }else{
+    } else {
       _mainContext.addGroupName(customGroupName)
       setGroupTab(0)
     }
@@ -148,9 +142,28 @@ export default function SimpleDialog(props) {
     setCustomGroupName(e.target.value)
   }
 
+  const doSaveConfigSettings = () => {
+    _mainContext.onChangeSettings(configSettings)
+    onClose();
+  }
+
+  const handleChangeConfigSettings = (e) => {
+    const { name, value } = e.target;
+    let data = value
+    if (name === 'showFullUrl') {
+      data = e.target.checked
+    }
+    setConfigSettings(prevData => ({
+      ...prevData,
+      [name]: data
+    }));
+  }
+
   return (
     <Dialog onClose={handleClose} open={open}>
-      <Box style={{ minWidth: '600px', 'maxHeight': '600px', 'paddingTop': '10px', 'paddingLeft': '10px' }}>{showTextAreaLable}</Box>
+      <Box style={{ minWidth: '600px', 'paddingTop': '10px', 'overflow':'hidden' }}>
+        <span style={{ paddingLeft: '10px'}}>{showTextAreaLable}</span>
+      </Box>
       {
         mod === 3 ? (
           <Box sx={{
@@ -161,8 +174,9 @@ export default function SimpleDialog(props) {
             <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
               <TextField
                 size="small"
-                value={_mainContext.checkMillisSeconds}
-                onChange={handleChangeCheckMillisSeconds}
+                name="checkSleepTime"
+                value={configSettings.checkSleepTime}
+                onChange={handleChangeConfigSettings}
                 label="下一次请求间隔时间（毫秒）"
               />
             </FormControl>
@@ -171,24 +185,34 @@ export default function SimpleDialog(props) {
               marginRight: '5px',
               display: 'flex',
               flexDirection: 'row',
-              marginBottom: '20px'
+              marginBottom: '40px',
+              marginTop: '20px'
             }}>
-              不显示url
+              不显示m3u8 url
               <Switch
                 size="small"
-                checked={_mainContext.showUrl}
-                onChange={handleChangeShowUrl}
+                name="showFullUrl"
+                checked={configSettings.showFullUrl}
+                onChange={handleChangeConfigSettings}
                 inputProps={{ 'aria-label': 'controlled' }}
-              />显示url
+              />不显示m3u8 url
             </FormControl>
             <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
               <TextField
                 size="small"
-                value={_mainContext.httpRequestTimeout}
-                onChange={handleChangeHttpRequestTimeout}
-                label="请求超时时间（毫秒）"
+                name="httpRequestTimeout"
+                value={configSettings.httpRequestTimeout}
+                onChange={handleChangeConfigSettings}
+                label="检查超时时间（毫秒）"
               />
             </FormControl>
+            <LoadingButton
+              size="small"
+              onClick={doSaveConfigSettings}
+              variant="outlined"
+            >
+              保存
+            </LoadingButton>
           </Box>
         ) : ''
       }
@@ -199,7 +223,7 @@ export default function SimpleDialog(props) {
       ) : ''}
       {
         mod === 4 ? (
-          <Box>
+          <Box style={{"padding":'5px'}}>
             <Sort></Sort>
             <Box>
               <FormControl sx={{
@@ -295,9 +319,9 @@ export default function SimpleDialog(props) {
             </TabPanel>
             <TabPanel value={groupTab} index={1}>
               <FormControl fullWidth>
-                <TextField id="standard-basic" label="输入新分组名称" value={customGroupName} 
-                  variant="standard" onChange={changeCustomGroupName}/>
-                </FormControl>
+                <TextField id="standard-basic" label="输入新分组名称" value={customGroupName}
+                  variant="standard" onChange={changeCustomGroupName} />
+              </FormControl>
             </TabPanel>
             <Box sx={{
               display: 'flex',

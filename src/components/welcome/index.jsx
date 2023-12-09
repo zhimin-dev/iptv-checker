@@ -30,14 +30,6 @@ const ModPublicSource = 2
 const ModUploadFromLocal = 3
 const ModWatchOnline = 4
 
-let selectOption = [
-  { 'mod': ModIHaveM3uLink, "name": "我有订阅源链接" },
-  { 'mod': ModIHaveM3uContent, "name": "我有订阅源内容" },
-  { 'mod': ModPublicSource, "name": "公共订阅源" },
-  { 'mod': ModUploadFromLocal, "name": "本地上传" },
-  { 'mod': ModWatchOnline, "name": "在线观看" },
-]
-
 let selectOptionWithNoWatch = [
   { 'mod': ModIHaveM3uLink, "name": "我有订阅源链接" },
   { 'mod': ModIHaveM3uContent, "name": "我有订阅源内容" },
@@ -206,7 +198,7 @@ export default function HorizontalLinearStepper() {
           throw new Error('获取数据失败')
         }
       }
-      _mainContext.goToDetailScene()
+      navigate("/detail")
     } catch (e) {
       setShowError(true)
       setErrorMsg(e.message)
@@ -340,35 +332,11 @@ export default function HorizontalLinearStepper() {
                 variant="contained"
                 startIcon={<CheckIcon />}
               >
-                确定
+                下一步
               </LoadingButton>
             </Box>
           ) : ''
         }
-
-        {/* {
-          _mainContext.loadFfmpeg ? (
-            <LoadingButton
-              size="small"
-              onClick={() => _mainContext.ffmpegGetInfo("http://127.0.0.1:8080/img/1699619339-1-1666204618.hls.ts")}
-              loading={loading}
-              variant="contained"
-              startIcon={<CheckIcon />}
-            >
-              check
-            </LoadingButton>
-          ) : (
-            <LoadingButton
-              size="small"
-              onClick={() => _mainContext.doLoadFfmpeg()}
-              loading={loading}
-              variant="contained"
-              startIcon={<CheckIcon />}
-            >
-              load
-            </LoadingButton>
-          )
-        } */}
       </Box>
       <Box sx={{
         position: 'absolute',

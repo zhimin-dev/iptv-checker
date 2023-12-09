@@ -7,7 +7,7 @@ import {
   RouterProvider,
   createHashRouter,
 } from "react-router-dom";
-import Watch from './components/watch/index'
+import Detail from './components/detail'
 
 const router = createHashRouter([
   {
@@ -19,8 +19,8 @@ const router = createHashRouter([
     element: <App />,
   },
   {
-    path: "/watch",
-    element: <Watch />,
+    path: "/detail",
+    element: <Detail />,
   }
 ]);
 
