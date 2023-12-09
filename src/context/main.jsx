@@ -15,6 +15,7 @@ export const MainContextProvider = function ({ children }) {
     const [handleMod, setHandleMod] = useState(0);//当前的操作模式 0无操作 1操作处理检查 2检查完成
     const [checkData, setCheckData] = useState([])//待检查数据列表
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
+    const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
 
     const [settings, setSettings] = useState({
         checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
@@ -25,6 +26,7 @@ export const MainContextProvider = function ({ children }) {
     const nowCheckUrlModRef = useRef()
     const hasCheckedCountRef = useRef()
     const videoInfoRef = useRef({})
+    const videoFastNameMapRef = useRef({})
 
     let debugMode = true
 
@@ -37,6 +39,10 @@ export const MainContextProvider = function ({ children }) {
     useEffect(() => {
         hasCheckedCountRef.current = 0
     }, [])
+
+    const onChangeNeedFastSource = (val) => {
+        setNeedFastSource(val)
+    }
 
     const onChangeSettings = (value) => {
         setSettings(value);
@@ -141,7 +147,7 @@ export const MainContextProvider = function ({ children }) {
                 let one = temp[i]
                 one.index = _index
                 rows.push(one);
-                _index ++ 
+                _index++
             }
         }
         log("setShowM3uBody---", rows)
@@ -294,7 +300,24 @@ export const MainContextProvider = function ({ children }) {
         let ids = []
         let updatedList = [...showM3uBody]
         for (let i = 0; i < updatedList.length; i++) {
-            if (showM3uBody[i].status === mod) {
+            let isChecked = false
+            // 需要最快延迟的数据
+            if (needFastSource) {
+                if (showM3uBody[i].status === mod) {
+                    if (videoFastNameMapRef.current[showM3uBody[i].sName] === undefined) {
+                        isChecked = true
+                    } else {
+                        if (videoFastNameMapRef.current[showM3uBody[i].sName].index === updatedList[i].index) {
+                            isChecked = true
+                        }
+                    }
+                }
+            } else {
+                if (showM3uBody[i].status === mod) {
+                    isChecked = true
+                }
+            }
+            if (isChecked) {
                 updatedList[i].checked = true
                 ids.push(showM3uBody[i].index)
             } else {
@@ -351,15 +374,11 @@ export const MainContextProvider = function ({ children }) {
     const doCheck = async (data) => {
         for (let i = 0; i < data.length; i++) {
             if (nowCheckUrlModRef.current === 2) {
-                log("----0")
                 continue
             }
             let one = data[i]
-            log("doCheck---111", one)
             let getData = findM3uBodyByIndex(one.index)
-            log("doCheck---222", getData)
             if (getData.status !== 0) {
-                log("----1")
                 continue
             }
             try {
@@ -367,7 +386,6 @@ export const MainContextProvider = function ({ children }) {
                 let res = await axios.get(_url)
                 log(res.data.video)
                 if (res.status === 200) {
-                    log("====5")
                     let videoInfoMap = videoInfoRef.current
                     videoInfoMap[one.url] = {
                         "video": res.data.video,
@@ -376,10 +394,23 @@ export const MainContextProvider = function ({ children }) {
                         "status": 1,
                         'delay': res.data.delay,
                     }
+                    let videoFastNameMap = videoFastNameMapRef.current
+                    if (videoFastNameMap[one.sName] === undefined || videoFastNameMap[one.sName] === null) {
+                        videoFastNameMap[one.sName] = {
+                            index: one.index,
+                            delay: res.data.delay
+                        }
+                    } else {
+                        if (videoFastNameMap[one.sName].delay >= res.data.delay) {
+                            videoFastNameMap[one.sName] = {
+                                index: one.index,
+                                delay: res.data.delay
+                            }
+                        }
+                    }
                     setShowM3uBodyStatus(one.index, 1, res.data.video, res.data.audio, res.data.delay)
                     setCheckDataStatus(one.index, 1)
                 } else {
-                    log("====666")
                     let videoInfoMap = videoInfoRef.current
                     videoInfoMap[one.url] = {
                         "status": 2,
@@ -505,7 +536,8 @@ export const MainContextProvider = function ({ children }) {
             changeOriginalM3uBodies, updateDataByIndex,
             onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
             pauseCheckUrlData, resumeCheckUrlData, strToCsv,
-            getM3uBody
+            getM3uBody,
+            needFastSource, onChangeNeedFastSource
         }}>
             {children}
         </MainContext.Provider>

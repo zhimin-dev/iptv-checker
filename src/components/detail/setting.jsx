@@ -30,6 +30,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import utils from '../../utils/common';
 import ParseM3u from '../../utils/utils';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 const ListItem = styled('li')(({ theme }) => ({
     margin: theme.spacing(0.5),
@@ -168,6 +169,10 @@ export default function Setting(props) {
         setSelectedArr([])
     }
 
+    const handleNeedFastSource = (e) => {
+        _mainContext.onChangeNeedFastSource(e.target.checked)
+    }
+
     const handleChangeGroup = (e) => {
         setSelectedGroups(e.target.value)
         let _aMap = {}
@@ -288,6 +293,10 @@ export default function Setting(props) {
                                     >
                                         有效链接
                                     </LoadingButton>
+                                    <FormControlLabel 
+                                    size="small"
+                                    control={<Checkbox size="small" checked={_mainContext.needFastSource} onChange={handleNeedFastSource} />} 
+                                    label="选择延迟最低的源" />
                                 </FormControl>
                             ) : ''
                         }

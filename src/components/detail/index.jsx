@@ -9,7 +9,6 @@ import { VirtualizedTable } from './vtable'
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import ParseM3u from '../../utils/utils';
 
 export default function Detail() {
   const _mainContext = useContext(MainContext);
