@@ -161,7 +161,7 @@ export default function SimpleDialog(props) {
 
   return (
     <Dialog onClose={handleClose} open={open}>
-      <Box style={{ minWidth: '600px', 'paddingTop': '10px', 'overflow':'hidden' }}>
+      <Box style={{ minWidth: mod !== 3 ? '600px' : '', 'paddingTop': '10px', 'overflow':'hidden' }}>
         <span style={{ paddingLeft: '10px'}}>{showTextAreaLable}</span>
       </Box>
       {
@@ -171,7 +171,7 @@ export default function SimpleDialog(props) {
             flexDirection: 'column',
             padding: '20px'
           }}>
-            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+            <FormControl sx={{ width: 200, marginRight: '5px', marginBottom: '10px' }}>
               <TextField
                 size="small"
                 name="checkSleepTime"
@@ -181,23 +181,23 @@ export default function SimpleDialog(props) {
               />
             </FormControl>
             <FormControl sx={{
-              width: 200,
+              width: 220,
               marginRight: '5px',
               display: 'flex',
               flexDirection: 'row',
               marginBottom: '40px',
               marginTop: '20px'
             }}>
-              不显示m3u8 url
+              <span style={{fontSize: '12px'}}>不显示原始URL</span>
               <Switch
                 size="small"
                 name="showFullUrl"
                 checked={configSettings.showFullUrl}
                 onChange={handleChangeConfigSettings}
                 inputProps={{ 'aria-label': 'controlled' }}
-              />不显示m3u8 url
+              /><span style={{fontSize: '12px'}}>不显示原始URL</span>
             </FormControl>
-            <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
+            <FormControl sx={{ width: 200, marginRight: '5px', marginBottom: '10px' }}>
               <TextField
                 size="small"
                 name="httpRequestTimeout"
@@ -210,6 +210,7 @@ export default function SimpleDialog(props) {
               size="small"
               onClick={doSaveConfigSettings}
               variant="outlined"
+              sx={{width: 200}}
             >
               保存
             </LoadingButton>

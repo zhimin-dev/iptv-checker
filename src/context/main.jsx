@@ -7,7 +7,7 @@ export const MainContextProvider = function ({ children }) {
     const headerHeight = 152
     const [originalM3uBody, setOriginalM3uBody] = useState('');//原始的m3u信息
     const [showM3uBody, setShowM3uBody] = useState([])//m3u信息转换成list 数组
-    const [hasCheckedCount, setHasCheckedCount] = useState(0)
+    const [hasCheckedCount, setHasCheckedCount] = useState(0)//当前检查进度
     const [uGroups, setUGroups] = useState([])//当前分组
     const [exportData, setExportData] = useState([])//待导出数据json
     const [exportDataStr, setExportDataStr] = useState('')//导出数据的str
@@ -16,6 +16,7 @@ export const MainContextProvider = function ({ children }) {
     const [checkData, setCheckData] = useState([])//待检查数据列表
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
     const [needFastSource, setNeedFastSource] = useState(false)// 是否选择最快的源, false否， true是
+    const [concurrency, setConcurrency] = useState(1)// 默认一个线程检查
 
     const [settings, setSettings] = useState({
         checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
@@ -23,10 +24,10 @@ export const MainContextProvider = function ({ children }) {
         showFullUrl: false,//是否显示url
     })
 
-    const nowCheckUrlModRef = useRef()
-    const hasCheckedCountRef = useRef()
-    const videoInfoRef = useRef({})
-    const videoFastNameMapRef = useRef({})
+    const nowCheckUrlModRef = useRef()//当前操作类型
+    const hasCheckedCountRef = useRef()//同handleMod
+    const videoInfoRef = useRef({})//视频宽高、延迟数据
+    const videoFastNameMapRef = useRef({})//存储名字对应的最低延迟数据
 
     let debugMode = true
 
@@ -60,6 +61,9 @@ export const MainContextProvider = function ({ children }) {
         setCheckUrlMod(0)
         setShowM3uBody([])
         setOriginalM3uBody('')
+        nowCheckUrlModRef.current = 0
+        videoInfoRef.current = {}
+        videoFastNameMapRef.current ={}
     }
 
     const contains = (str, substr) => {
@@ -379,6 +383,7 @@ export const MainContextProvider = function ({ children }) {
             let one = data[i]
             let getData = findM3uBodyByIndex(one.index)
             if (getData.status !== 0) {
+                log("do check status != 0")
                 continue
             }
             try {
@@ -432,6 +437,9 @@ export const MainContextProvider = function ({ children }) {
             }
             await sleep(settings.checkSleepTime)
         }
+    }
+
+    const setCheckDataIsFinished = () => {
         log("check finished.....")
         log("showM3uBody", showM3uBody)
         log("videoInfoRef.current", videoInfoRef.current)
@@ -451,6 +459,7 @@ export const MainContextProvider = function ({ children }) {
         setHandleMod(1)
         let data = prepareCheckData()
         doCheck(data)
+        setCheckDataIsFinished()
     }
 
     const onChangeExportData = (value) => {
@@ -517,6 +526,7 @@ export const MainContextProvider = function ({ children }) {
         nowCheckUrlModRef.current = 1
         await sleep(100)
         doCheck(checkData)
+        setCheckDataIsFinished()
     }
 
     return (
@@ -535,7 +545,7 @@ export const MainContextProvider = function ({ children }) {
             changeDialogBodyData,
             changeOriginalM3uBodies, updateDataByIndex,
             onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
-            pauseCheckUrlData, resumeCheckUrlData, strToCsv,
+            pauseCheckUrlData, resumeCheckUrlData, strToCsv, clearDetailData,
             getM3uBody,
             needFastSource, onChangeNeedFastSource
         }}>

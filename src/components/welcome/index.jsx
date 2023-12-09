@@ -102,6 +102,7 @@ export default function HorizontalLinearStepper() {
 
   useEffect(() => {
     fetchCommonLink()
+    _mainContext.clearDetailData()
     fetchWatchOnlineData()
     let _tab = localStorage.getItem(lastHomeTab)
     if (_tab !== '' && _tab !== null) {
