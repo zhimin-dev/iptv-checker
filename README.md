@@ -56,6 +56,7 @@ docker-compose up -d
   - 优化代码，删除无用代码
   - 更换排序组建(替换sort : https://dndkit.com/)
   - 支持node 18
+  - 修复检查超市时间未生效的bug
 - v2.15.0
   - 支持视频宽高、音频信息查看,并支持清晰度筛选
   - ⚠️不再支持chrome扩展，历史兼容chrome扩展代码已删除
