@@ -8,12 +8,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 import { exec } from "child_process";
 
-
+const router = new Router(); // 创建路由，支持传递参数
 const instance = axios.create()
+
 instance.interceptors.request.use((config) => {
     config.headers['request-startTime'] = process.hrtime()
     return config
 })
+
 instance.interceptors.response.use((response) => {
     const start = response.config.headers['request-startTime']
     const end = process.hrtime(start)
@@ -26,7 +28,6 @@ const __dirname = path.dirname(__filename);
 const app = new Koa();
 app.use(koaStatic(path.resolve(__dirname, 'dist/')));
 app.use(Views(path.join(__dirname, 'dist/'), { extension: 'html' }));
-const router = new Router(); // 创建路由，支持传递参数
 
 function useExec(shell) {
     return new Promise((res, rej) => {
@@ -42,14 +43,18 @@ function useExec(shell) {
 
 router.get('/check-url-is-available', async (ctx) => {
     const { url, timeout } = ctx.query
+    let _timeout = parseInt(timeout, 10)
     let ttl = 0
     try {
-        let config = {}
-        let _timeout = parseInt(timeout, 10)
-        if (_timeout > 0) {
-            config["timeout"] = _timeout
+        let request = {
+            url,
+            method: 'GET'
         }
-        const respData = await instance.get(url, config)
+        if (_timeout > 0) {
+            request.timeout = _timeout
+            request.signal = AbortSignal.timeout(_timeout)
+        }
+        const respData = await instance.request(request)
         if (respData.status === 200) {
             ttl = respData.headers['request-duration']
         } else {
@@ -60,7 +65,11 @@ router.get('/check-url-is-available', async (ctx) => {
         ctx.status = 400
         return
     }
-    let data = await useExec("ffprobe -v quiet -print_format json -show_format -show_streams " + url)
+    let command = "ffprobe -v quiet -print_format json -show_format -show_streams " + url
+    if (_timeout > 0) {
+        command = "ffprobe -timeout " + _timeout + " -v quiet -print_format json -show_format -show_streams " + url
+    }
+    let data = await useExec(command)
     let stdout = data.stdout
     try {
         stdout = JSON.parse(stdout)
