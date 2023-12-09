@@ -332,35 +332,11 @@ export default function HorizontalLinearStepper() {
                 variant="contained"
                 startIcon={<CheckIcon />}
               >
-                确定
+                下一步
               </LoadingButton>
             </Box>
           ) : ''
         }
-
-        {/* {
-          _mainContext.loadFfmpeg ? (
-            <LoadingButton
-              size="small"
-              onClick={() => _mainContext.ffmpegGetInfo("http://127.0.0.1:8080/img/1699619339-1-1666204618.hls.ts")}
-              loading={loading}
-              variant="contained"
-              startIcon={<CheckIcon />}
-            >
-              check
-            </LoadingButton>
-          ) : (
-            <LoadingButton
-              size="small"
-              onClick={() => _mainContext.doLoadFfmpeg()}
-              loading={loading}
-              variant="contained"
-              startIcon={<CheckIcon />}
-            >
-              load
-            </LoadingButton>
-          )
-        } */}
       </Box>
       <Box sx={{
         position: 'absolute',

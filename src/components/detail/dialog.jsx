@@ -188,14 +188,14 @@ export default function SimpleDialog(props) {
               marginBottom: '40px',
               marginTop: '20px'
             }}>
-              不显示url
+              不显示m3u8 url
               <Switch
                 size="small"
                 name="showFullUrl"
                 checked={configSettings.showFullUrl}
                 onChange={handleChangeConfigSettings}
                 inputProps={{ 'aria-label': 'controlled' }}
-              />显示url
+              />不显示m3u8 url
             </FormControl>
             <FormControl sx={{ width: 180, marginRight: '5px', marginBottom: '10px' }}>
               <TextField
@@ -203,7 +203,7 @@ export default function SimpleDialog(props) {
                 name="httpRequestTimeout"
                 value={configSettings.httpRequestTimeout}
                 onChange={handleChangeConfigSettings}
-                label="请求超时时间（毫秒）"
+                label="检查超时时间（毫秒）"
               />
             </FormControl>
             <LoadingButton

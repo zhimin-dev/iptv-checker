@@ -7,9 +7,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import CssBaseline from '@mui/material/CssBaseline';
 
 export default function App() {
-
-  const _mainContext = React.useContext(MainContext);
-
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const theme = React.useMemo(

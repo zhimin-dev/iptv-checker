@@ -79,11 +79,9 @@ export function SortableList(props) {
         setActive(active);
       }}
       onDragEnd={({ active, over }) => {
-        console.log(active, over)
         if (over && active.id !== over?.id) {
           const activeIndex = items.findIndex(({ index }) => index === active.id);
           const overIndex = items.findIndex(({ index }) => index === over.id);
-          console.log("onDragEnd", activeIndex, overIndex)
           onChange(arrayMove(items, activeIndex, overIndex));
         }
         setActive(null);

@@ -5,9 +5,6 @@ import { SortableList } from "./sortable";
 
 export default function sort(props) {
   const _mainContext = useContext(MainContext);
-
-  console.log("sort data ", _mainContext.exportData)
-
   return (
     <SortableList
       items={_mainContext.exportData}

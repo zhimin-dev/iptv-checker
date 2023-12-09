@@ -17,7 +17,7 @@ export const MainContextProvider = function ({ children }) {
     const [videoResolution, setVideoResolution] = useState([])//视频分辨率筛选
 
     const [settings, setSettings] = useState({
-        checkSleepTime:300,// 检查下一次请求间隔(毫秒)
+        checkSleepTime: 300,// 检查下一次请求间隔(毫秒)
         httpRequestTimeout: 8000,// http请求超时,0表示 无限制
         showFullUrl: false,//是否显示url
     })
@@ -39,7 +39,6 @@ export const MainContextProvider = function ({ children }) {
     }, [])
 
     const onChangeSettings = (value) => {
-        console.log(value)
         setSettings(value);
     }
 
@@ -108,6 +107,7 @@ export const MainContextProvider = function ({ children }) {
         }
         let temp = ParseM3u.parseOriginalBodyToList(originalM3uBody, videoInfoRef.current)
         let rows = [];
+        let _index = 1
         for (let i = 0; i < temp.length; i++) {
             // 检查当前视频清晰度是否命中
             let hitVideoRes = true
@@ -139,8 +139,9 @@ export const MainContextProvider = function ({ children }) {
             }
             if (hitGroup && hitVideoRes && hitTitleSearch) {
                 let one = temp[i]
-                one.index = rows.length
+                one.index = _index
                 rows.push(one);
+                _index ++ 
             }
         }
         log("setShowM3uBody---", rows)
@@ -200,11 +201,14 @@ export const MainContextProvider = function ({ children }) {
     const changeOriginalM3uBodies = (bodies) => {
         let res = []
         let bodyStr = ''
+        let index = 1;
         for (let i = 0; i < bodies.length; i++) {
             bodyStr += bodies[i] + "\n"
             let one = ParseM3u.parseOriginalBodyToList(bodies[i])
             for (let j = 0; j < one.length; j++) {
+                one[j].index = index
                 res.push(one[j])
+                index++
             }
         }
         setShowM3uBody(res)
@@ -219,7 +223,7 @@ export const MainContextProvider = function ({ children }) {
     const setShowM3uBodyStatus = (index, status, videoObj, audioObj, delay) => {
         setShowM3uBody(list =>
             list.map((item, idx) => {
-                if (idx === index) {
+                if (item.index === index) {
                     let videoType = ''
                     if (videoObj !== null) {
                         videoType = ParseM3u.getVideoResolution(videoObj.width, videoObj.height)
@@ -310,13 +314,6 @@ export const MainContextProvider = function ({ children }) {
         return '/fetch-m3u-body?url=' + url + "&timeout=" + timeout
     }
 
-    const ffmpegGetInfo = async (videoURL) => {
-        // console.log(videoURL)
-        // const ffmpeg = ffmpegRef.current;
-        // let data = await ffmpeg.exec(["-i", videoURL]);
-        // console.log(data)
-    }
-
     const prepareCheckData = () => {
         let _temp = deepCopyJson(showM3uBody)
         let _tempMap = {}
@@ -358,7 +355,9 @@ export const MainContextProvider = function ({ children }) {
                 continue
             }
             let one = data[i]
+            log("doCheck---111", one)
             let getData = findM3uBodyByIndex(one.index)
+            log("doCheck---222", getData)
             if (getData.status !== 0) {
                 log("----1")
                 continue
@@ -402,9 +401,9 @@ export const MainContextProvider = function ({ children }) {
             }
             await sleep(settings.checkSleepTime)
         }
-        console.log("check finished.....")
-        await sleep(1000)
-        log(showM3uBody)
+        log("check finished.....")
+        log("showM3uBody", showM3uBody)
+        log("videoInfoRef.current", videoInfoRef.current)
         if (nowCheckUrlModRef.current === 1) {
             setHandleMod(2)
             setCheckUrlMod(0)
@@ -424,7 +423,6 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const onChangeExportData = (value) => {
-        log("onChangeExportData", value)
         setExportData(value)
     }
 
@@ -492,17 +490,22 @@ export const MainContextProvider = function ({ children }) {
 
     return (
         <MainContext.Provider value={{
-            originalM3uBody, showM3uBody, handleMod, hasCheckedCount,
-            headerHeight, uGroups, exportDataStr, exportData, checkUrlMod,
-            onCheckTheseLinkIsAvailable, changeOriginalM3uBody, filterM3u,
-            deleteShowM3uRow, onExportValidM3uData, onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
+            originalM3uBody, changeOriginalM3uBody,
+            exportDataStr, setExportDataStr,
+            exportData, onChangeExportData,
+            uGroups, setUGroups,
+            videoResolution, changeVideoResolution,
+            settings, onChangeSettings,
+            showM3uBody, handleMod, hasCheckedCount,
+            headerHeight, checkUrlMod,
+            onCheckTheseLinkIsAvailable, filterM3u,
+            deleteShowM3uRow, onExportValidM3uData,
+            onSelectedRow, onSelectedOrNotAll, getAvailableOrNotAvailableIndex,
             changeDialogBodyData,
-            changeOriginalM3uBodies, setUGroups, updateDataByIndex,
-            onChangeExportData, setExportDataStr, onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
+            changeOriginalM3uBodies, updateDataByIndex,
+            onChangeExportStr, batchChangeGroupName, addGroupName, getCheckUrl,
             pauseCheckUrlData, resumeCheckUrlData, strToCsv,
-            ffmpegGetInfo, getM3uBody, 
-            videoResolution, changeVideoResolution, 
-            settings, onChangeSettings
+            getM3uBody
         }}>
             {children}
         </MainContext.Provider>

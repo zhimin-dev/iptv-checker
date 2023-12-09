@@ -9,11 +9,13 @@ import { VirtualizedTable } from './vtable'
 import FormControl from '@mui/material/FormControl';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import ParseM3u from '../../utils/utils';
 
 export default function Detail() {
   const _mainContext = useContext(MainContext);
   const [vTableHeight, setVTableHeight] = useState(550)
 
+  const navigate = useNavigate();
   const [selectedArr, setSelectedArr] = useState([])//已选中的id
   const [showChannelMod, setShowChannelMod] = useState(0)// 0不显示弹框 1展示非编辑 2编辑页面
   const [showDetailObj, setShowDetailObj] = useState(null)// 选中查看对象
@@ -41,7 +43,15 @@ export default function Detail() {
     window.addEventListener("resize", e => {
       setVTableHeight(e.currentTarget.innerHeight - _mainContext.headerHeight - 50)
     })
-  })
+    window.addEventListener('beforeunload', (e) => {
+      e.preventDefault()
+      let returnValue = '刷新后将跳转首页'
+      e.returnValue = returnValue
+    })
+    if(_mainContext.showM3uBody.length === 0) {
+      navigate("/")
+    }
+  }, [])
 
   const deleteThisRow = (index, tableIndex) => {
     let row = []

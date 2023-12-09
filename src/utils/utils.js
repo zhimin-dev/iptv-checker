@@ -94,7 +94,7 @@ const ParseM3u = {
                     if (item.length >= 2 && ParseM3u.checkStrIsLink(item[1])) {
                         let originalData = `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",` + item[0] + `\n` + item[1]
                         let raw = `#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Undefined",` + item[0] + `\n` + item[1]
-                        let data = this.buildM3uBaseObject(i, item[1],
+                        let data = this.buildM3uBaseObject(i+1, item[1],
                             groupTitle, "", "", "", "",
                             item[0], originalData, raw)
                         rows.push(data)
@@ -121,7 +121,7 @@ const ParseM3u = {
             tvgCountry: tvgCountry,
             tvgId: tvgId,
             name: name,
-            sName: name.toLowerCase(),
+            sName: ParseM3u.removeNameExtraInfo(name.toLowerCase()).trim(),
             originalData: originalData,
             raw: raw,
 
@@ -252,6 +252,28 @@ const ParseM3u = {
             return true
         }
         return false
+    },
+    removeNameExtraInfo: (str) => {
+        const regex = /\((.*)/gm;
+        let m;
+        let exp = []
+        let removedStr = ""
+
+        while ((m = regex.exec(str)) !== null) {
+            // This is necessary to avoid infinite loops with zero-width matches
+            if (m.index === regex.lastIndex) {
+                regex.lastIndex++;
+            }
+            
+            // The result can be accessed through the `m`-variable.
+            m.forEach((match, groupIndex) => {
+                exp.push(match)
+            });
+        }
+        if(exp.length >= 2) {
+            return str.replace(exp[0], "")
+        }
+        return str
     }
 }
 
