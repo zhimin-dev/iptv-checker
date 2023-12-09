@@ -53,7 +53,7 @@ const ParseM3u = {
         let resultList = []
         for (let i = 0; i < rows.length; i += 1) {
             resultList.push(ParseM3u.parseRowToData(
-                i,
+                i+1,
                 "#EXTINF:" + rows[i][1],
                 rows[i][3] + "" + rows[i][4],
                 rows[i][0]

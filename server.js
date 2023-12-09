@@ -1,7 +1,7 @@
 import axios from 'axios';
 import Koa from 'koa';
 import Router from 'koa-router'; // 引入koa-router
-import Views from 'koa-views';
+import Views from '@ladjs/koa-views';
 import path from 'path';
 import koaStatic from 'koa-static';
 import { fileURLToPath } from 'url';

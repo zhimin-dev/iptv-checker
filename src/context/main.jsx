@@ -424,6 +424,7 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const onChangeExportData = (value) => {
+        log("onChangeExportData", value)
         setExportData(value)
     }
 

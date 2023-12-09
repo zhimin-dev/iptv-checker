@@ -161,7 +161,9 @@ export default function SimpleDialog(props) {
 
   return (
     <Dialog onClose={handleClose} open={open}>
-      <Box style={{ minWidth: '600px', 'maxHeight': '600px', 'paddingTop': '10px', 'paddingLeft': '10px' }}>{showTextAreaLable}</Box>
+      <Box style={{ minWidth: '600px', 'paddingTop': '10px', 'overflow':'hidden' }}>
+        <span style={{ paddingLeft: '10px'}}>{showTextAreaLable}</span>
+      </Box>
       {
         mod === 3 ? (
           <Box sx={{
@@ -221,7 +223,7 @@ export default function SimpleDialog(props) {
       ) : ''}
       {
         mod === 4 ? (
-          <Box>
+          <Box style={{"padding":'5px'}}>
             <Sort></Sort>
             <Box>
               <FormControl sx={{
