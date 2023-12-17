@@ -333,12 +333,14 @@ export const MainContextProvider = function ({ children }) {
     }
 
     const getCheckUrl = (url, timeout) => {
-        return '/check-url-is-available?url=' + url + "&timeout=" + timeout
+        let _timeout = parseInt(timeout, 10)
+        return '/check-url-is-available?url=' + url + "&timeout=" + (isNaN(_timeout) ? '-1' : _timeout)
     }
 
     const getM3uBody = (url, timeout) => {
-        log(url, timeout)
-        return '/fetch-m3u-body?url=' + url + "&timeout=" + timeout
+        let _timeout = parseInt(timeout, 10)
+        log(url, _timeout)
+        return '/fetch-m3u-body?url=' + url + "&timeout=" +  (isNaN(_timeout) ? '-1' : _timeout)
     }
 
     const prepareCheckData = () => {
