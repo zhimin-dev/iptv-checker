@@ -6,15 +6,29 @@
 
 iptv-checker不再支持chrome扩展，后续chrome扩展将改为在线播放m3u小工具，[项目地址](https://github.com/zhimin-dev/iptv-player)
 
-## 二次开发
+## 二次开发&本地启动
 
 如果基于源码启动`npm run dev`时,出现`No matching export in "node_modules/react-virtualized/dist/es/WindowScroller/WindowScroller.js" for import "bpfrpt_proptype_WindowScroller"` 这样的错误，请输入`npx patch-package`可解决
 
-## Docker本地编译使用方法
+> 当前基于`webassembly-version`分支开发
 
-下载源码，执行下面命令，再访问浏览器`http://127.0.0.1:8081/`即可
+### 开发环境
+ 
+- rust
+- node
+
+下载源码，执行下面命令，再访问浏览器`http://127.0.0.1:8080/` 即可
+
+开启服务端
 
 ```bash
+make start-server # 后端服务
+make start-client # 前端服务
+```
+
+打包
+
+```bash 
 npm run build
 docker build -t ipserver .
 docker run -d -p 8081:8080 --name myIp ipserver
@@ -49,8 +63,10 @@ docker-compose up -d
 
 - v2.16 开发预告
   - 支持并发请求
-  - 服务端更换golang
   - 支持后台服务
+- v2.15.2
+  - server端更换rust
+  - 尝试修复ipv6无法访问
 - v2.15.1
   - 支持显示直播源速度,并支持自动选择最快的源数据
   - 优化代码，删除无用代码

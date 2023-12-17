@@ -4,7 +4,7 @@
   "description": "check your playlist is available",
   "author": "知敏studio",
   "homepage_url": "https://github.com/zhimin-dev/iptv-checker",
-  "version": "2.15.1",
+  "version": "2.15.2",
   "type": "module",
   "scripts": {
     "dev": "vite",

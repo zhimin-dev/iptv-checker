@@ -1,12 +1,34 @@
+# 基础镜像（用于构建前端代码）
+FROM debian:buster-slim as frontend-builder
+# 设置工作目录
+WORKDIR /usr/src/app
+# 复制前端代码
+COPY dist ./frontend
+
+# 后端构建阶段
+FROM rust:latest as backend-builder
+# 设置工作目录
+WORKDIR /usr/src/app
+# 复制整个后端项目到容器中
+COPY server .
+# 构建最终的后端二进制文件
+RUN cargo build --release
+
+# 最终的镜像
 FROM ubuntu:latest
-RUN apt-get update -y
-RUN apt-get install ffmpeg -y
-RUN apt-get update && apt-get install -y ca-certificates curl gnupg
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-RUN apt-get update && apt-get install nodejs -y
-RUN mkdir /app
-ADD . /app
+# 设置工作目录
 WORKDIR /app
+
+RUN apt-get update -y
+# RUN apt-get install libc6 openssl libssl-dev build-essential curl -y
+RUN apt-get install openssl -y
+RUN apt-get install ffmpeg -y
+
+# 复制前端代码
+COPY --from=frontend-builder /usr/src/app/frontend ./../dist
+# 复制后端构建结果
+COPY --from=backend-builder /usr/src/app/target/release/server ./server/server
+# 暴露服务端口
 EXPOSE 8080
-CMD [ "node", "server.js" ]
+# 启动服务
+CMD ["./server/server"]
