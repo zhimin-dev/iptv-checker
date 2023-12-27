@@ -36,6 +36,4 @@ pub struct TaskPostResp {
     task_id: String, //任务id
 }
 
-pub mod task {
-
-}
+pub mod task {}

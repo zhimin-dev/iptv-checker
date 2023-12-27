@@ -1,5 +1,5 @@
-mod web;
 mod lib;
+mod web;
 use clap::{arg, Parser};
 use daemonize::Daemonize;
 use std::env;

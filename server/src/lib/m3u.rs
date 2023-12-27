@@ -42,22 +42,12 @@ pub enum VideoType {
 
 fn video_type_string(vt: VideoType) -> *const str {
     return match vt {
-        VideoType::Sd => {
-            "普清"
-        },
-        VideoType::Hd => {
-            "高清720P"
-        },
-        VideoType::Fhd => {
-            "全高清1080P"
-        }
-        VideoType::Uhd => {
-            "超高清4K"
-        },
-        VideoType::Fuhd => {
-            "全超高清8K"
-        },
-    }
+        VideoType::Sd => "普清",
+        VideoType::Hd => "高清720P",
+        VideoType::Fhd => "全高清1080P",
+        VideoType::Uhd => "超高清4K",
+        VideoType::Fuhd => "全超高清8K",
+    };
 }
 
 struct VideoInfo {
@@ -72,8 +62,8 @@ struct AudioInfo {
     channels: i32,
 }
 pub mod m3u {
-    use std::fmt::Error;
     use crate::lib::M3uObject;
+    use std::fmt::Error;
 
     pub fn from_quote_string(_str: String) -> Result<Vec<M3uObject>, Error> {
         let mut arr = Vec::new();

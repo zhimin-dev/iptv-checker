@@ -31,7 +31,6 @@ async fn list_task() -> Result<String> {
     Ok(format!("task list"))
 }
 
-
 #[derive(Serialize, Deserialize)]
 struct CheckUrlIsAvailableRequest {
     url: String,
@@ -51,6 +50,7 @@ async fn check_url_is_available(req: web::Query<CheckUrlIsAvailableRequest>) -> 
             return HttpResponse::Ok().body(obj);
         }
         Err(e) => {
+            println!("{}", e);
             return HttpResponse::InternalServerError().body("{\"msg\":\"internal error\"}");
         }
     };
