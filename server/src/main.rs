@@ -114,7 +114,7 @@ fn read_pid_contents(pid_file: String) -> Result<String, Error> {
 
 fn start_daemonize_web(port: u16, cmd_dir: String) {
     check_pid_exits();
-    println!("start deamonized web server");
+    println!("daemonize web server");
 
     let stdout = File::create("/tmp/iptv_checker_web_server.out").unwrap();
     let stderr = File::create("/tmp/iptv_checker_web_server.err").unwrap();
@@ -132,13 +132,13 @@ fn start_daemonize_web(port: u16, cmd_dir: String) {
     match d_res {
         Ok(_) => {
             // 守护进程的执行流程
-            println!("Daemonized process started");
+            println!("daemonize process started");
             // 启动 web 服务
             web::start_web(port);
         }
         Err(e) => eprintln!("Failed to daemonize: {}", e),
     }
-    println!("deamonized finished")
+    println!("daemonize finished")
 }
 
 pub fn show_status() {

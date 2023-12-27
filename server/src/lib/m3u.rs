@@ -40,13 +40,23 @@ pub enum VideoType {
     Fuhd,
 }
 
-fn video_type_string(vt: VideoType) -> *str {
-    match vt {
-        VideoType::Sd => "普清",
-        VideoType::Hd => "高清720P",
-        VideoType::Fhd => "全高清1080P",
-        VideoType::Uhd => "超高清4K",
-        VideoType::Fuhd => "全超高清8K",
+fn video_type_string(vt: VideoType) -> *const str {
+    return match vt {
+        VideoType::Sd => {
+            "普清"
+        },
+        VideoType::Hd => {
+            "高清720P"
+        },
+        VideoType::Fhd => {
+            "全高清1080P"
+        }
+        VideoType::Uhd => {
+            "超高清4K"
+        },
+        VideoType::Fuhd => {
+            "全超高清8K"
+        },
     }
 }
 

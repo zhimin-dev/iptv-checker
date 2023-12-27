@@ -1,7 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt::Error;
-use std::process::Command;
-use std::time;
 
 #[derive(Serialize, Deserialize)]
 pub struct CheckUrlIsAvailableResponse {
@@ -43,19 +40,21 @@ pub struct FfprobeStream {
 }
 
 pub mod check {
-    use crate::lib::{CheckUrlIsAvailableRespAudio, CheckUrlIsAvailableResponse, CheckUrlIsAvailableRespVideo, Ffprobe};
+    use crate::lib::{
+        CheckUrlIsAvailableRespAudio, CheckUrlIsAvailableRespVideo, CheckUrlIsAvailableResponse,
+        Ffprobe,
+    };
     use chrono::Utc;
-    use std::io::Error;
+    use std::io::{Error, ErrorKind};
     use std::process::Command;
-    use log::error;
-    use log::Level::Error;
+    use std::time;
 
-    async fn check_link_is_valid(
+    pub async fn check_link_is_valid(
         _url: String,
-        timeout: u32,
+        timeout: u64,
     ) -> Result<CheckUrlIsAvailableResponse, Error> {
         let client = reqwest::Client::builder()
-            .timeout(time::Duration::from_millis(timeout as u64))
+            .timeout(time::Duration::from_millis(timeout))
             .danger_accept_invalid_certs(true)
             .build()
             .unwrap();
@@ -125,19 +124,17 @@ pub mod check {
                         return Ok(body);
                     } else {
                         let error_str = String::from_utf8_lossy(&prob_result.stderr);
-                        println!("命令执行失败: {}", error_str);
-                        return Err(error_str)
+                        return Err(Error::new(ErrorKind::Other, error_str.to_string()));
                     }
                 }
-                return Err(String::from("res.status is not success"))
+                return Err(Error::new(ErrorKind::Other, "status is not 200"));
             }
-            Err(e) => {
-                return Err(String::from(e.to_string()))
-            }
-        }
+            Err(e) => return Err(Error::new(ErrorKind::Other, e)),
+        };
     }
 
     pub fn check_can_support_ipv6() -> Result<bool, Error> {
+        // curl -6 test.ipw.cn
         Ok(true)
     }
 }
