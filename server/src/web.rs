@@ -5,6 +5,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use std::time;
+use crate::lib;
 
 #[derive(Serialize, Deserialize)]
 struct CheckUrlIsAvailableRequest {

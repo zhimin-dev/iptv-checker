@@ -1,5 +1,6 @@
-use clap::{arg, Parser};
 mod web;
+mod lib;
+use clap::{arg, Parser};
 use daemonize::Daemonize;
 use std::env;
 use std::fs;
@@ -11,10 +12,10 @@ use std::process::Command;
 #[command(name = "iptv-checker")]
 #[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
 pub struct Args {
-    #[arg(short='f', default_value_t = String::from(""))]
-    file: String,
+    #[arg(long="input_file", default_value_t = String::from(""))]
+    input_file: String,
 
-    #[arg(short='u', default_value_t = String::from(""))]
+    #[arg(long="url", default_value_t = String::from(""))]
     url: String,
 
     // is open debug mod? you can see logs
@@ -32,6 +33,15 @@ pub struct Args {
 
     #[arg(long = "status", default_value_t = false)]
     status: bool,
+
+    #[arg(long = "check_sleep_time", default_value_t = 300)]
+    check_sleep_time: u16,
+
+    #[arg(long = "http_request_num", default_value_t = 8000)]
+    http_request_num: u16,
+
+    #[arg(long = "output_file", default_value_t = String::from(""))]
+    output_file: String,
 }
 
 fn check_process(pid: u32) -> Result<bool, Error> {
@@ -175,6 +185,20 @@ pub fn main() {
     if args.status {
         show_status();
     }
+    if args.input_file != "" {
+        match read_from_file(args.input_file) {
+            Ok(contents) => {
+                println!("{}", contents);
+            }
+            Err(e) => {
+                println!("err {}", e);
+            }
+        }
+    }
     // 等待守护进程启动
     std::thread::sleep(std::time::Duration::from_secs(3));
+}
+
+fn read_from_file(_file: String) -> Result<String, Error> {
+    Ok(String::from(""))
 }
