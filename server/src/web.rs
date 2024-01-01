@@ -116,15 +116,8 @@ struct SystemStatus {
 
 #[get("/system-status")]
 async fn system_status() -> impl Responder {
-    let mut can_ipv6 = false;
-    let check_ipv6 = check::check::check_can_support_ipv6();
-    match check_ipv6 {
-        Ok(ipv6_support) => can_ipv6 = true,
-        Err(e) => {
-            println!("can not support Ipv6, reason: {}", e)
-        }
-    }
-    let system_status = SystemStatus { can_ipv6 };
+    let check_ipv6 = check::check::check_can_support_ipv6().unwrap();
+    let system_status = SystemStatus { can_ipv6:check_ipv6 };
     let obj = serde_json::to_string(&system_status).unwrap();
     return HttpResponse::Ok().body(obj);
 }

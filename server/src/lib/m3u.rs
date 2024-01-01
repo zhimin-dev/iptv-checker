@@ -1,37 +1,45 @@
+use clap::Parser;
+
+#[derive(Debug)]
 pub struct M3uExtend {
-    group_title: String, //group title
-    tv_logo: String,     //台标
-    language: String,    //语言
-    tv_id: String,       //电视id
+    pub(crate) group_title: String, //group title
+    pub(crate) tv_logo: String,     //台标
+    pub(crate) language: String,    //语言
+    pub(crate) tv_id: String,       //电视id
 }
 
+#[derive(Debug)]
 pub struct M3uObject {
-    index: i32,                //索引
-    url: String,               //连接url
-    name: String,              //显示名称
-    extend: M3uExtend,         //扩展信息
-    search_name: String,       //搜索名称
-    raw: String,               //原始的m3u文件信息
-    other_status: OtherStatus, //其它状态
+    pub(crate) index: i32,                //索引
+    pub(crate) url: String,               //连接url
+    pub(crate) name: String,              //显示名称
+    pub(crate) extend: Option<M3uExtend>,         //扩展信息
+    pub(crate) search_name: String,       //搜索名称
+    pub(crate) raw: String,               //原始的m3u文件信息
+    pub(crate) other_status: Option<OtherStatus>, //其它状态
 }
 
+#[derive(Debug)]
 pub enum CheckDataStatus {
     Unchecked, //未检查
     Success,   //检查成功
     Failed,    //检查失败，包含超时、无效
 }
 
+#[derive(Debug)]
 pub struct OtherStatus {
-    status: CheckDataStatus, //当前状态
-    video: VideoInfo,        //视频信息
-    audio: AudioInfo,        //音频信息
-    network: NetworkInfo,    //网路状态信息
+    pub(crate) status: Option<CheckDataStatus>, //当前状态
+    pub(crate) video: Option<VideoInfo>,        //视频信息
+    pub(crate) audio: Option<AudioInfo>,        //音频信息
+    pub(crate) network: Option<NetworkInfo>,    //网路状态信息
 }
 
+#[derive(Debug)]
 pub struct NetworkInfo {
     delay: i32,
 }
 
+#[derive(Debug)]
 pub enum VideoType {
     Sd,
     Hd,
@@ -50,30 +58,83 @@ fn video_type_string(vt: VideoType) -> *const str {
     };
 }
 
-struct VideoInfo {
+#[derive(Debug)]
+pub struct VideoInfo {
     width: i32,
     height: i32,
     codec: String,
     video_type: VideoType,
 }
 
-struct AudioInfo {
+#[derive(Debug)]
+pub struct AudioInfo {
     codec: String,
     channels: i32,
 }
+
+pub enum SourceType {
+    SourceTypeNormal, //m3u标准文件
+    SourceTypeQuota,  //名称,url格式
+}
 pub mod m3u {
-    use crate::lib::M3uObject;
-    use std::fmt::Error;
+    use crate::lib::util::get_url_body;
+    use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
+    use crate::lib::{M3uObject, SourceType};
+    use nix::libc::printf;
+    use std::fmt::{format, Error};
+    use std::fs::File;
+    use std::io::{ErrorKind, Read};
 
-    pub fn from_quote_string(_str: String) -> Result<Vec<M3uObject>, Error> {
+    fn check_source_type(_body: String) -> Option<SourceType> {
+        if _body.starts_with("#EXTM3U") {
+            return Some(SourceTypeNormal);
+        }
+        let exp = _body.split("\n");
+        let mut quota = false;
+        for x in exp {
+            if !quota {
+                let exp:Vec<&str> = x.split(",").collect();
+                if exp.len() >= 2 {
+                    quota = true
+                }
+            }
+        }
+        if quota {
+            return Some(SourceTypeQuota);
+        }
+        return None;
+    }
+
+    fn body_normal(_body: String) -> Result<Vec<M3uObject>, Error> {
+        println!("normal");
         let mut arr = Vec::new();
-
         Ok(arr)
     }
 
-    pub fn from_normal_m3u(_str: String) -> Result<Vec<M3uObject>, Error> {
+    fn body_quota(_body: String) -> Result<Vec<M3uObject>, Error> {
+        println!("quota");
         let mut arr = Vec::new();
-
         Ok(arr)
+    }
+
+    pub fn from_body(_str: &String) -> Result<Vec<M3uObject>, Error> {
+        let source_type = check_source_type(_str.to_owned());
+        return match source_type {
+            Some(SourceTypeNormal) => body_normal(_str.clone()),
+            Some(SourceTypeQuota) => body_quota(_str.clone()),
+            None => Ok(Vec::new()),
+        };
+    }
+
+    pub async fn from_url(_url: String, timeout: u64) -> Result<Vec<M3uObject>, Error> {
+        let url_body = get_url_body(_url, timeout).await.unwrap();
+        return from_body(&url_body);
+    }
+
+    pub fn from_file(_file: String) -> Result<Vec<M3uObject>, Error> {
+        let mut data = File::open(_file).unwrap();
+        let mut contents = String::from("");
+        data.read_to_string(&mut contents).unwrap();
+        return from_body(&contents);
     }
 }

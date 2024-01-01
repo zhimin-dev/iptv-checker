@@ -164,7 +164,8 @@ pub fn show_status() {
     }
 }
 
-pub fn main() {
+#[actix_web::main]
+pub async fn main() {
     let args = Args::parse();
     let mut c_dir = String::from("");
     if let Ok(current_dir) = env::current_dir() {
@@ -189,6 +190,17 @@ pub fn main() {
         match read_from_file(args.input_file) {
             Ok(contents) => {
                 println!("{}", contents);
+            }
+            Err(e) => {
+                println!("err {}", e);
+            }
+        }
+    }
+    if args.url != "" {
+        println!("{}", args.url);
+        match lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await {
+            Ok(contents) => {
+                println!("{:?}", contents);
             }
             Err(e) => {
                 println!("err {}", e);
