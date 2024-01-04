@@ -200,7 +200,7 @@ pub async fn main() {
         println!("{}", args.url);
         match lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await {
             Ok(contents) => {
-                println!("{:?}", contents);
+                println!("{:?}", contents.len());
             }
             Err(e) => {
                 println!("err {}", e);

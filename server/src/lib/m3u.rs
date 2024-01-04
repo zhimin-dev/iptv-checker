@@ -4,18 +4,20 @@ use clap::Parser;
 pub struct M3uExtend {
     pub(crate) group_title: String, //group title
     pub(crate) tv_logo: String,     //台标
-    pub(crate) language: String,    //语言
+    pub(crate) tv_language: String, //语言
+    pub(crate) tv_country: String,  //国家
     pub(crate) tv_id: String,       //电视id
+    pub(crate) user_agent: String,  // user-agent
 }
 
 #[derive(Debug)]
 pub struct M3uObject {
-    pub(crate) index: i32,                //索引
-    pub(crate) url: String,               //连接url
-    pub(crate) name: String,              //显示名称
+    pub(crate) index: i32,                        //索引
+    pub(crate) url: String,                       //连接url
+    pub(crate) name: String,                      //显示名称
     pub(crate) extend: Option<M3uExtend>,         //扩展信息
-    pub(crate) search_name: String,       //搜索名称
-    pub(crate) raw: String,               //原始的m3u文件信息
+    pub(crate) search_name: String,               //搜索名称
+    pub(crate) raw: String,                       //原始的m3u文件信息
     pub(crate) other_status: Option<OtherStatus>, //其它状态
 }
 
@@ -77,10 +79,10 @@ pub enum SourceType {
     SourceTypeQuota,  //名称,url格式
 }
 pub mod m3u {
-    use crate::lib::util::get_url_body;
+    use crate::lib::util::{get_url_body, is_url, parse_normal_str, parse_quota_str};
     use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-    use crate::lib::{M3uObject, SourceType};
-    use nix::libc::printf;
+    use crate::lib::{M3uExtend, M3uObject, SourceType};
+    use core::option::Option;
     use std::fmt::{format, Error};
     use std::fs::File;
     use std::io::{ErrorKind, Read};
@@ -93,7 +95,7 @@ pub mod m3u {
         let mut quota = false;
         for x in exp {
             if !quota {
-                let exp:Vec<&str> = x.split(",").collect();
+                let exp: Vec<&str> = x.split(",").collect();
                 if exp.len() >= 2 {
                     quota = true
                 }
@@ -107,14 +109,11 @@ pub mod m3u {
 
     fn body_normal(_body: String) -> Result<Vec<M3uObject>, Error> {
         println!("normal");
-        let mut arr = Vec::new();
-        Ok(arr)
+        return Ok(parse_normal_str(_body));
     }
 
     fn body_quota(_body: String) -> Result<Vec<M3uObject>, Error> {
-        println!("quota");
-        let mut arr = Vec::new();
-        Ok(arr)
+        return Ok(parse_quota_str(_body));
     }
 
     pub fn from_body(_str: &String) -> Result<Vec<M3uObject>, Error> {
