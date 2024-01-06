@@ -1,4 +1,4 @@
-use crate::lib::{CheckDataStatus, M3uExtend, M3uObject, OtherStatus};
+use crate::lib::{CheckDataStatus, M3uExt, M3uExtend, M3uObject, M3uObjectList, OtherStatus};
 use nix::libc::printf;
 use openssl::envelope::Open;
 use reqwest::Error;
@@ -13,15 +13,19 @@ pub async fn get_url_body(_url: String, timeout: u64) -> Result<String, Error> {
     return client.get(_url.to_owned()).send().await?.text().await;
 }
 
-pub fn parse_normal_str(_body: String) -> Vec<M3uObject> {
+pub fn parse_normal_str(_body: String) -> M3uObjectList {
+    let mut result = M3uObjectList {
+        header: None,
+        list: vec![],
+    };
     let mut list = Vec::new();
     let exp_line = _body.split("\n");
-    let mut header_m3u = String::from("");
+    let mut m3u_ext = M3uExt { x_tv_url: vec![] };
     let mut index = 1;
     let mut one_m3u = Vec::new();
     for x in exp_line {
         if x.starts_with("#EXTM3U") {
-            header_m3u = x.to_owned();
+            m3u_ext = parse_m3u_header(x.to_owned());
         } else {
             one_m3u.push(x);
             if is_url(x.to_string()) {
@@ -37,7 +41,23 @@ pub fn parse_normal_str(_body: String) -> Vec<M3uObject> {
             }
         }
     }
-    list
+    result.list = list;
+    result.header = Some(m3u_ext);
+    result
+}
+
+fn parse_m3u_header(_str: String) -> M3uExt {
+    let mut x_tv_url_arr: Vec<String> = Vec::new();
+    if let Some(title) = _str.split("x-tvg-url=\"").nth(1) {
+        let exp_str = title.split("\"").next().unwrap();
+        let list: Vec<&str> = exp_str.split(",").collect();
+        for x in list {
+            x_tv_url_arr.push(x.to_string())
+        }
+    }
+    M3uExt {
+        x_tv_url: x_tv_url_arr.to_owned(),
+    }
 }
 
 fn parse_one_m3u(_arr: Vec<&str>, index: i32) -> Option<M3uObject> {
@@ -84,12 +104,16 @@ fn parse_one_m3u(_arr: Vec<&str>, index: i32) -> Option<M3uObject> {
     return None;
 }
 
-fn get_search_name(name:String) -> String {
+fn get_search_name(name: String) -> String {
     name.clone().to_lowercase()
 }
 
-pub fn parse_quota_str(_body: String) -> Vec<M3uObject> {
+pub fn parse_quota_str(_body: String) -> M3uObjectList {
     println!("-----parse quota str");
+    let mut result = M3uObjectList {
+        header: None,
+        list: vec![],
+    };
     let mut list = Vec::new();
     let exp_line = _body.split("\n");
     let mut now_group = String::from("");
@@ -123,7 +147,8 @@ pub fn parse_quota_str(_body: String) -> Vec<M3uObject> {
             list.push(one)
         }
     }
-    list
+    result.list = list;
+    return result;
 }
 
 pub fn is_url(_str: String) -> bool {

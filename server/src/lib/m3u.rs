@@ -1,3 +1,4 @@
+use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use clap::Parser;
 
 #[derive(Debug)]
@@ -19,6 +20,30 @@ pub struct M3uObject {
     pub(crate) search_name: String,               //搜索名称
     pub(crate) raw: String,                       //原始的m3u文件信息
     pub(crate) other_status: Option<OtherStatus>, //其它状态
+}
+
+pub struct M3uObjectList {
+    pub(crate) header: Option<M3uExt>,
+    pub(crate) list: Vec<M3uObject>,
+}
+
+pub struct M3uExt {
+    pub(crate) x_tv_url: Vec<String>,
+}
+
+impl From<String> for M3uObjectList {
+    fn from(_str: String) -> Self {
+        let empty_data = M3uObjectList {
+            header: None,
+            list: vec![],
+        };
+        let source_type = m3u::check_source_type(_str.to_owned());
+        return match source_type {
+            Some(SourceTypeNormal) => m3u::body_normal(_str.clone()),
+            Some(SourceTypeQuota) => m3u::body_quota(_str.clone()),
+            None => empty_data,
+        };
+    }
 }
 
 #[derive(Debug)]
@@ -81,13 +106,13 @@ pub enum SourceType {
 pub mod m3u {
     use crate::lib::util::{get_url_body, is_url, parse_normal_str, parse_quota_str};
     use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-    use crate::lib::{M3uExtend, M3uObject, SourceType};
+    use crate::lib::{M3uExtend, M3uObject, M3uObjectList, SourceType};
     use core::option::Option;
     use std::fmt::{format, Error};
     use std::fs::File;
     use std::io::{ErrorKind, Read};
 
-    fn check_source_type(_body: String) -> Option<SourceType> {
+    pub fn check_source_type(_body: String) -> Option<SourceType> {
         if _body.starts_with("#EXTM3U") {
             return Some(SourceTypeNormal);
         }
@@ -107,30 +132,34 @@ pub mod m3u {
         return None;
     }
 
-    fn body_normal(_body: String) -> Result<Vec<M3uObject>, Error> {
+    pub(crate) fn body_normal(_body: String) -> M3uObjectList {
         println!("normal");
-        return Ok(parse_normal_str(_body));
+        parse_normal_str(_body)
     }
 
-    fn body_quota(_body: String) -> Result<Vec<M3uObject>, Error> {
-        return Ok(parse_quota_str(_body));
+    pub(crate) fn body_quota(_body: String) -> M3uObjectList {
+        println!("quota");
+        parse_quota_str(_body)
     }
 
-    pub fn from_body(_str: &String) -> Result<Vec<M3uObject>, Error> {
+    pub fn from_body(_str: &String) -> M3uObjectList {
         let source_type = check_source_type(_str.to_owned());
         return match source_type {
             Some(SourceTypeNormal) => body_normal(_str.clone()),
             Some(SourceTypeQuota) => body_quota(_str.clone()),
-            None => Ok(Vec::new()),
+            None => M3uObjectList {
+                header: None,
+                list: vec![],
+            },
         };
     }
 
-    pub async fn from_url(_url: String, timeout: u64) -> Result<Vec<M3uObject>, Error> {
+    pub async fn from_url(_url: String, timeout: u64) -> M3uObjectList {
         let url_body = get_url_body(_url, timeout).await.unwrap();
         return from_body(&url_body);
     }
 
-    pub fn from_file(_file: String) -> Result<Vec<M3uObject>, Error> {
+    pub fn from_file(_file: String) -> M3uObjectList {
         let mut data = File::open(_file).unwrap();
         let mut contents = String::from("");
         data.read_to_string(&mut contents).unwrap();

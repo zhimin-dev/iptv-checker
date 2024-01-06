@@ -198,14 +198,9 @@ pub async fn main() {
     }
     if args.url != "" {
         println!("{}", args.url);
-        match lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await {
-            Ok(contents) => {
-                println!("{:?}", contents.len());
-            }
-            Err(e) => {
-                println!("err {}", e);
-            }
-        }
+        let data = lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await;
+        println!("{}", data.list.len());
+        println!("{}", data.header.unwrap().x_tv_url.len());
     }
     // 等待守护进程启动
     std::thread::sleep(std::time::Duration::from_secs(3));
