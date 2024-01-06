@@ -3,28 +3,138 @@ use clap::Parser;
 
 #[derive(Debug)]
 pub struct M3uExtend {
-    pub(crate) group_title: String, //group title
-    pub(crate) tv_logo: String,     //台标
-    pub(crate) tv_language: String, //语言
-    pub(crate) tv_country: String,  //国家
-    pub(crate) tv_id: String,       //电视id
-    pub(crate) user_agent: String,  // user-agent
+    group_title: String, //group title
+    tv_logo: String,     //台标
+    tv_language: String, //语言
+    tv_country: String,  //国家
+    tv_id: String,       //电视id
+    user_agent: String,  // user-agent
+}
+
+impl M3uExtend {
+    pub fn new() -> M3uExtend {
+        M3uExtend {
+            group_title: "".to_string(),
+            tv_logo: "".to_string(),
+            tv_language: "".to_string(),
+            tv_country: "".to_string(),
+            tv_id: "".to_string(),
+            user_agent: "".to_string(),
+        }
+    }
+
+    pub fn set_group_title(&mut self, group_title: String) {
+        self.group_title = group_title
+    }
+
+    pub fn set_tv_logo(&mut self, tv_logo: String) {
+        self.tv_logo = tv_logo
+    }
+
+    pub fn set_tv_language(&mut self, tv_language: String) {
+        self.tv_language = tv_language
+    }
+
+    pub fn set_tv_country(&mut self, tv_country: String) {
+        self.tv_country = tv_country
+    }
+
+    pub fn set_tv_id(&mut self, tv_id: String) {
+        self.tv_id = tv_id
+    }
+
+    pub fn set_user_agent(&mut self, user_agent: String) {
+        self.user_agent = user_agent
+    }
 }
 
 #[derive(Debug)]
 pub struct M3uObject {
-    pub(crate) index: i32,                        //索引
-    pub(crate) url: String,                       //连接url
-    pub(crate) name: String,                      //显示名称
-    pub(crate) extend: Option<M3uExtend>,         //扩展信息
-    pub(crate) search_name: String,               //搜索名称
-    pub(crate) raw: String,                       //原始的m3u文件信息
-    pub(crate) other_status: Option<OtherStatus>, //其它状态
+    index: i32,                        //索引
+    url: String,                       //连接url
+    name: String,                      //显示名称
+    extend: Option<M3uExtend>,         //扩展信息
+    search_name: String,               //搜索名称
+    raw: String,                       //原始的m3u文件信息
+    other_status: Option<OtherStatus>, //其它状态
+}
+
+impl M3uObject {
+    pub fn new() -> M3uObject {
+        return M3uObject {
+            index: 0,
+            url: "".to_string(),
+            name: "".to_string(),
+            extend: None,
+            search_name: "".to_string(),
+            raw: "".to_string(),
+            other_status: None,
+        };
+    }
+
+    pub fn set_index(&mut self, index: i32) {
+        self.index = index;
+    }
+
+    pub fn set_url(&mut self, url: String) {
+        self.url = url
+    }
+
+    pub fn set_name(&mut self, name: String) {
+        self.name = name
+    }
+
+    pub fn set_search_name(&mut self, search_name: String) {
+        self.search_name = search_name.to_lowercase()
+    }
+
+    pub fn set_raw(&mut self, raw: String) {
+        self.raw = raw
+    }
+
+    pub fn set_extend(&mut self, extend: M3uExtend) {
+        self.extend = Some(extend)
+    }
+
+    pub fn set_other_status(&mut self, other_status: OtherStatus) {
+        self.other_status = Some(other_status)
+    }
 }
 
 pub struct M3uObjectList {
-    pub(crate) header: Option<M3uExt>,
-    pub(crate) list: Vec<M3uObject>,
+    header: Option<M3uExt>,
+    list: Vec<M3uObject>,
+}
+
+impl M3uObjectList {
+    pub fn new() -> M3uObjectList {
+        M3uObjectList {
+            header: None,
+            list: vec![],
+        }
+    }
+
+    pub fn set_header(&mut self, header: M3uExt) {
+        self.header = Some(header)
+    }
+
+    pub fn set_list(&mut self, list: Vec<M3uObject>) {
+        self.list = list
+    }
+
+    pub fn data_len(self) {
+        println!("list length: {}", self.list.len());
+        println!(
+            "header x-tv-list length: {}",
+            self.header.unwrap().x_tv_url.len()
+        );
+    }
+
+    pub fn check_data(&mut self) {
+        for x in self.list {
+            
+        }
+    }
 }
 
 pub struct M3uExt {
