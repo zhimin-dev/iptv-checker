@@ -1,19 +1,73 @@
 use serde::{Deserialize, Serialize};
+use crate::lib::{AudioInfo, VideoInfo};
 
 #[derive(Serialize, Deserialize)]
 pub struct CheckUrlIsAvailableResponse {
-    delay: i32,
-    video: CheckUrlIsAvailableRespVideo,
-    audio: CheckUrlIsAvailableRespAudio,
+    pub(crate) delay: i32,
+    pub(crate) video: Option<VideoInfo>,
+    pub(crate) audio: Option<AudioInfo>,
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct CheckUrlIsAvailableRespAudio {
-    codec: String,
-    channels: i32,
-    #[serde(rename = "bitRate")]
-    bit_rate: i32,
+impl CheckUrlIsAvailableResponse {
+    pub fn new() -> CheckUrlIsAvailableResponse {
+        CheckUrlIsAvailableResponse {
+            delay: 0,
+            video: None,
+            audio: None,
+        }
+    }
+
+    pub fn set_delay(&mut self, delay: i32) {
+        self.delay = delay
+    }
+
+    pub fn set_video(&mut self, video: VideoInfo) {
+        self.video = Some(video)
+    }
+
+    pub fn set_audio(&mut self, audio: AudioInfo) {
+        self.audio = Some(audio)
+    }
 }
+
+// #[derive(Serialize, Deserialize)]
+// pub struct CheckUrlIsAvailableRespAudio {
+//     pub(crate) codec: String,
+//     pub(crate) channels: i32,
+//     #[serde(rename = "bitRate")]
+//     pub(crate) bit_rate: i32,
+// }
+
+// impl CheckUrlIsAvailableRespAudio {
+//     pub fn new() -> CheckUrlIsAvailableRespAudio {
+//         CheckUrlIsAvailableRespAudio {
+//             codec: "".to_string(),
+//             channels: 0,
+//             bit_rate: 0,
+//         }
+//     }
+//
+//     pub fn set_codec(&mut self, codec: String) {
+//         self.codec = codec
+//     }
+//
+//     pub fn set_channels(&mut self, channels: i32) {
+//         self.channels = channels
+//     }
+//     pub fn set_bit_rate(&mut self, bit_rate: i32) {
+//         self.bit_rate = bit_rate
+//     }
+//
+//     pub fn get_bit_rate(self) -> i32 {
+//         self.bit_rate
+//     }
+//     pub fn get_channels(self) -> i32 {
+//         self.channels
+//     }
+//     pub fn get_codec(self) -> String {
+//         self.codec
+//     }
+// }
 
 #[derive(Serialize, Deserialize)]
 pub struct CheckUrlIsAvailableRespVideo {
@@ -35,15 +89,11 @@ pub struct FfprobeStream {
     width: Option<i32>,
     height: Option<i32>,
     codec_name: String,
-    // bit_rate: i32,
     channels: Option<i32>,
 }
 
 pub mod check {
-    use crate::lib::{
-        CheckUrlIsAvailableRespAudio, CheckUrlIsAvailableRespVideo, CheckUrlIsAvailableResponse,
-        Ffprobe,
-    };
+    use crate::lib::{ CheckUrlIsAvailableRespVideo, CheckUrlIsAvailableResponse, Ffprobe, AudioInfo, VideoInfo};
     use chrono::Utc;
     use std::io::{Error, ErrorKind};
     use std::process::Command;
@@ -79,46 +129,32 @@ pub mod check {
                         .output()
                         .unwrap();
                     if prob_result.status.success() {
-                        // println!("{}", String::from_utf8(prob_result.stdout).unwrap());
                         let res_data: Ffprobe = serde_json::from_str(
                             String::from_utf8(prob_result.stdout).unwrap().as_str(),
                         )
                         .expect("无法解析 JSON");
                         let delay = Utc::now().timestamp_millis() - curr_timestamp;
-                        let mut body: CheckUrlIsAvailableResponse = CheckUrlIsAvailableResponse {
-                            delay: delay as i32,
-                            video: CheckUrlIsAvailableRespVideo {
-                                width: 0,
-                                height: 0,
-                                codec: String::from(""),
-                                bit_rate: 0,
-                            },
-                            audio: CheckUrlIsAvailableRespAudio {
-                                codec: String::from(""),
-                                channels: 0,
-                                bit_rate: 0,
-                            },
-                        };
+                        let mut body: CheckUrlIsAvailableResponse =
+                            CheckUrlIsAvailableResponse::new();
+                        body.set_delay(delay as i32);
                         for one in res_data.streams.into_iter() {
                             if one.codec_type == "video" {
-                                let mut width = 0;
-                                let mut height = 0;
+                                let mut video = VideoInfo::new();
                                 match one.width {
-                                    Some(e) => width = e,
+                                    Some(e) => video.set_width(e),
                                     _ => {}
                                 }
                                 match one.height {
-                                    Some(e) => height = e,
+                                    Some(e) => video.set_height(e),
                                     _ => {}
                                 }
-                                body.video.width = width;
-                                body.video.height = height;
-                                body.video.codec = one.codec_name;
-                                // body.video.bit_rate = one.bit_rate;
+                                video.set_codec(one.codec_name);
+                                body.set_video(video);
                             } else if one.codec_type == "audio" {
-                                // body.audio.bit_rate = one.bit_rate;
-                                body.audio.channels = one.channels.unwrap();
-                                body.audio.codec = one.codec_name;
+                                let mut audio = AudioInfo::new();
+                                audio.set_codec(one.codec_name);
+                                audio.set_channels(one.channels.unwrap());
+                                body.set_audio(audio);
                             }
                         }
                         return Ok(body);

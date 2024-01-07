@@ -1,7 +1,13 @@
+use crate::lib::check::check::check_link_is_valid;
+use crate::lib::CheckDataStatus::{Failed, Unchecked};
+use crate::lib::CheckUrlIsAvailableRespVideo;
 use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
+use crate::lib::VideoType::Unknown;
 use clap::Parser;
+use nix::libc::stat;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct M3uExtend {
     group_title: String, //group title
     tv_logo: String,     //台标
@@ -56,6 +62,7 @@ pub struct M3uObject {
     extend: Option<M3uExtend>,         //扩展信息
     search_name: String,               //搜索名称
     raw: String,                       //原始的m3u文件信息
+    status: CheckDataStatus,           //当前状态
     other_status: Option<OtherStatus>, //其它状态
 }
 
@@ -68,6 +75,7 @@ impl M3uObject {
             extend: None,
             search_name: "".to_string(),
             raw: "".to_string(),
+            status: Unchecked,
             other_status: None,
         };
     }
@@ -98,6 +106,10 @@ impl M3uObject {
 
     pub fn set_other_status(&mut self, other_status: OtherStatus) {
         self.other_status = Some(other_status)
+    }
+
+    pub fn set_status(&mut self, status: CheckDataStatus) {
+        self.status = status;
     }
 }
 
@@ -130,13 +142,29 @@ impl M3uObjectList {
         );
     }
 
-    pub fn check_data(&mut self) {
-        for x in self.list {
-            
+    pub async fn check_data(&mut self, concurrent_num: i32, request_time: i32) {
+        for mut x in self.list.iter_mut() {
+            let url = x.url.clone();
+            let result = check_link_is_valid(url, request_time as u64).await;
+            match result {
+                Ok(data) => {
+                    let mut status = OtherStatus::new();
+                    match data.audio {
+                        Some(a) => status.set_audio(a),
+                        None => {}
+                    }
+                    match data.video {
+                        Some(v) => status.set_video(v),
+                        None => {}
+                    }
+                }
+                Err(e) => x.set_status(Failed),
+            }
         }
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
 pub struct M3uExt {
     pub(crate) x_tv_url: Vec<String>,
 }
@@ -156,28 +184,50 @@ impl From<String> for M3uObjectList {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum CheckDataStatus {
     Unchecked, //未检查
     Success,   //检查成功
     Failed,    //检查失败，包含超时、无效
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct OtherStatus {
-    pub(crate) status: Option<CheckDataStatus>, //当前状态
-    pub(crate) video: Option<VideoInfo>,        //视频信息
-    pub(crate) audio: Option<AudioInfo>,        //音频信息
-    pub(crate) network: Option<NetworkInfo>,    //网路状态信息
+    video: Option<VideoInfo>,     //视频信息
+    audio: Option<AudioInfo>,     //音频信息
+    network: Option<NetworkInfo>, //网路状态信息
 }
 
-#[derive(Debug)]
+impl OtherStatus {
+    pub fn new() -> OtherStatus {
+        OtherStatus {
+            video: None,
+            audio: None,
+            network: None,
+        }
+    }
+
+    pub fn set_video(&mut self, video: VideoInfo) {
+        self.video = Some(video)
+    }
+
+    pub fn set_audio(&mut self, audio: AudioInfo) {
+        self.audio = Some(audio)
+    }
+
+    pub fn set_network(&mut self, network: NetworkInfo) {
+        self.network = Some(network)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct NetworkInfo {
     delay: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum VideoType {
+    Unknown,
     Sd,
     Hd,
     Fhd,
@@ -187,6 +237,7 @@ pub enum VideoType {
 
 fn video_type_string(vt: VideoType) -> *const str {
     return match vt {
+        VideoType::Unknown => "未知",
         VideoType::Sd => "普清",
         VideoType::Hd => "高清720P",
         VideoType::Fhd => "全高清1080P",
@@ -195,7 +246,7 @@ fn video_type_string(vt: VideoType) -> *const str {
     };
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct VideoInfo {
     width: i32,
     height: i32,
@@ -203,10 +254,75 @@ pub struct VideoInfo {
     video_type: VideoType,
 }
 
-#[derive(Debug)]
+impl VideoInfo {
+    pub fn new() -> VideoInfo {
+        VideoInfo {
+            width: 0,
+            height: 0,
+            codec: "".to_string(),
+            video_type: Unknown,
+        }
+    }
+
+    pub fn set_width(&mut self, width: i32) {
+        self.width = width
+    }
+
+    pub fn set_height(&mut self, height: i32) {
+        self.height = height
+    }
+
+    pub fn set_video_type(&mut self, video_type: VideoType) {
+        self.video_type = video_type
+    }
+
+    pub fn set_codec(&mut self, codec: String) {
+        self.codec = codec
+    }
+
+    pub fn get_width(self) -> i32 {
+        self.width
+    }
+
+    pub fn get_height(self) -> i32 {
+        self.height
+    }
+
+    pub fn get_video_type(self) -> VideoType {
+        self.video_type
+    }
+
+    pub fn get_codec(self) -> String {
+        self.codec
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AudioInfo {
     codec: String,
     channels: i32,
+}
+
+impl AudioInfo {
+    pub fn new() -> AudioInfo {
+        AudioInfo {
+            codec: "".to_string(),
+            channels: 0,
+        }
+    }
+    pub fn set_codec(&mut self, codec: String) {
+        self.codec = codec
+    }
+
+    pub fn set_channels(&mut self, channels: i32) {
+        self.channels = channels
+    }
+    pub fn get_channels(self) -> i32 {
+        self.channels
+    }
+    pub fn get_codec(self) -> String {
+        self.codec
+    }
 }
 
 pub enum SourceType {
@@ -218,7 +334,6 @@ pub mod m3u {
     use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
     use crate::lib::{M3uExtend, M3uObject, M3uObjectList, SourceType};
     use core::option::Option;
-    use std::fmt::{format, Error};
     use std::fs::File;
     use std::io::{ErrorKind, Read};
 
@@ -257,10 +372,7 @@ pub mod m3u {
         return match source_type {
             Some(SourceTypeNormal) => body_normal(_str.clone()),
             Some(SourceTypeQuota) => body_quota(_str.clone()),
-            None => M3uObjectList {
-                header: None,
-                list: vec![],
-            },
+            None => M3uObjectList::new(),
         };
     }
 
