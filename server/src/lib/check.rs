@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
 use crate::lib::{AudioInfo, VideoInfo};
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CheckUrlIsAvailableResponse {
     pub(crate) delay: i32,
     pub(crate) video: Option<VideoInfo>,
@@ -69,14 +69,14 @@ impl CheckUrlIsAvailableResponse {
 //     }
 // }
 
-#[derive(Serialize, Deserialize)]
-pub struct CheckUrlIsAvailableRespVideo {
-    width: i32,
-    height: i32,
-    codec: String,
-    #[serde(rename = "bitRate")]
-    bit_rate: i32,
-}
+// #[derive(Serialize, Deserialize)]
+// pub struct CheckUrlIsAvailableRespVideo {
+//     width: i32,
+//     height: i32,
+//     codec: String,
+//     #[serde(rename = "bitRate")]
+//     bit_rate: i32,
+// }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Ffprobe {
@@ -93,11 +93,12 @@ pub struct FfprobeStream {
 }
 
 pub mod check {
-    use crate::lib::{ CheckUrlIsAvailableRespVideo, CheckUrlIsAvailableResponse, Ffprobe, AudioInfo, VideoInfo};
+    use crate::lib::{AudioInfo, CheckUrlIsAvailableResponse, Ffprobe, VideoInfo};
     use chrono::Utc;
     use std::io::{Error, ErrorKind};
     use std::process::Command;
     use std::time;
+    use futures::future::err;
 
     pub async fn check_link_is_valid(
         _url: String,
@@ -160,12 +161,16 @@ pub mod check {
                         return Ok(body);
                     } else {
                         let error_str = String::from_utf8_lossy(&prob_result.stderr);
+                        println!("ffprobe error {:?}", prob_result.stderr);
                         return Err(Error::new(ErrorKind::Other, error_str.to_string()));
                     }
                 }
                 return Err(Error::new(ErrorKind::Other, "status is not 200"));
             }
-            Err(e) => return Err(Error::new(ErrorKind::Other, e)),
+            Err(e) => {
+                println!("http request error : {}", e);
+                return Err(Error::new(ErrorKind::Other, e));
+            }
         };
     }
 

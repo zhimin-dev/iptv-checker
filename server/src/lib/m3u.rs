@@ -1,10 +1,8 @@
 use crate::lib::check::check::check_link_is_valid;
-use crate::lib::CheckDataStatus::{Failed, Unchecked};
-use crate::lib::CheckUrlIsAvailableRespVideo;
+use crate::lib::CheckDataStatus::{Failed, Success, Unchecked};
 use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use crate::lib::VideoType::Unknown;
 use clap::Parser;
-use nix::libc::stat;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -142,10 +140,11 @@ impl M3uObjectList {
         );
     }
 
-    pub async fn check_data(&mut self, concurrent_num: i32, request_time: i32) {
+    pub async fn check_data(&mut self, request_time: i32) {
         for mut x in self.list.iter_mut() {
             let url = x.url.clone();
             let result = check_link_is_valid(url, request_time as u64).await;
+            println!("url is: {} result: {:?}", x.url.clone(), result);
             match result {
                 Ok(data) => {
                     let mut status = OtherStatus::new();
@@ -157,10 +156,18 @@ impl M3uObjectList {
                         Some(v) => status.set_video(v),
                         None => {}
                     }
+                    x.set_status(Success);
+                    x.set_other_status(status);
                 }
                 Err(e) => x.set_status(Failed),
             }
         }
+        for x in &self.list {
+            if x.status == Success {
+                println!("{}", x.url.to_owned());
+            }
+        }
+        println!("check over----");
     }
 }
 
@@ -184,7 +191,7 @@ impl From<String> for M3uObjectList {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub enum CheckDataStatus {
     Unchecked, //未检查
     Success,   //检查成功

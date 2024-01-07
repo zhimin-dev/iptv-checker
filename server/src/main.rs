@@ -40,6 +40,9 @@ pub struct Args {
     #[arg(long = "http_request_num", default_value_t = 8000)]
     http_request_num: u16,
 
+    #[arg(long = "http_request_timeout", default_value_t = 28000)]
+    http_request_timeout: u16,
+
     #[arg(long = "output_file", default_value_t = String::from(""))]
     output_file: String,
 }
@@ -187,19 +190,14 @@ pub async fn main() {
         show_status();
     }
     if args.input_file != "" {
-        match read_from_file(args.input_file) {
-            Ok(contents) => {
-                println!("{}", contents);
-            }
-            Err(e) => {
-                println!("err {}", e);
-            }
-        }
+        println!("{}", args.url);
+        let mut data = lib::m3u::m3u::from_file(args.input_file);
+        data.check_data(args.http_request_timeout as i32).await;
     }
     if args.url != "" {
         println!("{}", args.url);
-        let data = lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await;
-        data.data_len();
+        let mut data = lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await;
+        data.check_data(args.http_request_timeout as i32).await;
     }
     // 等待守护进程启动
     std::thread::sleep(std::time::Duration::from_secs(3));
