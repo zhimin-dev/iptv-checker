@@ -98,7 +98,6 @@ pub mod check {
     use std::io::{Error, ErrorKind};
     use std::process::Command;
     use std::time;
-    use futures::future::err;
 
     pub async fn check_link_is_valid(
         _url: String,
@@ -161,7 +160,7 @@ pub mod check {
                         return Ok(body);
                     } else {
                         let error_str = String::from_utf8_lossy(&prob_result.stderr);
-                        println!("ffprobe error {:?}", prob_result.stderr);
+                        println!("{} ffprobe error {:?}", _url.to_owned(), prob_result.stderr);
                         return Err(Error::new(ErrorKind::Other, error_str.to_string()));
                     }
                 }

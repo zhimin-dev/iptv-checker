@@ -1,6 +1,6 @@
-use crate::lib::{CheckDataStatus, M3uExt, M3uExtend, M3uObject, M3uObjectList, OtherStatus};
+use crate::lib::{M3uExt, M3uExtend, M3uObject, M3uObjectList};
 use reqwest::Error;
-use url::{ParseError, Url};
+use url::Url;
 
 pub async fn get_url_body(_url: String, timeout: u64) -> Result<String, Error> {
     let client = reqwest::Client::builder()
@@ -92,10 +92,6 @@ fn parse_one_m3u(_arr: Vec<&str>, index: i32) -> Option<M3uObject> {
     return None;
 }
 
-pub fn get_search_name(name: String) -> String {
-    name.clone().to_lowercase()
-}
-
 pub fn parse_quota_str(_body: String) -> M3uObjectList {
     println!("-----parse quota str");
     let mut result = M3uObjectList::new();
@@ -112,6 +108,9 @@ pub fn parse_quota_str(_body: String) -> M3uObjectList {
         } else {
             let _name = name.clone();
             let mut m3u_obj = M3uObject::new();
+            let mut extend = M3uExtend::new();
+            extend.set_group_title(now_group.clone());
+            m3u_obj.set_extend(extend);
             m3u_obj.set_index(index);
             m3u_obj.set_url(url.to_string());
             m3u_obj.set_name(name.to_string());

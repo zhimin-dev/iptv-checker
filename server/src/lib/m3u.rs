@@ -4,6 +4,8 @@ use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use crate::lib::VideoType::Unknown;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::Write;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct M3uExtend {
@@ -114,6 +116,7 @@ impl M3uObject {
 pub struct M3uObjectList {
     header: Option<M3uExt>,
     list: Vec<M3uObject>,
+    debug: bool,
 }
 
 impl M3uObjectList {
@@ -121,6 +124,7 @@ impl M3uObjectList {
         M3uObjectList {
             header: None,
             list: vec![],
+            debug: false,
         }
     }
 
@@ -133,18 +137,26 @@ impl M3uObjectList {
     }
 
     pub fn data_len(self) {
-        println!("list length: {}", self.list.len());
-        println!(
-            "header x-tv-list length: {}",
-            self.header.unwrap().x_tv_url.len()
-        );
+        if self.debug {
+            println!("list length: {}", self.list.len());
+            println!(
+                "header x-tv-list length: {}",
+                self.header.unwrap().x_tv_url.len()
+            );
+        }
+    }
+
+    pub fn set_debug_mod(&mut self, debug: bool) {
+        self.debug = true
     }
 
     pub async fn check_data(&mut self, request_time: i32) {
-        for mut x in self.list.iter_mut() {
+        for x in self.list.iter_mut() {
             let url = x.url.clone();
             let result = check_link_is_valid(url, request_time as u64).await;
-            println!("url is: {} result: {:?}", x.url.clone(), result);
+            if self.debug {
+                println!("url is: {} result: {:?}", x.url.clone(), result);
+            }
             match result {
                 Ok(data) => {
                     let mut status = OtherStatus::new();
@@ -159,15 +171,47 @@ impl M3uObjectList {
                     x.set_status(Success);
                     x.set_other_status(status);
                 }
-                Err(e) => x.set_status(Failed),
+                Err(_e) => x.set_status(Failed),
             }
         }
+    }
+
+    pub async fn output_file(self, output_file: String) {
+        let mut lines: Vec<String> = vec![];
         for x in &self.list {
             if x.status == Success {
-                println!("{}", x.url.to_owned());
+                let exp: Vec<&str> = x.raw.split("\n").collect();
+                for o in exp {
+                    lines.push(o.to_owned());
+                }
             }
         }
-        println!("check over----");
+        if lines.len() > 0 {
+            let mut result_m3u_content: Vec<String> = vec![];
+            match self.header {
+                None => result_m3u_content.push(String::from("#EXTM3U")),
+                Some(data) => {
+                    if data.x_tv_url.len() > 0 {
+                        let exp = data.x_tv_url.join(",");
+                        let header_line = format!("#EXTM3U x-tvg-url=\"{}\"", exp);
+                        result_m3u_content.push(header_line.to_owned());
+                    } else {
+                        result_m3u_content.push(String::from("#EXTM3U"))
+                    }
+                }
+            }
+            for x in lines {
+                let temp = x.clone();
+                result_m3u_content.push(temp.to_owned());
+            }
+
+            let mut fd = File::create(output_file.to_owned()).unwrap();
+            for x in result_m3u_content {
+                let _ = fd.write(format!("{}\n", x).as_bytes());
+            }
+            let _ = fd.flush();
+        }
+        println!("解析完成----");
     }
 }
 
@@ -181,6 +225,7 @@ impl From<String> for M3uObjectList {
         let empty_data = M3uObjectList {
             header: None,
             list: vec![],
+            debug: false,
         };
         let source_type = m3u::check_source_type(_str.to_owned());
         return match source_type {
@@ -337,9 +382,9 @@ pub enum SourceType {
     SourceTypeQuota,  //名称,url格式
 }
 pub mod m3u {
-    use crate::lib::util::{get_url_body, is_url, parse_normal_str, parse_quota_str};
+    use crate::lib::util::{get_url_body, parse_normal_str, parse_quota_str};
     use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-    use crate::lib::{M3uExtend, M3uObject, M3uObjectList, SourceType};
+    use crate::lib::{M3uObjectList, SourceType};
     use core::option::Option;
     use std::fs::File;
     use std::io::{ErrorKind, Read};
@@ -365,12 +410,12 @@ pub mod m3u {
     }
 
     pub(crate) fn body_normal(_body: String) -> M3uObjectList {
-        println!("normal");
+        println!("标准格式m3u格式文件");
         parse_normal_str(_body)
     }
 
     pub(crate) fn body_quota(_body: String) -> M3uObjectList {
-        println!("quota");
+        println!("非标准格式m3u格式文件，尝试解析中");
         parse_quota_str(_body)
     }
 

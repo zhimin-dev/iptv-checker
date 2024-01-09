@@ -2,6 +2,8 @@ mod lib;
 mod web;
 use clap::{arg, Parser};
 use daemonize::Daemonize;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
 use std::env;
 use std::fs;
 use std::fs::File;
@@ -34,14 +36,18 @@ pub struct Args {
     #[arg(long = "status", default_value_t = false)]
     status: bool,
 
-    #[arg(long = "check_sleep_time", default_value_t = 300)]
-    check_sleep_time: u16,
+    #[arg(long = "http_check_sleep_time", default_value_t = 300)]
+    http_check_sleep_time: u16,
 
     #[arg(long = "http_request_num", default_value_t = 8000)]
     http_request_num: u16,
 
     #[arg(long = "http_request_timeout", default_value_t = 28000)]
     http_request_timeout: u16,
+
+    // 支持sdr、hd、fhd、uhd、fuhd
+    #[arg(long = "search_quality", default_value_t = String::from(""))]
+    search_quality: String,
 
     #[arg(long = "output_file", default_value_t = String::from(""))]
     output_file: String,
@@ -167,6 +173,17 @@ pub fn show_status() {
     }
 }
 
+fn get_random_output_filename() -> String {
+    let mut rng = rand::thread_rng();
+
+    let random_string: String = rng
+        .sample_iter(Alphanumeric)
+        .take(10)
+        .map(char::from)
+        .collect();
+    format!("./{}.m3u", random_string)
+}
+
 #[actix_web::main]
 pub async fn main() {
     let args = Args::parse();
@@ -191,16 +208,36 @@ pub async fn main() {
     }
     if args.input_file != "" {
         println!("{}", args.url);
+        let output_file = get_out_put_filename(args.output_file.clone());
+        println!("generate output file : {}", output_file);
         let mut data = lib::m3u::m3u::from_file(args.input_file);
+        if args.debug {
+            data.set_debug_mod(args.debug);
+        }
         data.check_data(args.http_request_timeout as i32).await;
+        data.output_file(output_file).await;
     }
     if args.url != "" {
         println!("{}", args.url);
+        let output_file = get_out_put_filename(args.output_file.clone());
+        println!("generate output file : {}", output_file);
         let mut data = lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await;
+        if args.debug {
+            data.set_debug_mod(args.debug);
+        }
         data.check_data(args.http_request_timeout as i32).await;
+        data.output_file(output_file).await;
     }
     // 等待守护进程启动
     std::thread::sleep(std::time::Duration::from_secs(3));
+}
+
+fn get_out_put_filename(output_file: String) -> String {
+    let mut filename = output_file.clone();
+    if output_file == "" {
+        filename = get_random_output_filename();
+    }
+    filename
 }
 
 fn read_from_file(_file: String) -> Result<String, Error> {
