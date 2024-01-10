@@ -9,16 +9,15 @@ use std::fs;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read};
 use std::process::Command;
+use crate::lib::M3uObjectList;
+use crate::lib::util::{is_url};
 
 #[derive(Parser, Debug)]
 #[command(name = "iptv-checker")]
 #[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
 pub struct Args {
-    #[arg(long="input_file", default_value_t = String::from(""))]
+    #[arg(short='i', long="input-file", default_value_t = String::from(""))]
     input_file: String,
-
-    #[arg(long="url", default_value_t = String::from(""))]
-    url: String,
 
     // is open debug mod? you can see logs
     #[arg(long = "debug", default_value_t = false)]
@@ -45,11 +44,11 @@ pub struct Args {
     #[arg(long = "http_request_timeout", default_value_t = 28000)]
     http_request_timeout: u16,
 
-    // 支持sdr、hd、fhd、uhd、fuhd
-    #[arg(long = "search_quality", default_value_t = String::from(""))]
-    search_quality: String,
+    // todo 支持sdr、hd、fhd、uhd、fuhd搜索
+    #[arg(short = 's', long = "search_clarity", default_value_t = String::from(""))]
+    search_clarity: String,
 
-    #[arg(long = "output_file", default_value_t = String::from(""))]
+    #[arg(short = 'o', long="output-file", default_value_t = String::from(""))]
     output_file: String,
 }
 
@@ -207,21 +206,15 @@ pub async fn main() {
         show_status();
     }
     if args.input_file != "" {
-        println!("{}", args.url);
-        let output_file = get_out_put_filename(args.output_file.clone());
-        println!("generate output file : {}", output_file);
-        let mut data = lib::m3u::m3u::from_file(args.input_file);
-        if args.debug {
-            data.set_debug_mod(args.debug);
+        println!("{}", args.input_file);
+        let mut data = M3uObjectList::new();
+        if !is_url(args.input_file.to_owned()) {
+            data = lib::m3u::m3u::from_file(args.input_file.to_owned());
+        }else{
+            data = lib::m3u::m3u::from_url(args.input_file.to_owned(), args.http_request_num as u64).await;
         }
-        data.check_data(args.http_request_timeout as i32).await;
-        data.output_file(output_file).await;
-    }
-    if args.url != "" {
-        println!("{}", args.url);
         let output_file = get_out_put_filename(args.output_file.clone());
         println!("generate output file : {}", output_file);
-        let mut data = lib::m3u::m3u::from_url(args.url, args.http_request_num as u64).await;
         if args.debug {
             data.set_debug_mod(args.debug);
         }
