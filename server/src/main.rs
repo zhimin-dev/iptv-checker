@@ -1,6 +1,8 @@
 mod lib;
 mod web;
-use clap::{arg, Parser};
+use crate::lib::util::is_url;
+use crate::lib::M3uObjectList;
+use clap::{arg, Args as clapArgs, Parser, Subcommand};
 use daemonize::Daemonize;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
@@ -9,10 +11,29 @@ use std::fs;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read};
 use std::process::Command;
-use crate::lib::M3uObjectList;
-use crate::lib::util::{is_url};
 
-#[derive(Parser, Debug)]
+#[derive(Subcommand)]
+enum Commands {
+    /// web相关命令
+    Web(WebArgs),
+}
+
+#[derive(clapArgs)]
+pub struct WebArgs {
+    #[arg(long = "start", default_value_t = false)]
+    start: bool,
+
+    #[arg(long = "port", default_value_t = 8089)]
+    port: u16,
+
+    #[arg(long = "stop", default_value_t = false)]
+    stop: bool,
+
+    #[arg(long = "status", default_value_t = false)]
+    status: bool,
+}
+
+#[derive(Parser)]
 #[command(name = "iptv-checker")]
 #[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
 pub struct Args {
@@ -23,23 +44,8 @@ pub struct Args {
     #[arg(long = "debug", default_value_t = false)]
     debug: bool,
 
-    #[arg(long = "web_start", default_value_t = false)]
-    web_start: bool,
-
-    #[arg(long = "port", default_value_t = 0)]
-    web_port: u16,
-
-    #[arg(long = "web_stop", default_value_t = false)]
-    web_stop: bool,
-
-    #[arg(long = "status", default_value_t = false)]
-    status: bool,
-
-    #[arg(long = "http_check_sleep_time", default_value_t = 300)]
-    http_check_sleep_time: u16,
-
-    #[arg(long = "http_request_num", default_value_t = 8000)]
-    http_request_num: u16,
+    #[command(subcommand)]
+    command: Commands,
 
     #[arg(long = "http_request_timeout", default_value_t = 28000)]
     http_request_timeout: u16,
@@ -70,23 +76,10 @@ const PID_FILE: &str = "/tmp/iptv_checker_web_server.pid";
 // 如果pid文件存在，需要将之前的pid删除，然后才能启动新的pid
 fn check_pid_exits() {
     if file_exists(PID_FILE) {
-        match read_pid_num() {
-            Ok(num) => {
-                let has_process = check_process(num);
-                match has_process {
-                    Ok(has) => {
-                        if has {
-                            kill_process(num);
-                        }
-                    }
-                    Err(e) => {
-                        println!("{}", e)
-                    }
-                }
-            }
-            Err(e) => {
-                println!("{}", e)
-            }
+        let num = read_pid_num().expect("获取pid失败");
+        let has_process = check_process(num).expect("检查pid失败");
+        if has_process {
+            kill_process(num);
         }
     }
 }
@@ -122,7 +115,7 @@ fn read_pid_contents(pid_file: String) -> Result<String, Error> {
 
 fn start_daemonize_web(port: u16, cmd_dir: String) {
     check_pid_exits();
-    println!("daemonize web server");
+    println!("daemonize web server, port:{}", port);
 
     let stdout = File::create("/tmp/iptv_checker_web_server.out").unwrap();
     let stderr = File::create("/tmp/iptv_checker_web_server.err").unwrap();
@@ -186,32 +179,38 @@ fn get_random_output_filename() -> String {
 #[actix_web::main]
 pub async fn main() {
     let args = Args::parse();
-    let mut c_dir = String::from("");
-    if let Ok(current_dir) = env::current_dir() {
-        if let Some(c_str) = current_dir.to_str() {
-            c_dir = c_str.to_string();
+    match args.command {
+        Commands::Web(args) => {
+            if args.status {
+                show_status();
+            } else if args.start {
+                let mut c_dir = String::from("");
+                if let Ok(current_dir) = env::current_dir() {
+                    if let Some(c_str) = current_dir.to_str() {
+                        c_dir = c_str.to_string();
+                    }
+                }
+                let mut port = args.port;
+                if port == 0 {
+                    port = 8080
+                }
+                start_daemonize_web(port, c_dir);
+            } else if args.stop {
+                check_pid_exits();
+            }
         }
-    }
-    if args.web_start {
-        let mut port = args.web_port;
-        if port == 0 {
-            port = 8080
-        }
-        start_daemonize_web(port, c_dir);
-    }
-    if args.web_stop {
-        check_pid_exits();
-    }
-    if args.status {
-        show_status();
     }
     if args.input_file != "" {
         println!("{}", args.input_file);
         let mut data = M3uObjectList::new();
         if !is_url(args.input_file.to_owned()) {
             data = lib::m3u::m3u::from_file(args.input_file.to_owned());
-        }else{
-            data = lib::m3u::m3u::from_url(args.input_file.to_owned(), args.http_request_num as u64).await;
+        } else {
+            data = lib::m3u::m3u::from_url(
+                args.input_file.to_owned(),
+                args.http_request_timeout as u64,
+            )
+            .await;
         }
         let output_file = get_out_put_filename(args.output_file.clone());
         println!("generate output file : {}", output_file);
