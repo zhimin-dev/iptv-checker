@@ -99,9 +99,58 @@ pub mod check {
     use std::process::Command;
     use std::time;
 
+    pub fn get_link_info(_url: String, timeout: u64) -> Result<CheckUrlIsAvailableResponse, Error> {
+        let mut ffprobe = Command::new("ffprobe");
+        let mut prob = ffprobe
+            .arg("-v")
+            .arg("quiet")
+            .arg("-print_format")
+            .arg("json");
+        if timeout > 0 {
+            prob = prob.arg("-timeout").arg(timeout.to_string());
+        }
+        let prob_result = prob
+            .arg("-show_format")
+            .arg("-show_streams")
+            .arg(_url.to_owned())
+            .output()
+            .unwrap();
+        if prob_result.status.success() {
+            let res_data: Ffprobe =
+                serde_json::from_str(String::from_utf8(prob_result.stdout).unwrap().as_str())
+                    .expect("无法解析 JSON");
+            let mut body: CheckUrlIsAvailableResponse = CheckUrlIsAvailableResponse::new();
+            for one in res_data.streams.into_iter() {
+                if one.codec_type == "video" {
+                    let mut video = VideoInfo::new();
+                    match one.width {
+                        Some(e) => video.set_width(e),
+                        _ => {}
+                    }
+                    match one.height {
+                        Some(e) => video.set_height(e),
+                        _ => {}
+                    }
+                    video.set_codec(one.codec_name);
+                    body.set_video(video);
+                } else if one.codec_type == "audio" {
+                    let mut audio = AudioInfo::new();
+                    audio.set_codec(one.codec_name);
+                    audio.set_channels(one.channels.unwrap());
+                    body.set_audio(audio);
+                }
+            }
+            return Ok(body);
+        }
+        let error_str = String::from_utf8_lossy(&prob_result.stderr);
+        println!("{} ffprobe error {:?}", _url.to_owned(), prob_result.stderr);
+        return Err(Error::new(ErrorKind::Other, error_str.to_string()));
+    }
+
     pub async fn check_link_is_valid(
         _url: String,
         timeout: u64,
+        need_video_info: bool,
     ) -> Result<CheckUrlIsAvailableResponse, Error> {
         let client = reqwest::Client::builder()
             .timeout(time::Duration::from_millis(timeout))
@@ -110,65 +159,31 @@ pub mod check {
             .unwrap();
         let curr_timestamp = Utc::now().timestamp_millis();
         let check_data = client.get(_url.to_owned()).send().await;
-        match check_data {
+        return match check_data {
             Ok(res) => {
                 if res.status().is_success() {
-                    let mut ffprobe = Command::new("ffprobe");
-                    let mut prob = ffprobe
-                        .arg("-v")
-                        .arg("quiet")
-                        .arg("-print_format")
-                        .arg("json");
-                    if timeout > 0 {
-                        prob = prob.arg("-timeout").arg(timeout.to_string());
-                    }
-                    let prob_result = prob
-                        .arg("-show_format")
-                        .arg("-show_streams")
-                        .arg(_url.to_owned())
-                        .output()
-                        .unwrap();
-                    if prob_result.status.success() {
-                        let res_data: Ffprobe = serde_json::from_str(
-                            String::from_utf8(prob_result.stdout).unwrap().as_str(),
-                        )
-                        .expect("无法解析 JSON");
-                        let delay = Utc::now().timestamp_millis() - curr_timestamp;
+                    let delay = Utc::now().timestamp_millis() - curr_timestamp;
+                    if need_video_info {
+                        let ffmpeg_res = get_link_info(_url.to_owned(), timeout);
+                        match ffmpeg_res {
+                            Ok(mut data) => {
+                                data.set_delay(delay as i32);
+                                return Ok(data);
+                            }
+                            Err(e) => return Err(e),
+                        };
+                    } else {
                         let mut body: CheckUrlIsAvailableResponse =
                             CheckUrlIsAvailableResponse::new();
                         body.set_delay(delay as i32);
-                        for one in res_data.streams.into_iter() {
-                            if one.codec_type == "video" {
-                                let mut video = VideoInfo::new();
-                                match one.width {
-                                    Some(e) => video.set_width(e),
-                                    _ => {}
-                                }
-                                match one.height {
-                                    Some(e) => video.set_height(e),
-                                    _ => {}
-                                }
-                                video.set_codec(one.codec_name);
-                                body.set_video(video);
-                            } else if one.codec_type == "audio" {
-                                let mut audio = AudioInfo::new();
-                                audio.set_codec(one.codec_name);
-                                audio.set_channels(one.channels.unwrap());
-                                body.set_audio(audio);
-                            }
-                        }
                         return Ok(body);
-                    } else {
-                        let error_str = String::from_utf8_lossy(&prob_result.stderr);
-                        println!("{} ffprobe error {:?}", _url.to_owned(), prob_result.stderr);
-                        return Err(Error::new(ErrorKind::Other, error_str.to_string()));
                     }
                 }
-                return Err(Error::new(ErrorKind::Other, "status is not 200"));
+                Err(Error::new(ErrorKind::Other, "status is not 200"))
             }
             Err(e) => {
                 println!("http request error : {}", e);
-                return Err(Error::new(ErrorKind::Other, e));
+                Err(Error::new(ErrorKind::Other, e))
             }
         };
     }

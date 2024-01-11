@@ -117,6 +117,7 @@ pub struct M3uObjectList {
     header: Option<M3uExt>,
     list: Vec<M3uObject>,
     debug: bool,
+    search_clarity: Option<VideoType>,
 }
 
 impl M3uObjectList {
@@ -125,6 +126,7 @@ impl M3uObjectList {
             header: None,
             list: vec![],
             debug: false,
+            search_clarity: None,
         }
     }
 
@@ -151,9 +153,14 @@ impl M3uObjectList {
     }
 
     pub async fn check_data(&mut self, request_time: i32) {
+        let mut search_clarity = false;
+        match &self.search_clarity {
+            Some(_d) => search_clarity = true,
+            None => {}
+        }
         for x in self.list.iter_mut() {
             let url = x.url.clone();
-            let result = check_link_is_valid(url, request_time as u64).await;
+            let result = check_link_is_valid(url, request_time as u64, search_clarity).await;
             if self.debug {
                 println!("url is: {} result: {:?}", x.url.clone(), result);
             }
@@ -226,6 +233,7 @@ impl From<String> for M3uObjectList {
             header: None,
             list: vec![],
             debug: false,
+            search_clarity: None,
         };
         let source_type = m3u::check_source_type(_str.to_owned());
         return match source_type {
