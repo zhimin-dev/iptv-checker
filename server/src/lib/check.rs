@@ -93,6 +93,7 @@ pub struct FfprobeStream {
 }
 
 pub mod check {
+    use crate::lib::util::check_body_is_m3u8_format;
     use crate::lib::{AudioInfo, CheckUrlIsAvailableResponse, Ffprobe, VideoInfo};
     use chrono::Utc;
     use std::io::{Error, ErrorKind};
@@ -173,10 +174,15 @@ pub mod check {
                             Err(e) => return Err(e),
                         };
                     } else {
-                        let mut body: CheckUrlIsAvailableResponse =
-                            CheckUrlIsAvailableResponse::new();
-                        body.set_delay(delay as i32);
-                        return Ok(body);
+                        let _body = res.text().await.unwrap();
+                        return if check_body_is_m3u8_format(_body.clone()) {
+                            let mut body: CheckUrlIsAvailableResponse =
+                                CheckUrlIsAvailableResponse::new();
+                            body.set_delay(delay as i32);
+                            Ok(body)
+                        } else {
+                            Err(Error::new(ErrorKind::Other, "not a m3u8 file"))
+                        }
                     }
                 }
                 Err(Error::new(ErrorKind::Other, "status is not 200"))

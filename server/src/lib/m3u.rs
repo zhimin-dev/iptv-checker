@@ -389,6 +389,7 @@ pub enum SourceType {
     SourceTypeNormal, //m3u标准文件
     SourceTypeQuota,  //名称,url格式
 }
+
 pub mod m3u {
     use crate::lib::util::{get_url_body, parse_normal_str, parse_quota_str};
     use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};

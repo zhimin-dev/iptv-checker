@@ -11,6 +11,10 @@ pub async fn get_url_body(_url: String, timeout: u64) -> Result<String, Error> {
     return client.get(_url.to_owned()).send().await?.text().await;
 }
 
+pub fn check_body_is_m3u8_format(_body: String) -> bool {
+    return _body.starts_with("#EXTM3U");
+}
+
 pub fn parse_normal_str(_body: String) -> M3uObjectList {
     let mut result = M3uObjectList::new();
     let mut list = Vec::new();

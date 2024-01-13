@@ -16,6 +16,8 @@ use std::process::Command;
 enum Commands {
     /// web相关命令
     Web(WebArgs),
+    /// 本次检查相关命令
+    Check(CheckArgs),
 }
 
 #[derive(clapArgs)]
@@ -33,22 +35,10 @@ pub struct WebArgs {
     status: bool,
 }
 
-#[derive(Parser)]
-#[command(name = "iptv-checker")]
-#[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
-pub struct Args {
+#[derive(clapArgs)]
+pub struct CheckArgs {
     #[arg(short='i', long="input-file", default_value_t = String::from(""))]
     input_file: String,
-
-    // is open debug mod? you can see logs
-    #[arg(long = "debug", default_value_t = false)]
-    debug: bool,
-
-    #[command(subcommand)]
-    command: Commands,
-
-    #[arg(long = "http_request_timeout", default_value_t = 28000)]
-    http_request_timeout: u16,
 
     // todo 支持sdr、hd、fhd、uhd、fuhd搜索
     #[arg(short = 's', long = "search_clarity", default_value_t = String::from(""))]
@@ -56,6 +46,21 @@ pub struct Args {
 
     #[arg(short = 'o', long="output-file", default_value_t = String::from(""))]
     output_file: String,
+
+    #[arg(short = 't', long = "timeout", default_value_t = 28000)]
+    timeout: u16,
+
+    // is open debug mod? you can see logs
+    #[arg(long = "debug", default_value_t = false)]
+    debug: bool,
+}
+
+#[derive(Parser)]
+#[command(name = "iptv-checker")]
+#[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
+pub struct Args {
+    #[command(subcommand)]
+    command: Commands,
 }
 
 fn check_process(pid: u32) -> Result<bool, Error> {
@@ -199,26 +204,25 @@ pub async fn main() {
                 check_pid_exits();
             }
         }
-    }
-    if args.input_file != "" {
-        println!("{}", args.input_file);
-        let mut data = M3uObjectList::new();
-        if !is_url(args.input_file.to_owned()) {
-            data = lib::m3u::m3u::from_file(args.input_file.to_owned());
-        } else {
-            data = lib::m3u::m3u::from_url(
-                args.input_file.to_owned(),
-                args.http_request_timeout as u64,
-            )
-            .await;
+        Commands::Check(args) => {
+            if args.input_file != "" {
+                println!("{}", args.input_file);
+                let mut data = M3uObjectList::new();
+                if !is_url(args.input_file.to_owned()) {
+                    data = lib::m3u::m3u::from_file(args.input_file.to_owned());
+                } else {
+                    data = lib::m3u::m3u::from_url(args.input_file.to_owned(), args.timeout as u64)
+                        .await;
+                }
+                let output_file = get_out_put_filename(args.output_file.clone());
+                println!("generate output file : {}", output_file);
+                if args.debug {
+                    data.set_debug_mod(args.debug);
+                }
+                data.check_data(args.timeout as i32).await;
+                data.output_file(output_file).await;
+            }
         }
-        let output_file = get_out_put_filename(args.output_file.clone());
-        println!("generate output file : {}", output_file);
-        if args.debug {
-            data.set_debug_mod(args.debug);
-        }
-        data.check_data(args.http_request_timeout as i32).await;
-        data.output_file(output_file).await;
     }
     // 等待守护进程启动
     std::thread::sleep(std::time::Duration::from_secs(3));
