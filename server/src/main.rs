@@ -1,261 +1,244 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
-use actix_files as fs;
-use actix_files::NamedFile;
-use serde::{Deserialize, Serialize};
-use std::time;
-use chrono::{Utc};
+mod lib;
+mod web;
+use crate::lib::util::is_url;
+use crate::lib::M3uObjectList;
+use clap::{arg, Args as clapArgs, Parser, Subcommand};
+// #[cfg(not(windows))]
+// use daemonize::Daemonize;
+use rand::distributions::Alphanumeric;
+use rand::Rng;
+use std::env;
+use std::fs;
+use std::fs::File;
+use std::io::{Error, ErrorKind, Read};
 use std::process::Command;
 
-#[derive(Serialize, Deserialize)]
-struct CheckUrlIsAvailableRequest {
-    url: String,
-    timeout: Option<i32>,
+#[derive(Subcommand)]
+enum Commands {
+    /// web相关命令
+    Web(WebArgs),
+    /// 本次检查相关命令
+    Check(CheckArgs),
 }
 
-#[derive(Serialize, Deserialize)]
-struct CheckUrlIsAvailableResponse {
-    delay: i32,
-    video: CheckUrlIsAvailableRespVideo,
-    audio: CheckUrlIsAvailableRespAudio,
+#[derive(clapArgs)]
+pub struct WebArgs {
+    #[arg(long = "start", default_value_t = false)]
+    start: bool,
+
+    #[arg(long = "port", default_value_t = 8089)]
+    port: u16,
+
+    #[arg(long = "stop", default_value_t = false)]
+    stop: bool,
+
+    #[arg(long = "status", default_value_t = false)]
+    status: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-struct CheckUrlIsAvailableRespAudio {
-    codec: String,
-    channels: i32,
-    #[serde(rename = "bitRate")]
-    bit_rate:i32,
+#[derive(clapArgs)]
+pub struct CheckArgs {
+    #[arg(short='i', long="input-file", default_value_t = String::from(""))]
+    input_file: String,
+
+    // todo 支持sdr、hd、fhd、uhd、fuhd搜索
+    #[arg(short = 's', long = "search_clarity", default_value_t = String::from(""))]
+    search_clarity: String,
+
+    #[arg(short = 'o', long="output-file", default_value_t = String::from(""))]
+    output_file: String,
+
+    #[arg(short = 't', long = "timeout", default_value_t = 28000)]
+    timeout: u16,
+
+    // is open debug mod? you can see logs
+    #[arg(long = "debug", default_value_t = false)]
+    debug: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-struct CheckUrlIsAvailableRespVideo {
-    width: i32,
-    height: i32,
-    codec: String,
-    #[serde(rename = "bitRate")]
-    bit_rate:i32,
+#[derive(Parser)]
+#[command(name = "iptv-checker")]
+#[command(author, version, about="a iptv-checker cmd by rust", long_about = None, )]
+pub struct Args {
+    #[command(subcommand)]
+    command: Commands,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct Ffprobe {
-    streams: Vec<FfprobeStream>
+fn check_process(pid: u32) -> Result<bool, Error> {
+    let status = Command::new("ps").arg("-p").arg(pid.to_string()).output();
+    Ok(status.unwrap().status.success())
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-struct FfprobeStream {
-    codec_type: String ,
-    width: Option<i32>,
-    height:Option<i32>,
-    codec_name:String,
-    // bit_rate: i32,
-    channels: Option<i32>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskPost {
-    urls: Vec<String>,// 订阅源
-    contents: String, //订阅源内容
-    result_name: String,//结果文件名，最后可以通过这个文件来获取结果
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskPostResp {
-    task_id :String,//任务id
-}
-
-#[post("/task/post")]
-async fn accept_one_task(info: web::Json<TaskPost>) -> Result<String> {
-    Ok(format!("task post"))
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskDel {
-    task_id:String,//任务id
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskDelResp {
-    result :bool,//是否成功
-}
-
-#[post("/task/del")]
-async fn del_one_task() -> Result<String> {
-    Ok(format!("task del"))
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskList {
-    list:Vec<TaskItem>,//任务信息
-}
-#[derive(Debug, Deserialize, Serialize)]
-enum TaskStatus {
-    TaskWait,//待处理
-    TaskNowHandling,//正在处理
-    TaskPause,//任务正在暂停
-    TaskFinished,//任务完成
-}
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskItem {
-    task_source: TaskPost,//任务来源
-    task_id: String,//任务id
-    task_info:TaskInfo,//任务详情
-}
-#[derive(Debug, Deserialize, Serialize)]
-struct TaskInfo {
-    create_time: i32,//任务创建时间
-    task: TaskStatus,//任务状态
-    total: i32,// 总的频道数
-    current: i32,// 已检查频道数
-}
-
-#[post("/task/list")]
-async fn list_task() -> Result<String> {
-    Ok(format!("task list"))
-}
-
-#[get("/check-url-is-available")]
-async fn check_url_is_available(req: web::Query<CheckUrlIsAvailableRequest>) -> impl Responder {
-    let mut timeout = 0;
-    match req.timeout {
-        Some(i) => {
-            timeout = i
-        }
-        _ => {}
+fn file_exists(file_path: &str) -> bool {
+    if let Ok(metadata) = fs::metadata(file_path) {
+        metadata.is_file()
+    } else {
+        false
     }
-    let client = reqwest::Client::builder().timeout(time::Duration::from_millis(timeout as u64)).danger_accept_invalid_certs(true).build().unwrap();
-    let curr_timestamp = Utc::now().timestamp_millis();
-    let check_data = client.get(req.url.to_owned()).send().await;
-    match check_data {
-        Ok(res) => {
-            if res.status().is_success() {
-                let mut ffprobe = Command::new("ffprobe");
-                let prob = ffprobe.arg("-v").arg("quiet").arg("-print_format").arg("json");
-                // if timeout > 0 {
-                //     prob = prob.arg("-timeout").arg(timeout.to_string());
-                // }
-                let prob_result = prob.arg("-show_format").arg("-show_streams").arg(req.url.to_owned()).output().unwrap();
-                if prob_result.status.success() {
-                    // println!("{}", String::from_utf8(prob_result.stdout).unwrap());
-                    let res_data: Ffprobe = serde_json::from_str(String::from_utf8(prob_result.stdout).unwrap().as_str())
-                        .expect("无法解析 JSON");
-                    let delay = Utc::now().timestamp_millis() - curr_timestamp;
-                    let mut  body: CheckUrlIsAvailableResponse = CheckUrlIsAvailableResponse{
-                        delay:delay as i32,
-                        video: CheckUrlIsAvailableRespVideo{
-                            width: 0,
-                            height: 0,
-                            codec: String::from(""),
-                            bit_rate:0
-                        },
-                        audio:CheckUrlIsAvailableRespAudio{
-                            codec: String::from(""),
-                            channels: 0,
-                            bit_rate: 0,
-                        }
-                    };
-                    for one in res_data.streams.into_iter() {
-                        if one.codec_type == "video" {
-                            let mut width  = 0;
-                            let mut height =0;
-                            match one.width {
-                                Some(e) =>  {
-                                    width = e
-                                }
-                                _ => {}
-                            }
-                            match one.height {
-                                Some(e) =>  {
-                                    height = e
-                                }
-                                _ => {}
-                            }
-                            body.video.width = width;
-                            body.video.height = height;
-                            body.video.codec = one.codec_name;
-                            // body.video.bit_rate = one.bit_rate;
-                        }else if one.codec_type == "audio" {
-                            // body.audio.bit_rate = one.bit_rate;
-                            body.audio.channels = one.channels.unwrap();
-                            body.audio.codec = one.codec_name;
-                        }
-                    }
-                    let obj = serde_json::to_string(&body).unwrap();
-                    return HttpResponse::Ok().body(obj);
-                }else{
-                    let error_str = String::from_utf8_lossy(&prob_result.stderr);
-                    println!("命令执行失败: {}", error_str);
-                    return HttpResponse::InternalServerError().body("{\"msg\":\"internal error\"}");
-                }
+}
+
+const PID_FILE: &str = "/tmp/iptv_checker_web_server.pid";
+
+// 如果pid文件存在，需要将之前的pid删除，然后才能启动新的pid
+fn check_pid_exits() {
+    if file_exists(PID_FILE) {
+        let num = read_pid_num().expect("获取pid失败");
+        let has_process = check_process(num).expect("检查pid失败");
+        if has_process {
+            kill_process(num);
+        }
+    }
+}
+
+fn kill_process(pid: u32) {
+    let _output = Command::new("kill")
+        .arg("-9")
+        .arg(pid.to_string())
+        .output()
+        .expect("Failed to execute command");
+}
+
+fn read_pid_num() -> Result<u32, Error> {
+    match read_pid_contents(PID_FILE.to_string()) {
+        Ok(contents) => {
+            let mut n_contents = contents;
+            n_contents = n_contents.replace("\n", "");
+            match n_contents.parse::<u32>() {
+                Ok(num) => Ok(num),
+                Err(e) => Err(Error::new(ErrorKind::InvalidData, e)),
             }
-            // 在这里处理错误的响应
-            return HttpResponse::Ok().body("{}");
         }
-        Err(e) => {
-            println!("resp status error : {}", e);
-            return HttpResponse::InternalServerError().body("{\"msg\":\"internal error\"}");
-        }
+        Err(e) => Err(e),
     }
 }
 
-#[derive(Serialize, Deserialize)]
-struct FetchM3uBodyRequest {
-    url: String,
-    timeout: Option<i32>,
+fn read_pid_contents(pid_file: String) -> Result<String, Error> {
+    let mut f = File::open(pid_file)?;
+    let mut contents = String::new();
+    f.read_to_string(&mut contents)?;
+    Ok(contents)
 }
 
-#[get("/fetch-m3u-body")]
-async fn fetch_m3u_body(req: web::Query<FetchM3uBodyRequest>) -> impl Responder {
-    let mut timeout = 0;
-    match req.timeout {
-        Some(i) => {
-            timeout = i
-        }
-        _ => {}
-    }
-    let client= reqwest::Client::builder().timeout(time::Duration::from_millis(timeout as u64)).danger_accept_invalid_certs(true).build().unwrap();
-    let resp=  client.get(req.url.to_owned()).send().await;
-    match resp {
-        Ok(res) => {
-            if res.status().is_success() {
-                let body = res.text().await;
-                match body {
-                    Ok(text) => {
-                        return HttpResponse::Ok().body(text);
+// #[cfg(not(windows))]
+// fn start_daemonize_web(port: u16, cmd_dir: String) {
+//     check_pid_exits();
+//     println!("daemonize web server, port:{}", port);
+//
+//     let stdout = File::create("/tmp/iptv_checker_web_server.out").unwrap();
+//     let stderr = File::create("/tmp/iptv_checker_web_server.err").unwrap();
+//     // 创建守护进程
+//     let daemonize = Daemonize::new()
+//         .pid_file(PID_FILE)
+//         .working_directory(cmd_dir) // for default behaviour.
+//         .chown_pid_file(false)
+//         .umask(0o777)
+//         .stdout(stdout)
+//         .stderr(stderr)
+//         .privileged_action(|| "Executed before drop privileges");
+//
+//     let d_res = daemonize.start();
+//     match d_res {
+//         Ok(_) => {
+//             // 守护进程的执行流程
+//             println!("daemonize process started");
+//             // 启动 web 服务
+//             web::start_web(port);
+//         }
+//         Err(e) => eprintln!("Failed to daemonize: {}", e),
+//     }
+//     println!("daemonize finished")
+// }
+
+pub fn show_status() {
+    if file_exists(PID_FILE) {
+        match read_pid_num() {
+            Ok(num) => {
+                let has_process = check_process(num);
+                match has_process {
+                    Ok(has) => {
+                        if has {
+                            println!("web server running at pid = {}", num)
+                        }
                     }
                     Err(e) => {
-                        println!("resp status error : {}", e);
-                        return HttpResponse::InternalServerError().body("{\"msg\":\"internal error, fetch body error\"}");
+                        println!("{}", e)
                     }
                 }
             }
-            return HttpResponse::InternalServerError().body("{\"msg\":\"internal error, status is not 200\"}");
-        }
-        Err(e) => {
-            println!("fetch error : {}", e);
-            return HttpResponse::InternalServerError().body("{\"msg\":\"internal error, fetch error\"}");
+            Err(e) => {
+                println!("{}", e)
+            }
         }
     }
 }
 
-static VIEW_BASE_DIR :&str  = "./../dist/";
+fn get_random_output_filename() -> String {
+    let mut rng = rand::thread_rng();
 
-#[get("/")]
-async fn index() -> impl Responder {
-    NamedFile::open(VIEW_BASE_DIR.to_owned() + "index.html")
+    let random_string: String = rng
+        .sample_iter(Alphanumeric)
+        .take(10)
+        .map(char::from)
+        .collect();
+    format!("./{}.m3u", random_string)
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    let port = 8080;
-    println!("start to run at {}", port);
-    HttpServer::new(|| {
-        App::new()
-            .service(check_url_is_available)
-            .service(fetch_m3u_body)
-            .service(index)
-            .service(fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets").show_files_listing())
-    })
-    .bind(("0.0.0.0", port))?
-    .run()
-    .await
+pub async fn main() {
+    let args = Args::parse();
+    match args.command {
+        Commands::Web(args) => {
+            if args.status {
+                show_status();
+            } else if args.start {
+                let mut c_dir = String::from("");
+                if let Ok(current_dir) = env::current_dir() {
+                    if let Some(c_str) = current_dir.to_str() {
+                        c_dir = c_str.to_string();
+                    }
+                }
+                let mut port = args.port;
+                if port == 0 {
+                    port = 8080
+                }
+                // #[cfg(not(windows))]
+                // start_daemonize_web(port, c_dir);
+            } else if args.stop {
+                check_pid_exits();
+            }
+        }
+        Commands::Check(args) => {
+            if args.input_file != "" {
+                println!("{}", args.input_file);
+                let mut data = M3uObjectList::new();
+                if !is_url(args.input_file.to_owned()) {
+                    data = lib::m3u::m3u::from_file(args.input_file.to_owned());
+                } else {
+                    data = lib::m3u::m3u::from_url(args.input_file.to_owned(), args.timeout as u64)
+                        .await;
+                }
+                let output_file = get_out_put_filename(args.output_file.clone());
+                println!("generate output file : {}", output_file);
+                if args.debug {
+                    data.set_debug_mod(args.debug);
+                }
+                data.check_data(args.timeout as i32).await;
+                data.output_file(output_file).await;
+            }
+        }
+    }
+    // 等待守护进程启动
+    std::thread::sleep(std::time::Duration::from_secs(3));
+}
+
+fn get_out_put_filename(output_file: String) -> String {
+    let mut filename = output_file.clone();
+    if output_file == "" {
+        filename = get_random_output_filename();
+    }
+    filename
+}
+
+fn read_from_file(_file: String) -> Result<String, Error> {
+    Ok(String::from(""))
 }
