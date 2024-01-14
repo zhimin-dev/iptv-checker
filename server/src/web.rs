@@ -5,6 +5,7 @@ use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
 use serde::{Deserialize, Serialize};
 use std::time;
+use tokio::runtime::Runtime;
 
 #[post("/task/post")]
 async fn accept_one_task(_info: web::Json<task::TaskPost>) -> Result<String> {
@@ -117,29 +118,27 @@ struct SystemStatus {
 #[get("/system-status")]
 async fn system_status() -> impl Responder {
     let check_ipv6 = check::check::check_can_support_ipv6().unwrap();
-    let system_status = SystemStatus { can_ipv6:check_ipv6 };
+    let system_status = SystemStatus {
+        can_ipv6: check_ipv6,
+    };
     let obj = serde_json::to_string(&system_status).unwrap();
     return HttpResponse::Ok().body(obj);
 }
 
-pub fn start_web(port: u16) {
+pub async fn start_web(port: u16) {
     println!("start to run at {}", port);
-    actix_rt::System::new().block_on(async {
-        HttpServer::new(|| {
-            App::new()
-                .service(check_url_is_available)
-                .service(fetch_m3u_body)
-                .service(index)
-                .service(system_status)
-                .service(
-                    fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
-                        .show_files_listing(),
-                )
-        })
-        .bind(("0.0.0.0", port))
-        .expect("Failed to bind address")
-        .run()
-        .await
-        .expect("falied to start server");
-    });
+    let _ = HttpServer::new(|| {
+        App::new()
+            .service(check_url_is_available)
+            .service(fetch_m3u_body)
+            .service(index)
+            .service(system_status)
+            .service(
+                fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
+                    .show_files_listing(),
+            )
+    })
+    .bind(("0.0.0.0", port))
+    .expect("Failed to bind address")
+    .run();
 }
