@@ -1,6 +1,6 @@
 [package]
 name = "iptv-checker"
-version = "0.1.0"
+version = "2.15.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -12,23 +12,14 @@ actix-files = "0.6.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 futures = "0.3"
-reqwest="0.11.22"
-chrono="0.4.31"
+reqwest = "0.11.22"
+chrono = "0.4.31"
 openssl = { version = "0.10.61", features = ["vendored"] }
 clap = { version = "4.4.11", features = ["derive"] }
 time = "0.3.30"
 tokio = "1.35.0"
-daemonize = "0.5.0"
-nix="0.27.1"
+#daemonize = "0.5.0"
+nix = "0.27.1"
 log = "0.4.20"
 url = "2.5.0"
 rand = "0.8"
-
-[target.x86_64-unknown-linux-musl]
-linker = "x86_64-linux-musl-gcc"
-
-[target.x86_64-pc-windows-gnu]
-linker = "x86_64-w64-mingw32-gcc"
-
-[target.x86_64-apple-darwin]
-linker = "rust-lld"
