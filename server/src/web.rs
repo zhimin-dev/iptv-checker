@@ -126,19 +126,22 @@ async fn system_status() -> impl Responder {
 }
 
 pub async fn start_web(port: u16) {
-    println!("start to run at {}", port);
-    let _ = HttpServer::new(|| {
-        App::new()
-            .service(check_url_is_available)
-            .service(fetch_m3u_body)
-            .service(index)
-            .service(system_status)
-            .service(
-                fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
-                    .show_files_listing(),
-            )
-    })
-    .bind(("0.0.0.0", port))
-    .expect("Failed to bind address")
-    .run();
+    // actix_rt::System::new().block_on(async {
+        let _ = HttpServer::new(|| {
+            App::new()
+                .service(check_url_is_available)
+                .service(fetch_m3u_body)
+                .service(index)
+                .service(system_status)
+                .service(
+                    fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
+                        .show_files_listing(),
+                )
+        })
+        .bind(("0.0.0.0", port))
+        .expect("Failed to bind address")
+        .run()
+        .await
+        .expect("failed to run server");
+    // });
 }

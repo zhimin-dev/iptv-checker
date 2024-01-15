@@ -3,8 +3,6 @@ mod web;
 use crate::lib::util::is_url;
 use crate::lib::M3uObjectList;
 use clap::{arg, Args as clapArgs, Parser, Subcommand};
-#[cfg(not(windows))]
-use daemonize::Daemonize;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::env;
@@ -12,7 +10,6 @@ use std::fs;
 use std::fs::File;
 use std::io::{Error, ErrorKind, Read};
 use std::process::Command;
-use std::thread::sleep as tsleep;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -122,36 +119,12 @@ fn read_pid_contents(pid_file: String) -> Result<String, Error> {
     Ok(contents)
 }
 
-#[cfg(not(windows))]
 async fn start_daemonize_web(port: u16, cmd_dir: String) {
     println!("start web-----{}", cmd_dir);
     check_pid_exits();
-    println!("daemonize web server, port:{}", port);
-
-    let stdout = File::create("/tmp/iptv_checker_web_server.out").unwrap();
-    let stderr = File::create("/tmp/iptv_checker_web_server.err").unwrap();
-    // 创建守护进程
-    let daemonize = Daemonize::new()
-        .pid_file(PID_FILE)
-        .working_directory(cmd_dir) // for default behaviour.
-        .chown_pid_file(false)
-        .umask(0o777)
-        .stdout(stdout)
-        .stderr(stderr)
-        .privileged_action(|| "Executed before drop privileges");
-
-    let d_res = daemonize.start();
-    match d_res {
-        Ok(_) => {
-            // 守护进程的执行流程
-            println!("daemonize process started");
-            // 启动 web 服务
-            web::start_web(port).await;
-        }
-        Err(e) => println!("Failed to daemonize: {}", e),
-    }
-    println!("daemonize finished");
-    sleep(Duration::from_secs(30)).await;
+    println!("start web server, port:{}", port);
+    // 启动 web 服务
+    web::start_web(port).await;
 }
 
 pub fn show_status() {
@@ -199,9 +172,7 @@ pub async fn main() {
                 if port == 0 {
                     port = 8080
                 }
-                #[cfg(not(windows))]
                 start_daemonize_web(port, c_dir).await;
-                println!("start web----");
             } else if args.stop {
                 check_pid_exits();
             }
@@ -226,8 +197,6 @@ pub async fn main() {
             }
         }
     }
-    sleep(Duration::from_secs(30)).await;
-    println!("sleep 3 sec");
 }
 
 fn get_out_put_filename(output_file: String) -> String {

@@ -27,4 +27,4 @@ rand = "0.8"
 # 只在Windows平台上使用的依赖项
 
 [target.'cfg(not(windows))'.dependencies]
-daemonize = "0.5.0"  # 在非Windows平台上使用的依赖项版本号
+# 只在非Windows平台上使用的依赖项
