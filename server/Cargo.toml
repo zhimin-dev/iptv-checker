@@ -18,8 +18,13 @@ openssl = { version = "0.10.61", features = ["vendored"] }
 clap = { version = "4.4.11", features = ["derive"] }
 time = "0.3.30"
 tokio = "1.35.0"
-#daemonize = "0.5.0"
 nix = "0.27.1"
 log = "0.4.20"
 url = "2.5.0"
 rand = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+# 只在Windows平台上使用的依赖项
+
+[target.'cfg(not(windows))'.dependencies]
+# 只在非Windows平台上使用的依赖项

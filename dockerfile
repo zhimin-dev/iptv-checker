@@ -27,8 +27,8 @@ RUN apt-get install ffmpeg -y
 # 复制前端代码
 COPY --from=frontend-builder /usr/src/app/frontend ./../dist
 # 复制后端构建结果
-COPY --from=backend-builder /usr/src/app/target/release/server ./server/server
+COPY --from=backend-builder /usr/src/app/target/release/iptv-checker ./server/iptv-checker
 # 暴露服务端口
-EXPOSE 8080
+EXPOSE 8089
 # 启动服务
-CMD ["./server/server"]
+CMD ["./server/iptv-checker", "web", "--start"]

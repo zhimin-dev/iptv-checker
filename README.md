@@ -18,7 +18,7 @@ iptv-checker check -i https://xxxx.com/1111.m3u #检查网络上的文件
 iptv-checker check --help #获取帮助
 ```
 
-## iptv-checker web uage
+## iptv-checker web usage
 
 - rust
 - node
