@@ -1,8 +1,7 @@
-use crate::lib::check::check::check_link_is_valid;
-use crate::lib::CheckDataStatus::{Failed, Success, Unchecked};
-use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-use crate::lib::VideoType::Unknown;
-use clap::Parser;
+use crate::common::check::check::check_link_is_valid;
+use crate::common::CheckDataStatus::{Failed, Success, Unchecked};
+use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
+use crate::common::VideoType::Unknown;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::Write;
@@ -138,18 +137,18 @@ impl M3uObjectList {
         self.list = list
     }
 
-    pub fn data_len(self) {
-        if self.debug {
-            println!("list length: {}", self.list.len());
-            println!(
-                "header x-tv-list length: {}",
-                self.header.unwrap().x_tv_url.len()
-            );
-        }
-    }
+    // pub fn data_len(self) {
+    //     if self.debug {
+    //         println!("list length: {}", self.list.len());
+    //         println!(
+    //             "header x-tv-list length: {}",
+    //             self.header.unwrap().x_tv_url.len()
+    //         );
+    //     }
+    // }
 
     pub fn set_debug_mod(&mut self, debug: bool) {
-        self.debug = true
+        self.debug = debug
     }
 
     pub async fn check_data(&mut self, request_time: i32) {
@@ -275,9 +274,9 @@ impl OtherStatus {
         self.audio = Some(audio)
     }
 
-    pub fn set_network(&mut self, network: NetworkInfo) {
-        self.network = Some(network)
-    }
+    // pub fn set_network(&mut self, network: NetworkInfo) {
+    //     self.network = Some(network)
+    // }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -295,16 +294,16 @@ pub enum VideoType {
     Fuhd,
 }
 
-fn video_type_string(vt: VideoType) -> *const str {
-    return match vt {
-        VideoType::Unknown => "未知",
-        VideoType::Sd => "普清",
-        VideoType::Hd => "高清720P",
-        VideoType::Fhd => "全高清1080P",
-        VideoType::Uhd => "超高清4K",
-        VideoType::Fuhd => "全超高清8K",
-    };
-}
+// fn video_type_string(vt: VideoType) -> *const str {
+//     return match vt {
+//         VideoType::Unknown => "未知",
+//         VideoType::Sd => "普清",
+//         VideoType::Hd => "高清720P",
+//         VideoType::Fhd => "全高清1080P",
+//         VideoType::Uhd => "超高清4K",
+//         VideoType::Fuhd => "全超高清8K",
+//     };
+// }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VideoInfo {
@@ -332,29 +331,29 @@ impl VideoInfo {
         self.height = height
     }
 
-    pub fn set_video_type(&mut self, video_type: VideoType) {
-        self.video_type = video_type
-    }
+    // pub fn set_video_type(&mut self, video_type: VideoType) {
+    //     self.video_type = video_type
+    // }
 
     pub fn set_codec(&mut self, codec: String) {
         self.codec = codec
     }
 
-    pub fn get_width(self) -> i32 {
-        self.width
-    }
-
-    pub fn get_height(self) -> i32 {
-        self.height
-    }
-
-    pub fn get_video_type(self) -> VideoType {
-        self.video_type
-    }
-
-    pub fn get_codec(self) -> String {
-        self.codec
-    }
+    // pub fn get_width(self) -> i32 {
+    //     self.width
+    // }
+    //
+    // pub fn get_height(self) -> i32 {
+    //     self.height
+    // }
+    //
+    // pub fn get_video_type(self) -> VideoType {
+    //     self.video_type
+    // }
+    //
+    // pub fn get_codec(self) -> String {
+    //     self.codec
+    // }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -377,12 +376,12 @@ impl AudioInfo {
     pub fn set_channels(&mut self, channels: i32) {
         self.channels = channels
     }
-    pub fn get_channels(self) -> i32 {
-        self.channels
-    }
-    pub fn get_codec(self) -> String {
-        self.codec
-    }
+    // pub fn get_channels(self) -> i32 {
+    //     self.channels
+    // }
+    // pub fn get_codec(self) -> String {
+    //     self.codec
+    // }
 }
 
 pub enum SourceType {
@@ -391,12 +390,12 @@ pub enum SourceType {
 }
 
 pub mod m3u {
-    use crate::lib::util::{get_url_body, parse_normal_str, parse_quota_str};
-    use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-    use crate::lib::{M3uObjectList, SourceType};
+    use crate::common::util::{get_url_body, parse_normal_str, parse_quota_str};
+    use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
+    use crate::common::{M3uObjectList, SourceType};
     use core::option::Option;
     use std::fs::File;
-    use std::io::{ErrorKind, Read};
+    use std::io::Read;
 
     pub fn check_source_type(_body: String) -> Option<SourceType> {
         if _body.starts_with("#EXTM3U") {

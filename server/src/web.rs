@@ -1,11 +1,10 @@
-use crate::lib::check;
-use crate::lib::task;
+use crate::common::check;
+use crate::common::task;
 use actix_files as fs;
 use actix_files::NamedFile;
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder, Result};
 use serde::{Deserialize, Serialize};
 use std::time;
-use tokio::runtime::Runtime;
 
 #[post("/task/post")]
 async fn accept_one_task(_info: web::Json<task::TaskPost>) -> Result<String> {
