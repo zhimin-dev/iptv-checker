@@ -151,33 +151,47 @@ impl M3uObjectList {
         self.debug = debug
     }
 
-    pub async fn check_data(&mut self, request_time: i32) {
+    pub async fn check_data(&mut self, request_time: i32, concurrent: i32) {
         let mut search_clarity = false;
         match &self.search_clarity {
             Some(_d) => search_clarity = true,
             None => {}
         }
-        for x in self.list.iter_mut() {
-            let url = x.url.clone();
-            let result = check_link_is_valid(url, request_time as u64, search_clarity).await;
-            if self.debug {
-                println!("url is: {} result: {:?}", x.url.clone(), result);
-            }
-            match result {
-                Ok(data) => {
-                    let mut status = OtherStatus::new();
-                    match data.audio {
-                        Some(a) => status.set_audio(a),
-                        None => {}
+        let mut now_num = 1;
+        let total = self.list.len();
+        loop {
+            for _i in 0..concurrent {
+                if let Some(mut x) = self.list.pop() {
+                    let url = x.url.clone();
+                    println!("now is {}/{}", now_num, total);
+                    let result =
+                        check_link_is_valid(url, request_time as u64, search_clarity).await;
+                    if self.debug {
+                        println!("url is: {} result: {:?}", x.url.clone(), result);
                     }
-                    match data.video {
-                        Some(v) => status.set_video(v),
-                        None => {}
+                    now_num += 1;
+                    match result {
+                        Ok(data) => {
+                            let mut status = OtherStatus::new();
+                            match data.audio {
+                                Some(a) => status.set_audio(a),
+                                None => {}
+                            }
+                            match data.video {
+                                Some(v) => status.set_video(v),
+                                None => {}
+                            }
+                            x.set_status(Success);
+                            x.set_other_status(status);
+                        }
+                        Err(_e) => x.set_status(Failed),
                     }
-                    x.set_status(Success);
-                    x.set_other_status(status);
+                } else {
+                    break;
                 }
-                Err(_e) => x.set_status(Failed),
+            }
+            if self.list.len() == 0 {
+                break;
             }
         }
     }

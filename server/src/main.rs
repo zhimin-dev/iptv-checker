@@ -1,9 +1,9 @@
 mod common;
-mod web;
 mod utils;
+mod web;
 
-use common::util::is_url;
 use clap::{arg, Args as clapArgs, Parser, Subcommand};
+use common::util::is_url;
 use std::env;
 
 #[derive(Subcommand)]
@@ -53,6 +53,10 @@ pub struct CheckArgs {
     /// debug使用，可以看到相关的中间日志
     #[arg(long = "debug", default_value_t = false)]
     debug: bool,
+
+    /// 并发数
+    #[arg(short = 'c', long = "concurrency", default_value_t = 1)]
+    concurrency: i32,
 }
 
 #[derive(Parser)]
@@ -118,15 +122,16 @@ pub async fn main() {
                 if !is_url(args.input_file.to_owned()) {
                     data = common::m3u::m3u::from_file(args.input_file.to_owned());
                 } else {
-                    data = common::m3u::m3u::from_url(args.input_file.to_owned(), args.timeout as u64)
-                        .await;
+                    data =
+                        common::m3u::m3u::from_url(args.input_file.to_owned(), args.timeout as u64)
+                            .await;
                 }
                 let output_file = utils::get_out_put_filename(args.output_file.clone());
                 println!("generate output file : {}", output_file);
                 if args.debug {
                     data.set_debug_mod(args.debug);
                 }
-                data.check_data(args.timeout as i32).await;
+                data.check_data(args.timeout as i32, args.concurrency).await;
                 data.output_file(output_file).await;
             }
         }
