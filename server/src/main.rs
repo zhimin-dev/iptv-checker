@@ -127,7 +127,7 @@ pub async fn main() {
                             .await;
                 }
                 let output_file = utils::get_out_put_filename(args.output_file.clone());
-                println!("generate output file : {}", output_file);
+                println!("输出文件: {}", output_file);
                 if args.debug {
                     data.set_debug_mod(args.debug);
                 }

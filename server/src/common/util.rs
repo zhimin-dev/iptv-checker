@@ -97,7 +97,6 @@ fn parse_one_m3u(_arr: Vec<&str>, index: i32) -> Option<M3uObject> {
 }
 
 pub fn parse_quota_str(_body: String) -> M3uObjectList {
-    println!("-----parse quota str");
     let mut result = M3uObjectList::new();
     let mut list = Vec::new();
     let exp_line = _body.split("\n");

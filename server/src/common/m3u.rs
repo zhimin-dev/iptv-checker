@@ -2,9 +2,12 @@ use crate::common::check::check::check_link_is_valid;
 use crate::common::CheckDataStatus::{Failed, Success, Unchecked};
 use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use crate::common::VideoType::Unknown;
+use actix_rt::time;
+use actix_web::web::to;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::Write;
+use std::io::{self, Write};
+use std::time::Duration;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct M3uExtend {
@@ -112,11 +115,53 @@ impl M3uObject {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct M3uObjectListCounter {
+    check_index: i32,
+    total: i32,
+}
+
 pub struct M3uObjectList {
     header: Option<M3uExt>,
     list: Vec<M3uObject>,
     debug: bool,
     search_clarity: Option<VideoType>,
+    counter: Option<M3uObjectListCounter>,
+}
+
+impl M3uObjectListCounter {
+    pub fn new() -> M3uObjectListCounter {
+        M3uObjectListCounter {
+            check_index: 0,
+            total: 0,
+        }
+    }
+
+    pub fn now_index_incr(&mut self) {
+        let mut index = self.check_index;
+        index += 1;
+        self.check_index = index
+    }
+
+    pub fn now_index_incr_and_print(&mut self) {
+        let mut index = self.check_index;
+        index += 1;
+        self.check_index = index;
+        self.print_now_status();
+    }
+
+    pub fn set_total(&mut self, total: i32) {
+        self.total = total
+    }
+
+    pub fn print_now_status(self) {
+        print!("\r检查进度: {}/{}", self.check_index, self.total);
+        io::stdout().flush().unwrap();
+    }
+
+    pub fn get_now_status(self) -> (i32, i32) {
+        (self.check_index, self.total)
+    }
 }
 
 impl M3uObjectList {
@@ -126,6 +171,7 @@ impl M3uObjectList {
             list: vec![],
             debug: false,
             search_clarity: None,
+            counter: None,
         }
     }
 
@@ -147,6 +193,10 @@ impl M3uObjectList {
     //     }
     // }
 
+    pub fn set_counter(&mut self, counter: M3uObjectListCounter) {
+        self.counter = Some(counter)
+    }
+
     pub fn set_debug_mod(&mut self, debug: bool) {
         self.debug = debug
     }
@@ -157,19 +207,22 @@ impl M3uObjectList {
             Some(_d) => search_clarity = true,
             None => {}
         }
-        let mut now_num = 1;
         let total = self.list.len();
+        println!("成功解析文件中直播地址总数： {}", total);
+        let mut counter = M3uObjectListCounter::new();
+        counter.set_total(total as i32);
+        self.set_counter(counter);
         loop {
             for _i in 0..concurrent {
                 if let Some(mut x) = self.list.pop() {
                     let url = x.url.clone();
-                    println!("now is {}/{}", now_num, total);
+                    counter.now_index_incr();
+                    counter.print_now_status();
                     let result =
                         check_link_is_valid(url, request_time as u64, search_clarity).await;
                     if self.debug {
                         println!("url is: {} result: {:?}", x.url.clone(), result);
                     }
-                    now_num += 1;
                     match result {
                         Ok(data) => {
                             let mut status = OtherStatus::new();
@@ -231,7 +284,8 @@ impl M3uObjectList {
             }
             let _ = fd.flush();
         }
-        println!("解析完成----");
+        time::sleep(Duration::from_millis(500)).await;
+        println!("\n解析完成----");
     }
 }
 
@@ -247,6 +301,7 @@ impl From<String> for M3uObjectList {
             list: vec![],
             debug: false,
             search_clarity: None,
+            counter: None,
         };
         let source_type = m3u::check_source_type(_str.to_owned());
         return match source_type {
@@ -432,12 +487,12 @@ pub mod m3u {
     }
 
     pub(crate) fn body_normal(_body: String) -> M3uObjectList {
-        println!("标准格式m3u格式文件");
+        println!("您输入是：标准格式m3u格式文件");
         parse_normal_str(_body)
     }
 
     pub(crate) fn body_quota(_body: String) -> M3uObjectList {
-        println!("非标准格式m3u格式文件，尝试解析中");
+        println!("您输入是：非标准格式m3u格式文件，尝试解析中");
         parse_quota_str(_body)
     }
 
