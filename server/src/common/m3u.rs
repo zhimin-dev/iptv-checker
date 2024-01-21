@@ -3,8 +3,6 @@ use crate::common::CheckDataStatus::{Failed, Success, Unchecked};
 use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use crate::common::VideoType::Unknown;
 use actix_rt::time;
-use futures::task::SpawnExt;
-use nix::libc::uid_t;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{self, Write};
@@ -149,12 +147,12 @@ impl M3uObjectListCounter {
         self.check_index = index
     }
 
-    pub fn now_index_incr_and_print(&mut self) {
-        let mut index = self.check_index;
-        index += 1;
-        self.check_index = index;
-        self.print_now_status();
-    }
+    // pub fn now_index_incr_and_print(&mut self) {
+    //     let mut index = self.check_index;
+    //     index += 1;
+    //     self.check_index = index;
+    //     self.print_now_status();
+    // }
 
     pub fn set_total(&mut self, total: i32) {
         self.total = total
@@ -165,9 +163,9 @@ impl M3uObjectListCounter {
         io::stdout().flush().unwrap();
     }
 
-    pub fn get_now_status(self) -> (i32, i32) {
-        (self.check_index, self.total)
-    }
+    // pub fn get_now_status(self) -> (i32, i32) {
+    //     (self.check_index, self.total)
+    // }
 }
 
 impl M3uObjectList {
@@ -223,33 +221,37 @@ impl M3uObjectList {
         let debug = self.debug;
 
         let data = self.list.clone();
-
         let (tx, rx) = mpsc::channel();
+        let (data_tx, data_rx) = mpsc::channel();
+        let new_data_rx = Arc::new(Mutex::new(data_rx));
 
-        for i in 0.._concurrent {
-            let mut data_clone = data.clone(); // 克隆一份数据给每个线程
+        for _i in 0.._concurrent {
             let tx_clone = tx.clone();
+            let data_rx_clone = Arc::clone(&new_data_rx);
 
-            thread::spawn(move || {
-                let mut index: usize = i as usize;
-
-                while index < data_clone.len() {
-                    let item = data_clone[index].clone();
-
-                    index += _concurrent as usize; // 根据线程数量更新索引
-
-                    let result = set_one_item(debug, item, request_time, search_clarity);
-                    tx_clone.send(result).unwrap();
-                }
+            thread::spawn(move || loop {
+                let item = {
+                    let rx_lock = data_rx_clone.lock().unwrap();
+                    match rx_lock.recv() {
+                        Ok(item) => item,
+                        Err(_) => break,
+                    }
+                };
+                let result = set_one_item(debug, item, request_time, search_clarity);
+                tx_clone.send(result).unwrap();
             });
         }
+        for item in data {
+            data_tx.send(item).unwrap();
+        }
+        drop(tx); // 发送完成后关闭队列
 
         let mut i = 0;
         loop {
             if i == counter.total {
                 break;
             }
-            let result = rx.try_recv();
+            let result = rx.recv();
             match result {
                 Ok(data) => {
                     // 处理返回值
@@ -258,60 +260,10 @@ impl M3uObjectList {
                     counter.print_now_status();
                     i += 1;
                 }
-                Err(_e) => {
-                    thread::sleep(Duration::from_millis(100))
-                }
+                Err(_e) => {},
             }
         }
         println!("total {}", self.result_list.len());
-    }
-
-    pub async fn check_data(&mut self, request_time: i32, concurrent: i32) {
-        let mut search_clarity = false;
-        match &self.search_clarity {
-            Some(_d) => search_clarity = true,
-            None => {}
-        }
-        let total = self.list.len();
-        println!("成功解析文件中直播地址总数： {}", total);
-        let mut counter = M3uObjectListCounter::new();
-        counter.set_total(total as i32);
-        self.set_counter(counter);
-        loop {
-            for _i in 0..concurrent {
-                if let Some(mut x) = self.list.pop() {
-                    let url = x.url.clone();
-                    counter.now_index_incr();
-                    counter.print_now_status();
-                    let result =
-                        check_link_is_valid(url, request_time as u64, search_clarity).await;
-                    if self.debug {
-                        println!("url is: {} result: {:?}", x.url.clone(), result);
-                    }
-                    match result {
-                        Ok(data) => {
-                            let mut status = OtherStatus::new();
-                            match data.audio {
-                                Some(a) => status.set_audio(a),
-                                None => {}
-                            }
-                            match data.video {
-                                Some(v) => status.set_video(v),
-                                None => {}
-                            }
-                            x.set_status(Success);
-                            x.set_other_status(status);
-                        }
-                        Err(_e) => x.set_status(Failed),
-                    }
-                } else {
-                    break;
-                }
-            }
-            if self.list.len() == 0 {
-                break;
-            }
-        }
     }
 
     pub async fn output_file(self, output_file: String) {
