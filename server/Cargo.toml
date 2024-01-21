@@ -22,6 +22,8 @@ nix = "0.27.1"
 log = "0.4.20"
 url = "2.5.0"
 rand = "0.8"
+crossbeam-channel = "0.5"
+threadpool = "1.8.1"
 
 [target.'cfg(windows)'.dependencies]
 # 只在Windows平台上使用的依赖项

@@ -13,7 +13,7 @@ iptv-checker不再支持chrome扩展，后续chrome扩展将改为在线播放m3
 先找到你的平台的可执行文件，下载到本地后，执行下面的代码即可无需docker环境进行检查
 
 ```bash
-iptv-checker check -i 你本地的m3u文件.m3u -o 自定义的结果文件.m3u #检查本地文件
+iptv-checker check -i 你本地的m3u文件.m3u -o 自定义的结果文件.m3u -c 10 #检查本地文件
 iptv-checker check -i https://xxxx.com/1111.m3u #检查网络上的文件
 iptv-checker check --help #获取帮助
 ```
@@ -62,9 +62,11 @@ docker-compose up -d
 
 ## 变更日志
 
-- v2.16 开发预告
+<!-- - v2.16 开发预告
   - 支持并发请求
-  - 支持后台服务
+  - 支持后台服务 -->
+- v2.15.4
+  - 支持iptv-checker command line 支持并发、进度展示
 - v2.15.3
   - 支持iptv-checker command line
 - v2.15.2

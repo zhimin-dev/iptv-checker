@@ -1,13 +1,17 @@
-use crate::lib::check::check::check_link_is_valid;
-use crate::lib::CheckDataStatus::{Failed, Success, Unchecked};
-use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-use crate::lib::VideoType::Unknown;
-use clap::Parser;
+use crate::common::check::check::check_link_is_valid;
+use crate::common::CheckDataStatus::{Failed, Success, Unchecked};
+use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
+use crate::common::VideoType::Unknown;
+use actix_rt::time;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::Write;
+use std::io::{self, Write};
+use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct M3uExtend {
     group_title: String, //group title
     tv_logo: String,     //台标
@@ -54,7 +58,7 @@ impl M3uExtend {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct M3uObject {
     index: i32,                        //索引
     url: String,                       //连接url
@@ -113,11 +117,55 @@ impl M3uObject {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct M3uObjectListCounter {
+    check_index: i32,
+    total: i32,
+}
+
+#[derive(Clone)]
 pub struct M3uObjectList {
     header: Option<M3uExt>,
     list: Vec<M3uObject>,
+    result_list: Vec<M3uObject>,
     debug: bool,
     search_clarity: Option<VideoType>,
+    counter: Option<M3uObjectListCounter>,
+}
+
+impl M3uObjectListCounter {
+    pub fn new() -> M3uObjectListCounter {
+        M3uObjectListCounter {
+            check_index: 0,
+            total: 0,
+        }
+    }
+
+    pub fn now_index_incr(&mut self) {
+        let mut index = self.check_index;
+        index += 1;
+        self.check_index = index
+    }
+
+    // pub fn now_index_incr_and_print(&mut self) {
+    //     let mut index = self.check_index;
+    //     index += 1;
+    //     self.check_index = index;
+    //     self.print_now_status();
+    // }
+
+    pub fn set_total(&mut self, total: i32) {
+        self.total = total
+    }
+
+    pub fn print_now_status(self) {
+        print!("\r检查进度: {}/{}", self.check_index, self.total);
+        io::stdout().flush().unwrap();
+    }
+
+    // pub fn get_now_status(self) -> (i32, i32) {
+    //     (self.check_index, self.total)
+    // }
 }
 
 impl M3uObjectList {
@@ -125,8 +173,10 @@ impl M3uObjectList {
         M3uObjectList {
             header: None,
             list: vec![],
+            result_list: vec![],
             debug: false,
             search_clarity: None,
+            counter: None,
         }
     }
 
@@ -138,54 +188,87 @@ impl M3uObjectList {
         self.list = list
     }
 
-    pub fn data_len(self) {
-        if self.debug {
-            println!("list length: {}", self.list.len());
-            println!(
-                "header x-tv-list length: {}",
-                self.header.unwrap().x_tv_url.len()
-            );
-        }
+    // pub fn data_len(self) {
+    //     if self.debug {
+    //         println!("list length: {}", self.list.len());
+    //         println!(
+    //             "header x-tv-list length: {}",
+    //             self.header.unwrap().x_tv_url.len()
+    //         );
+    //     }
+    // }
+
+    pub fn set_counter(&mut self, counter: M3uObjectListCounter) {
+        self.counter = Some(counter)
     }
 
     pub fn set_debug_mod(&mut self, debug: bool) {
-        self.debug = true
+        self.debug = debug
     }
 
-    pub async fn check_data(&mut self, request_time: i32) {
+    pub async fn check_data_new(&mut self, request_time: i32, _concurrent: i32) {
+        println!("current {}", _concurrent);
         let mut search_clarity = false;
         match &self.search_clarity {
             Some(_d) => search_clarity = true,
             None => {}
         }
-        for x in self.list.iter_mut() {
-            let url = x.url.clone();
-            let result = check_link_is_valid(url, request_time as u64, search_clarity).await;
-            if self.debug {
-                println!("url is: {} result: {:?}", x.url.clone(), result);
+        let total = self.list.len();
+        println!("成功解析文件中直播地址总数： {}", total);
+        let mut counter = M3uObjectListCounter::new();
+        counter.set_total(total as i32);
+        self.set_counter(counter);
+        let debug = self.debug;
+
+        let data = self.list.clone();
+        let (tx, rx) = mpsc::channel();
+        let (data_tx, data_rx) = mpsc::channel();
+        let new_data_rx = Arc::new(Mutex::new(data_rx));
+
+        for _i in 0.._concurrent {
+            let tx_clone = tx.clone();
+            let data_rx_clone = Arc::clone(&new_data_rx);
+
+            thread::spawn(move || loop {
+                let item = {
+                    let rx_lock = data_rx_clone.lock().unwrap();
+                    match rx_lock.recv() {
+                        Ok(item) => item,
+                        Err(_) => break,
+                    }
+                };
+                let result = set_one_item(debug, item, request_time, search_clarity);
+                tx_clone.send(result).unwrap();
+            });
+        }
+        for item in data {
+            data_tx.send(item).unwrap();
+        }
+        drop(tx); // 发送完成后关闭队列
+
+        let mut i = 0;
+        loop {
+            if i == counter.total {
+                break;
             }
+            let result = rx.recv();
             match result {
                 Ok(data) => {
-                    let mut status = OtherStatus::new();
-                    match data.audio {
-                        Some(a) => status.set_audio(a),
-                        None => {}
-                    }
-                    match data.video {
-                        Some(v) => status.set_video(v),
-                        None => {}
-                    }
-                    x.set_status(Success);
-                    x.set_other_status(status);
+                    // 处理返回值
+                    self.result_list.push(data);
+                    counter.now_index_incr();
+                    counter.print_now_status();
+                    i += 1;
                 }
-                Err(_e) => x.set_status(Failed),
+                Err(_e) => {},
             }
         }
+        println!("total {}", self.result_list.len());
     }
 
     pub async fn output_file(self, output_file: String) {
         let mut lines: Vec<String> = vec![];
-        for x in &self.list {
+        for x in &self.result_list {
             if x.status == Success {
                 let exp: Vec<&str> = x.raw.split("\n").collect();
                 for o in exp {
@@ -218,11 +301,50 @@ impl M3uObjectList {
             }
             let _ = fd.flush();
         }
-        println!("解析完成----");
+        time::sleep(Duration::from_millis(500)).await;
+        println!("\n解析完成----");
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+fn set_one_item(
+    debug: bool,
+    mut x: M3uObject,
+    request_time: i32,
+    search_clarity: bool,
+) -> M3uObject {
+    let url = x.url.clone();
+    let _log_url = url.clone();
+    let result = actix_rt::System::new().block_on(check_link_is_valid(
+        url,
+        request_time as u64,
+        search_clarity,
+    ));
+    if debug {
+        println!("url is: {} result: {:?}", x.url.clone(), result);
+    }
+    return match result {
+        Ok(data) => {
+            let mut status = OtherStatus::new();
+            match data.audio {
+                Some(a) => status.set_audio(a),
+                None => {}
+            }
+            match data.video {
+                Some(v) => status.set_video(v),
+                None => {}
+            }
+            x.set_status(Success);
+            x.set_other_status(status);
+            x
+        }
+        Err(_e) => {
+            x.set_status(Failed);
+            x
+        }
+    };
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct M3uExt {
     pub(crate) x_tv_url: Vec<String>,
 }
@@ -232,8 +354,10 @@ impl From<String> for M3uObjectList {
         let empty_data = M3uObjectList {
             header: None,
             list: vec![],
+            result_list: vec![],
             debug: false,
             search_clarity: None,
+            counter: None,
         };
         let source_type = m3u::check_source_type(_str.to_owned());
         return match source_type {
@@ -244,14 +368,14 @@ impl From<String> for M3uObjectList {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum CheckDataStatus {
     Unchecked, //未检查
     Success,   //检查成功
     Failed,    //检查失败，包含超时、无效
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OtherStatus {
     video: Option<VideoInfo>,     //视频信息
     audio: Option<AudioInfo>,     //音频信息
@@ -275,17 +399,17 @@ impl OtherStatus {
         self.audio = Some(audio)
     }
 
-    pub fn set_network(&mut self, network: NetworkInfo) {
-        self.network = Some(network)
-    }
+    // pub fn set_network(&mut self, network: NetworkInfo) {
+    //     self.network = Some(network)
+    // }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NetworkInfo {
     delay: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum VideoType {
     Unknown,
     Sd,
@@ -295,18 +419,18 @@ pub enum VideoType {
     Fuhd,
 }
 
-fn video_type_string(vt: VideoType) -> *const str {
-    return match vt {
-        VideoType::Unknown => "未知",
-        VideoType::Sd => "普清",
-        VideoType::Hd => "高清720P",
-        VideoType::Fhd => "全高清1080P",
-        VideoType::Uhd => "超高清4K",
-        VideoType::Fuhd => "全超高清8K",
-    };
-}
+// fn video_type_string(vt: VideoType) -> *const str {
+//     return match vt {
+//         VideoType::Unknown => "未知",
+//         VideoType::Sd => "普清",
+//         VideoType::Hd => "高清720P",
+//         VideoType::Fhd => "全高清1080P",
+//         VideoType::Uhd => "超高清4K",
+//         VideoType::Fuhd => "全超高清8K",
+//     };
+// }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoInfo {
     width: i32,
     height: i32,
@@ -332,32 +456,32 @@ impl VideoInfo {
         self.height = height
     }
 
-    pub fn set_video_type(&mut self, video_type: VideoType) {
-        self.video_type = video_type
-    }
+    // pub fn set_video_type(&mut self, video_type: VideoType) {
+    //     self.video_type = video_type
+    // }
 
     pub fn set_codec(&mut self, codec: String) {
         self.codec = codec
     }
 
-    pub fn get_width(self) -> i32 {
-        self.width
-    }
-
-    pub fn get_height(self) -> i32 {
-        self.height
-    }
-
-    pub fn get_video_type(self) -> VideoType {
-        self.video_type
-    }
-
-    pub fn get_codec(self) -> String {
-        self.codec
-    }
+    // pub fn get_width(self) -> i32 {
+    //     self.width
+    // }
+    //
+    // pub fn get_height(self) -> i32 {
+    //     self.height
+    // }
+    //
+    // pub fn get_video_type(self) -> VideoType {
+    //     self.video_type
+    // }
+    //
+    // pub fn get_codec(self) -> String {
+    //     self.codec
+    // }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioInfo {
     codec: String,
     channels: i32,
@@ -377,12 +501,12 @@ impl AudioInfo {
     pub fn set_channels(&mut self, channels: i32) {
         self.channels = channels
     }
-    pub fn get_channels(self) -> i32 {
-        self.channels
-    }
-    pub fn get_codec(self) -> String {
-        self.codec
-    }
+    // pub fn get_channels(self) -> i32 {
+    //     self.channels
+    // }
+    // pub fn get_codec(self) -> String {
+    //     self.codec
+    // }
 }
 
 pub enum SourceType {
@@ -391,12 +515,12 @@ pub enum SourceType {
 }
 
 pub mod m3u {
-    use crate::lib::util::{get_url_body, parse_normal_str, parse_quota_str};
-    use crate::lib::SourceType::{SourceTypeNormal, SourceTypeQuota};
-    use crate::lib::{M3uObjectList, SourceType};
+    use crate::common::util::{get_url_body, parse_normal_str, parse_quota_str};
+    use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
+    use crate::common::{M3uObjectList, SourceType};
     use core::option::Option;
     use std::fs::File;
-    use std::io::{ErrorKind, Read};
+    use std::io::Read;
 
     pub fn check_source_type(_body: String) -> Option<SourceType> {
         if _body.starts_with("#EXTM3U") {
@@ -419,12 +543,12 @@ pub mod m3u {
     }
 
     pub(crate) fn body_normal(_body: String) -> M3uObjectList {
-        println!("标准格式m3u格式文件");
+        println!("您输入是：标准格式m3u格式文件");
         parse_normal_str(_body)
     }
 
     pub(crate) fn body_quota(_body: String) -> M3uObjectList {
-        println!("非标准格式m3u格式文件，尝试解析中");
+        println!("您输入是：非标准格式m3u格式文件，尝试解析中");
         parse_quota_str(_body)
     }
 

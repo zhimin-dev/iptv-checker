@@ -1,4 +1,4 @@
-use crate::lib::{AudioInfo, VideoInfo};
+use crate::common::{AudioInfo, VideoInfo};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -93,8 +93,8 @@ pub struct FfprobeStream {
 }
 
 pub mod check {
-    use crate::lib::util::check_body_is_m3u8_format;
-    use crate::lib::{AudioInfo, CheckUrlIsAvailableResponse, Ffprobe, VideoInfo};
+    use crate::common::util::check_body_is_m3u8_format;
+    use crate::common::{AudioInfo, CheckUrlIsAvailableResponse, Ffprobe, VideoInfo};
     use chrono::Utc;
     use std::io::{Error, ErrorKind};
     use std::process::Command;
