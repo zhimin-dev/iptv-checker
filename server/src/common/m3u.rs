@@ -3,13 +3,17 @@ use crate::common::CheckDataStatus::{Failed, Success, Unchecked};
 use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
 use crate::common::VideoType::Unknown;
 use actix_rt::time;
-use actix_web::web::to;
+use futures::task::SpawnExt;
+use nix::libc::uid_t;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{self, Write};
+use std::sync::mpsc;
+use std::sync::{Arc, Mutex};
+use std::thread;
 use std::time::Duration;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct M3uExtend {
     group_title: String, //group title
     tv_logo: String,     //台标
@@ -56,7 +60,7 @@ impl M3uExtend {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct M3uObject {
     index: i32,                        //索引
     url: String,                       //连接url
@@ -121,9 +125,11 @@ pub struct M3uObjectListCounter {
     total: i32,
 }
 
+#[derive(Clone)]
 pub struct M3uObjectList {
     header: Option<M3uExt>,
     list: Vec<M3uObject>,
+    result_list: Vec<M3uObject>,
     debug: bool,
     search_clarity: Option<VideoType>,
     counter: Option<M3uObjectListCounter>,
@@ -169,6 +175,7 @@ impl M3uObjectList {
         M3uObjectList {
             header: None,
             list: vec![],
+            result_list: vec![],
             debug: false,
             search_clarity: None,
             counter: None,
@@ -199,6 +206,119 @@ impl M3uObjectList {
 
     pub fn set_debug_mod(&mut self, debug: bool) {
         self.debug = debug
+    }
+
+    pub async fn check_data_new(&mut self, request_time: i32, _concurrent: i32) {
+        println!("current {}", _concurrent);
+        let mut search_clarity = false;
+        match &self.search_clarity {
+            Some(_d) => search_clarity = true,
+            None => {}
+        }
+        let total = self.list.len();
+        println!("成功解析文件中直播地址总数： {}", total);
+        let mut counter = M3uObjectListCounter::new();
+        counter.set_total(total as i32);
+        self.set_counter(counter);
+        let debug = self.debug;
+
+        let data = self.list.clone();
+        // let (tx, rx) = mpsc::sync_channel(_concurrent as usize);
+
+        let (tx, rx) = mpsc::channel();
+
+        for i in 0.._concurrent {
+            let mut data_clone = data.clone(); // 克隆一份数据给每个线程
+            let tx_clone = tx.clone();
+
+            thread::spawn(move || {
+                let mut index: usize = i as usize;
+
+                while index < data_clone.len() {
+                    let item = data_clone[index].clone();
+
+                    index += _concurrent as usize; // 根据线程数量更新索引
+
+                    let result = set_one_item(debug, item, request_time, search_clarity);
+                    tx_clone.send(result).unwrap();
+                }
+            });
+        }
+
+        println!("---- recv");
+        // let mut i = 0;
+        // for _ in 0.._concurrent {
+        //     let result = rx.try_recv();
+        //     match result {
+        //         Ok(data) => {
+        //             // 处理返回值
+        //             self.result_list.push(data);
+        //             counter.now_index_incr();
+        //             counter.print_now_status();
+        //             i += 1;
+        //         }
+        //         Err(e) => {
+        //             thread::sleep(Duration::from_millis(100))
+        //             // println!("recevied error {}", e);
+        //         }
+        //     }
+        // }
+
+        // for x in 0.._concurrent {
+        //     let data = data.clone();
+        //     let tx = tx.clone();
+        //     thread_list.push(thread::spawn(move || {
+        //         println!("----thread ----");
+        //         while let get_lock = data.lock() {
+        //             println!("---inner spawn ----enter loop get lock ");
+        //             match get_lock {
+        //                 Ok(mut get_data) => {
+        //                     println!("hit ok data");
+        //                     if get_data.len() == 0 {
+        //                         println!("data is zero");
+        //                         break;
+        //                     } else {
+        //                         if let Some(item) = get_data.pop() {
+        //                             println!("now url = {}", item.url);
+        //                             // 异步函数处理数据
+        //                             let result =
+        //                                 set_one_item(debug, item, request_time, search_clarity);
+        //                             tx.send(result).unwrap();
+        //                         }
+        //                     }
+        //                 }
+        //                 Err(e) => {
+        //                     println!("hit error data");
+        //                     println!("error {}", e);
+        //                     // thread::sleep(Duration::from_millis(100))
+        //                 }
+        //             }
+        //         }
+        //     }));
+        // }
+
+        println!("---- recv");
+        let mut i = 0;
+        loop {
+            if i == counter.total {
+                break;
+            }
+            let result = rx.try_recv();
+            match result {
+                Ok(data) => {
+                    // 处理返回值
+                    self.result_list.push(data);
+                    counter.now_index_incr();
+                    counter.print_now_status();
+                    i += 1;
+                }
+                Err(e) => {
+                    thread::sleep(Duration::from_millis(100))
+                    // println!("recevied error {}", e);
+                }
+            }
+        }
+        println!("total {}", self.result_list.len());
     }
 
     pub async fn check_data(&mut self, request_time: i32, concurrent: i32) {
@@ -251,7 +371,7 @@ impl M3uObjectList {
 
     pub async fn output_file(self, output_file: String) {
         let mut lines: Vec<String> = vec![];
-        for x in &self.list {
+        for x in &self.result_list {
             if x.status == Success {
                 let exp: Vec<&str> = x.raw.split("\n").collect();
                 for o in exp {
@@ -289,7 +409,47 @@ impl M3uObjectList {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+fn set_one_item(
+    debug: bool,
+    mut x: M3uObject,
+    request_time: i32,
+    search_clarity: bool,
+) -> M3uObject {
+    println!("inner {}", x.url);
+    let url = x.url.clone();
+    let _log_url = url.clone();
+    let result = actix_rt::System::new().block_on(check_link_is_valid(
+        url,
+        request_time as u64,
+        search_clarity,
+    ));
+    if debug {
+        println!("url is: {} result: {:?}", x.url.clone(), result);
+    }
+    println!("now --- {}", _log_url);
+    return match result {
+        Ok(data) => {
+            let mut status = OtherStatus::new();
+            match data.audio {
+                Some(a) => status.set_audio(a),
+                None => {}
+            }
+            match data.video {
+                Some(v) => status.set_video(v),
+                None => {}
+            }
+            x.set_status(Success);
+            x.set_other_status(status);
+            x
+        }
+        Err(_e) => {
+            x.set_status(Failed);
+            x
+        }
+    };
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct M3uExt {
     pub(crate) x_tv_url: Vec<String>,
 }
@@ -299,6 +459,7 @@ impl From<String> for M3uObjectList {
         let empty_data = M3uObjectList {
             header: None,
             list: vec![],
+            result_list: vec![],
             debug: false,
             search_clarity: None,
             counter: None,
@@ -312,14 +473,14 @@ impl From<String> for M3uObjectList {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub enum CheckDataStatus {
     Unchecked, //未检查
     Success,   //检查成功
     Failed,    //检查失败，包含超时、无效
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OtherStatus {
     video: Option<VideoInfo>,     //视频信息
     audio: Option<AudioInfo>,     //音频信息
@@ -348,12 +509,12 @@ impl OtherStatus {
     // }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct NetworkInfo {
     delay: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub enum VideoType {
     Unknown,
     Sd,
@@ -374,7 +535,7 @@ pub enum VideoType {
 //     };
 // }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct VideoInfo {
     width: i32,
     height: i32,
@@ -425,7 +586,7 @@ impl VideoInfo {
     // }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AudioInfo {
     codec: String,
     channels: i32,

@@ -117,7 +117,7 @@ pub async fn main() {
         }
         Commands::Check(args) => {
             if args.input_file != "" {
-                println!("{}", args.input_file);
+                println!("您输入的文件地址是: {}", args.input_file);
                 let mut data;
                 if !is_url(args.input_file.to_owned()) {
                     data = common::m3u::m3u::from_file(args.input_file.to_owned());
@@ -131,7 +131,7 @@ pub async fn main() {
                 if args.debug {
                     data.set_debug_mod(args.debug);
                 }
-                data.check_data(args.timeout as i32, args.concurrency).await;
+                data.check_data_new(args.timeout as i32, args.concurrency).await;
                 data.output_file(output_file).await;
             }
         }
