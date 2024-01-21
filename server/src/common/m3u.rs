@@ -223,7 +223,6 @@ impl M3uObjectList {
         let debug = self.debug;
 
         let data = self.list.clone();
-        // let (tx, rx) = mpsc::sync_channel(_concurrent as usize);
 
         let (tx, rx) = mpsc::channel();
 
@@ -245,59 +244,6 @@ impl M3uObjectList {
             });
         }
 
-        println!("---- recv");
-        // let mut i = 0;
-        // for _ in 0.._concurrent {
-        //     let result = rx.try_recv();
-        //     match result {
-        //         Ok(data) => {
-        //             // 处理返回值
-        //             self.result_list.push(data);
-        //             counter.now_index_incr();
-        //             counter.print_now_status();
-        //             i += 1;
-        //         }
-        //         Err(e) => {
-        //             thread::sleep(Duration::from_millis(100))
-        //             // println!("recevied error {}", e);
-        //         }
-        //     }
-        // }
-
-        // for x in 0.._concurrent {
-        //     let data = data.clone();
-        //     let tx = tx.clone();
-        //     thread_list.push(thread::spawn(move || {
-        //         println!("----thread ----");
-        //         while let get_lock = data.lock() {
-        //             println!("---inner spawn ----enter loop get lock ");
-        //             match get_lock {
-        //                 Ok(mut get_data) => {
-        //                     println!("hit ok data");
-        //                     if get_data.len() == 0 {
-        //                         println!("data is zero");
-        //                         break;
-        //                     } else {
-        //                         if let Some(item) = get_data.pop() {
-        //                             println!("now url = {}", item.url);
-        //                             // 异步函数处理数据
-        //                             let result =
-        //                                 set_one_item(debug, item, request_time, search_clarity);
-        //                             tx.send(result).unwrap();
-        //                         }
-        //                     }
-        //                 }
-        //                 Err(e) => {
-        //                     println!("hit error data");
-        //                     println!("error {}", e);
-        //                     // thread::sleep(Duration::from_millis(100))
-        //                 }
-        //             }
-        //         }
-        //     }));
-        // }
-
-        println!("---- recv");
         let mut i = 0;
         loop {
             if i == counter.total {
@@ -312,9 +258,8 @@ impl M3uObjectList {
                     counter.print_now_status();
                     i += 1;
                 }
-                Err(e) => {
+                Err(_e) => {
                     thread::sleep(Duration::from_millis(100))
-                    // println!("recevied error {}", e);
                 }
             }
         }
@@ -415,7 +360,6 @@ fn set_one_item(
     request_time: i32,
     search_clarity: bool,
 ) -> M3uObject {
-    println!("inner {}", x.url);
     let url = x.url.clone();
     let _log_url = url.clone();
     let result = actix_rt::System::new().block_on(check_link_is_valid(
@@ -426,7 +370,6 @@ fn set_one_item(
     if debug {
         println!("url is: {} result: {:?}", x.url.clone(), result);
     }
-    println!("now --- {}", _log_url);
     return match result {
         Ok(data) => {
             let mut status = OtherStatus::new();
