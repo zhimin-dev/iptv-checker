@@ -43,7 +43,7 @@ async fn check_url_is_available(req: web::Query<CheckUrlIsAvailableRequest>) -> 
         Some(i) => timeout = i,
         _ => {}
     }
-    let res = check::check::check_link_is_valid(req.url.to_owned(), timeout as u64, true);
+    let res = check::check::check_link_is_valid(req.url.to_owned(), timeout as u64, true, true);
     match res.await {
         Ok(data) => {
             let obj = serde_json::to_string(&data).unwrap();
@@ -126,21 +126,21 @@ async fn system_status() -> impl Responder {
 
 pub async fn start_web(port: u16) {
     // actix_rt::System::new().block_on(async {
-        let _ = HttpServer::new(|| {
-            App::new()
-                .service(check_url_is_available)
-                .service(fetch_m3u_body)
-                .service(index)
-                .service(system_status)
-                .service(
-                    fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
-                        .show_files_listing(),
-                )
-        })
-        .bind(("0.0.0.0", port))
-        .expect("Failed to bind address")
-        .run()
-        .await
-        .expect("failed to run server");
+    let _ = HttpServer::new(|| {
+        App::new()
+            .service(check_url_is_available)
+            .service(fetch_m3u_body)
+            .service(index)
+            .service(system_status)
+            .service(
+                fs::Files::new("/assets", VIEW_BASE_DIR.to_owned() + "/assets")
+                    .show_files_listing(),
+            )
+    })
+    .bind(("0.0.0.0", port))
+    .expect("Failed to bind address")
+    .run()
+    .await
+    .expect("failed to run server");
     // });
 }

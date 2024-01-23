@@ -119,8 +119,9 @@ impl M3uObject {
 
 #[derive(Copy, Clone)]
 pub struct M3uObjectListCounter {
-    check_index: i32,
-    total: i32,
+    check_index: i32,   //当前检查的索引
+    total: i32,         // 总数
+    success_count: i32, // 成功数据
 }
 
 #[derive(Clone)]
@@ -138,6 +139,7 @@ impl M3uObjectListCounter {
         M3uObjectListCounter {
             check_index: 0,
             total: 0,
+            success_count: 0,
         }
     }
 
@@ -153,6 +155,10 @@ impl M3uObjectListCounter {
     //     self.check_index = index;
     //     self.print_now_status();
     // }
+
+    pub fn incr_succ(&mut self) {
+        self.success_count += 1
+    }
 
     pub fn set_total(&mut self, total: i32) {
         self.total = total
@@ -188,15 +194,11 @@ impl M3uObjectList {
         self.list = list
     }
 
-    // pub fn data_len(self) {
-    //     if self.debug {
-    //         println!("list length: {}", self.list.len());
-    //         println!(
-    //             "header x-tv-list length: {}",
-    //             self.header.unwrap().x_tv_url.len()
-    //         );
-    //     }
-    // }
+    pub fn print_result(&mut self) -> String {
+        let succ_num = self.counter.unwrap().success_count;
+        let failed_num = self.counter.unwrap().total - succ_num;
+        format!("有效源: {}, 无效源: {}", succ_num, failed_num)
+    }
 
     pub fn set_counter(&mut self, counter: M3uObjectListCounter) {
         self.counter = Some(counter)
@@ -207,14 +209,13 @@ impl M3uObjectList {
     }
 
     pub async fn check_data_new(&mut self, request_time: i32, _concurrent: i32) {
-        println!("current {}", _concurrent);
         let mut search_clarity = false;
         match &self.search_clarity {
             Some(_d) => search_clarity = true,
             None => {}
         }
         let total = self.list.len();
-        println!("成功解析文件中直播地址总数： {}", total);
+        println!("文件中源总数： {}", total);
         let mut counter = M3uObjectListCounter::new();
         counter.set_total(total as i32);
         self.set_counter(counter);
@@ -260,25 +261,27 @@ impl M3uObjectList {
                     counter.print_now_status();
                     i += 1;
                 }
-                Err(_e) => {},
+                Err(_e) => {}
             }
         }
-        println!("total {}", self.result_list.len());
     }
 
-    pub async fn output_file(self, output_file: String) {
+    pub async fn output_file(&mut self, output_file: String) {
         let mut lines: Vec<String> = vec![];
+        let mut counter = self.counter.unwrap();
         for x in &self.result_list {
             if x.status == Success {
+                counter.incr_succ();
                 let exp: Vec<&str> = x.raw.split("\n").collect();
                 for o in exp {
                     lines.push(o.to_owned());
                 }
             }
         }
+        self.set_counter(counter);
         if lines.len() > 0 {
             let mut result_m3u_content: Vec<String> = vec![];
-            match self.header {
+            match &self.header {
                 None => result_m3u_content.push(String::from("#EXTM3U")),
                 Some(data) => {
                     if data.x_tv_url.len() > 0 {
@@ -302,7 +305,6 @@ impl M3uObjectList {
             let _ = fd.flush();
         }
         time::sleep(Duration::from_millis(500)).await;
-        println!("\n解析完成----");
     }
 }
 
@@ -318,6 +320,7 @@ fn set_one_item(
         url,
         request_time as u64,
         search_clarity,
+        debug,
     ));
     if debug {
         println!("url is: {} result: {:?}", x.url.clone(), result);
@@ -562,12 +565,14 @@ pub mod m3u {
     }
 
     pub async fn from_url(_url: String, timeout: u64) -> M3uObjectList {
-        let url_body = get_url_body(_url, timeout).await.unwrap();
+        let url_body = get_url_body(_url, timeout)
+            .await
+            .expect("can not open this url");
         return from_body(&url_body);
     }
 
     pub fn from_file(_file: String) -> M3uObjectList {
-        let mut data = File::open(_file).unwrap();
+        let mut data = File::open(_file).expect("file not exists");
         let mut contents = String::from("");
         data.read_to_string(&mut contents).unwrap();
         return from_body(&contents);

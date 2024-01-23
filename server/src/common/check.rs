@@ -152,6 +152,7 @@ pub mod check {
         _url: String,
         timeout: u64,
         need_video_info: bool,
+        debug: bool,
     ) -> Result<CheckUrlIsAvailableResponse, Error> {
         let client = reqwest::Client::builder()
             .timeout(time::Duration::from_millis(timeout))
@@ -182,13 +183,15 @@ pub mod check {
                             Ok(body)
                         } else {
                             Err(Error::new(ErrorKind::Other, "not a m3u8 file"))
-                        }
+                        };
                     }
                 }
                 Err(Error::new(ErrorKind::Other, "status is not 200"))
             }
             Err(e) => {
-                println!("http request error : {}", e);
+                if debug {
+                    println!("http request error : {}", e);
+                }
                 Err(Error::new(ErrorKind::Other, e))
             }
         };

@@ -131,8 +131,11 @@ pub async fn main() {
                 if args.debug {
                     data.set_debug_mod(args.debug);
                 }
-                data.check_data_new(args.timeout as i32, args.concurrency).await;
+                data.check_data_new(args.timeout as i32, args.concurrency)
+                    .await;
                 data.output_file(output_file).await;
+                let status_string = data.print_result();
+                println!("\n{}\n解析完成----", status_string);
             }
         }
     }
