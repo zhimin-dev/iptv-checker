@@ -194,6 +194,14 @@ impl M3uObjectList {
         self.list = list
     }
 
+    pub fn get_list(self) -> Vec<M3uObject> {
+        self.list
+    }
+
+    pub fn get_header(self) -> Option<M3uExt> {
+        self.header
+    }
+
     pub fn print_result(&mut self) -> String {
         let succ_num = self.counter.unwrap().success_count;
         let failed_num = self.counter.unwrap().total - succ_num;
@@ -518,7 +526,7 @@ pub enum SourceType {
 }
 
 pub mod m3u {
-    use crate::common::util::{get_url_body, parse_normal_str, parse_quota_str};
+    use crate::common::util::{get_url_body, is_url, parse_normal_str, parse_quota_str};
     use crate::common::SourceType::{SourceTypeNormal, SourceTypeQuota};
     use crate::common::{M3uObjectList, SourceType};
     use core::option::Option;
@@ -564,6 +572,40 @@ pub mod m3u {
         };
     }
 
+    pub fn from_body_arr(str_arr: Vec<String>) -> M3uObjectList {
+        let mut obj = M3uObjectList::new();
+        let mut header = vec![];
+        let mut list = vec![];
+        for _str in str_arr {
+            let source_type = check_source_type(_str.to_owned());
+            match source_type {
+                Some(SourceTypeNormal) => {
+                    let nor_data = body_normal(_str.clone());
+                    list.extend(nor_data.clone().get_list());
+                    match nor_data.get_header() {
+                        Some(d) => {
+                            header.push(d);
+                        }
+                        None => {}
+                    }
+                }
+                Some(SourceTypeQuota) => {
+                    let quo_data = body_quota(_str.clone());
+                    list.extend(quo_data.clone().get_list());
+                    match quo_data.get_header() {
+                        Some(d) => {
+                            header.push(d);
+                        }
+                        None => {}
+                    }
+                }
+                None => {}
+            };
+        }
+        obj.set_list(list);
+        return obj;
+    }
+
     pub async fn from_url(_url: String, timeout: u64) -> M3uObjectList {
         let url_body = get_url_body(_url, timeout)
             .await
@@ -576,5 +618,24 @@ pub mod m3u {
         let mut contents = String::from("");
         data.read_to_string(&mut contents).unwrap();
         return from_body(&contents);
+    }
+
+    pub async fn from_arr(_url: Vec<String>, _timeout: u64) -> M3uObjectList {
+        let mut body_arr = vec![];
+        for x in _url {
+            if is_url(x.clone()) {
+                body_arr.push(
+                    get_url_body(x.clone(), _timeout)
+                        .await
+                        .expect("can not open this url"),
+                )
+            } else {
+                let mut data = File::open(x).expect("file not exists");
+                let mut contents = String::from("");
+                data.read_to_string(&mut contents).unwrap();
+                body_arr.push(contents);
+            }
+        }
+        from_body_arr(body_arr)
     }
 }

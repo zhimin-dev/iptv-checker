@@ -3,7 +3,6 @@ mod utils;
 mod web;
 
 use clap::{arg, Args as clapArgs, Parser, Subcommand};
-use common::util::is_url;
 use std::env;
 
 #[derive(Subcommand)]
@@ -36,8 +35,8 @@ pub struct WebArgs {
 #[derive(clapArgs)]
 pub struct CheckArgs {
     /// 输入文件，可以是本地文件或者是网络文件，支持标准m3u格式以及非标准的格式：CCTV,https://xxxx.com/xxx.m3u8格式
-    #[arg(short='i', long="input-file", default_value_t = String::from(""))]
-    input_file: String,
+    #[arg(short = 'i', long = "input-file")]
+    input_file: Vec<String>,
 
     // /// [待实现]支持sdr、hd、fhd、uhd、fuhd搜索
     // #[arg(short = 's', long = "search_clarity", default_value_t = String::from(""))]
@@ -116,16 +115,11 @@ pub async fn main() {
             }
         }
         Commands::Check(args) => {
-            if args.input_file != "" {
-                println!("您输入的文件地址是: {}", args.input_file);
-                let mut data;
-                if !is_url(args.input_file.to_owned()) {
-                    data = common::m3u::m3u::from_file(args.input_file.to_owned());
-                } else {
-                    data =
-                        common::m3u::m3u::from_url(args.input_file.to_owned(), args.timeout as u64)
-                            .await;
-                }
+            if args.input_file.len() > 0 {
+                println!("您输入的文件地址是: {}", args.input_file.join(","));
+                let mut data =
+                    common::m3u::m3u::from_arr(args.input_file.to_owned(), args.timeout as u64)
+                        .await;
                 let output_file = utils::get_out_put_filename(args.output_file.clone());
                 println!("输出文件: {}", output_file);
                 if args.debug {
