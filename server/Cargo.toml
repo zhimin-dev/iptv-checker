@@ -1,6 +1,6 @@
 [package]
 name = "iptv-checker"
-version = "2.15.3"
+version = "2.15.4"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -60,7 +60,7 @@ pub struct CheckArgs {
 
 #[derive(Parser)]
 #[command(name = "iptv-checker")]
-#[command(author="zmisgod", version, about="a iptv-checker cmd, source code 👉 https://github.com/zhimin-dev/iptv-checker", long_about = None, )]
+#[command(author="zmisgod", version=env!("CARGO_PKG_VERSION"), about="a iptv-checker cmd, source code 👉 https://github.com/zhimin-dev/iptv-checker", long_about = None, )]
 pub struct Args {
     #[command(subcommand)]
     command: Commands,
