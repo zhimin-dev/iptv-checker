@@ -104,23 +104,38 @@ pub fn parse_quota_str(_body: String) -> M3uObjectList {
     let mut index = 1;
     for x in exp_line {
         let one_c: Vec<&str> = x.split(",").collect();
-        let name = one_c.get(0).unwrap().to_string();
-        let url = one_c.get(1).unwrap().replace("\r", "").to_string();
-        if !is_url(url.clone()) {
-            now_group = name.to_string();
-        } else {
-            let _name = name.clone();
-            let mut m3u_obj = M3uObject::new();
-            let mut extend = M3uExtend::new();
-            extend.set_group_title(now_group.clone());
-            m3u_obj.set_extend(extend);
-            m3u_obj.set_index(index);
-            m3u_obj.set_url(url.to_string());
-            m3u_obj.set_name(name.to_string());
-            m3u_obj.set_search_name(name.to_string());
-            m3u_obj.set_raw(x.replace("\r", "").to_owned());
-            index += 1;
-            list.push(m3u_obj)
+        let mut name = String::from("");
+        let mut url = String::from("");
+        match one_c.get(0) {
+            Some(pname) => {
+                name = pname.to_string();
+            }
+            None => {}
+        }
+
+        match one_c.get(1) {
+            Some(purl) => {
+                url = purl.replace("\r", "").to_string();
+            }
+            None => {}
+        }
+        if name != "" && url != "" {
+            if !is_url(url.clone()) {
+                now_group = name.to_string();
+            } else {
+                let _name = name.clone();
+                let mut m3u_obj = M3uObject::new();
+                let mut extend = M3uExtend::new();
+                extend.set_group_title(now_group.clone());
+                m3u_obj.set_extend(extend);
+                m3u_obj.set_index(index);
+                m3u_obj.set_url(url.to_string());
+                m3u_obj.set_name(name.to_string());
+                m3u_obj.set_search_name(name.to_string());
+                m3u_obj.set_raw(x.replace("\r", "").to_owned());
+                index += 1;
+                list.push(m3u_obj)
+            }
         }
     }
     result.set_list(list);
