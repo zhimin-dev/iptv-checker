@@ -23,7 +23,7 @@
 
 ```bash
 cd .. # 返回node文件夹
-docker build -f iptv-checker/dockerfile . # 执行build
+docker build -f iptv-checker/dockerfile -t ipserver . # 执行build
 docker run -d -p 8081:8089 --name myIp ipserver # 运行
 ```
 
@@ -34,7 +34,7 @@ docker run -d -p 8081:8089 --name myIp ipserver # 运行
 按照下面的命令运行docker版本的iptv-checker
 
 ```bash
-docker build -f iptv-checker/dockerfile -t ipserver . # 执行build
+docker pull zmisgod/iptvchecker
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
 ```
 
