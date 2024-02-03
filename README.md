@@ -34,7 +34,7 @@ docker run -d -p 8081:8089 --name myIp ipserver # 运行
 按照下面的命令运行docker版本的iptv-checker
 
 ```bash
-docker pull zmisgod/iptvchecker
+docker build -f iptv-checker/dockerfile -t ipserver . # 执行build
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
 ```
 
