@@ -8,7 +8,7 @@
 
 提供iptv-checker后台页面
 
-## iptb-checker-rs
+## iptv-checker-rs
 
 提供iptv的cmd命令以及web api
 
