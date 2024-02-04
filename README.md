@@ -22,7 +22,7 @@
   - iptv-checker-rs
 
 ```bash
-cd .. # 返回node文件夹
+cd node # 进入node文件夹
 docker build -f iptv-checker/dockerfile -t ipserver . # 执行build
 docker run -d -p 8081:8089 --name myIp ipserver # 运行
 ```
