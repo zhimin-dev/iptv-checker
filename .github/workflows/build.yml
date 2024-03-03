@@ -43,23 +43,37 @@ jobs:
 
       - name: Install Cross
         if: matrix.os == 'ubuntu-latest'
-        run: cd iptv-checker-rs && cargo install cross
+        shell: bash
+        run: |
+          cd iptv-checker-rs
+          cargo install cross
 
       - name: Build - windows
         if: matrix.os == 'windows-latest'
-        run: cd iptv-checker-rs &&  cargo build --release --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          cd iptv-checker-rs
+          cargo build --release --target ${{ matrix.target }}
 
       - name: Build - linux
         if: matrix.os == 'ubuntu-latest'
-        run: cd iptv-checker-rs &&  cross build --release --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          cd iptv-checker-rs
+          cross build --release --target ${{ matrix.target }}
 
       - name: Build - macos
         if: matrix.os == 'macos-latest'
-        run: cd iptv-checker-rs &&  cargo build --release --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          cd iptv-checker-rs
+          cargo build --release --target ${{ matrix.target }}
 
       - name: Strip binary (linux and macos)
         if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: cd iptv-checker-rs &&  strip "target/${{ matrix.target }}/release/iptv-checker-rs"
+        run: |
+          cd iptv-checker-rs
+          strip "target/${{ matrix.target }}/release/iptv-checker-rs"
 
       - name: Build archive
         shell: bash
