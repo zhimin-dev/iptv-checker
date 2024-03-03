@@ -36,10 +36,6 @@ jobs:
           repository: zhimin-dev/iptv-checker-rs
           path: iptv-checker-rs
 
-      - name: enter rust project
-        run: |
-          cd iptv-checker-rs
-
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
@@ -47,28 +43,29 @@ jobs:
 
       - name: Install Cross
         if: matrix.os == 'ubuntu-latest'
-        run: cargo install cross
+        run: cd iptv-checker-rs && cargo install cross
 
       - name: Build - windows
         if: matrix.os == 'windows-latest'
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cd iptv-checker-rs &&  cargo build --release --target ${{ matrix.target }}
 
       - name: Build - linux
         if: matrix.os == 'ubuntu-latest'
-        run: cross build --release --target ${{ matrix.target }}
+        run: cd iptv-checker-rs &&  cross build --release --target ${{ matrix.target }}
 
       - name: Build - macos
         if: matrix.os == 'macos-latest'
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cd iptv-checker-rs &&  cargo build --release --target ${{ matrix.target }}
 
       - name: Strip binary (linux and macos)
         if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: strip "target/${{ matrix.target }}/release/iptv-checker-rs"
+        run: cd iptv-checker-rs &&  strip "target/${{ matrix.target }}/release/iptv-checker-rs"
 
       - name: Build archive
         shell: bash
         run: |
           # Replace with the name of your binary
+          cd iptv-checker-rs
           binary_name="iptv-checker-rs"
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           mkdir "$dirname"
