@@ -25,10 +25,12 @@ RUN apt-get install openssl -y
 RUN apt-get install ffmpeg -y
 
 # 复制前端代码
-COPY --from=frontend-builder /usr/src/app/frontend ./../dist
+COPY --from=frontend-builder /usr/src/app/frontend ./web
+RUN mkdir -p ./static/input
+RUN mkdir -p ./static/output
 # 复制后端构建结果
-COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./server/iptv-checker-rs
+COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
 # 暴露服务端口
 EXPOSE 8089
 # 启动服务
-CMD ["./server/iptv-checker-rs", "web", "--start"]
+CMD ["./iptv-checker-rs", "web", "--start"]

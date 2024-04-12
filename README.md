@@ -45,7 +45,7 @@ docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
 ```bash
 docker buildx create --name mybuilder
 docker buildx inspect --bootstrap
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push .
+docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push -f iptv-checker/dockerfile . 
 ```
 
 ### Docker-Compose 部署
