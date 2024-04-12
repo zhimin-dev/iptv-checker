@@ -1,92 +1,75 @@
-name: Build And Release
+name: Download Artifacts and Create Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["Rust"]
+    types: 
+      - completed
 
 jobs:
-  build_release:
-    strategy:
-      matrix:
-        target:
-          - x86_64-unknown-linux-musl
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-unknown-linux-gnu
-          - armv7-unknown-linux-musleabihf
-        include:
-          - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: armv7-unknown-linux-musleabihf
-            os: ubuntu-latest
-
-    runs-on: ${{ matrix.os }}
+  download_and_create_release:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Check out -rs project
-        uses: actions/checkout@v2
-        with:
-          repository: zhimin-dev/iptv-checker-rs
-          path: iptv-checker-rs
+    - name: Download Artifacts
+      id: download_artifacts
+      uses: actions/github-script@v3
+      with:
+        script: |
+          let artifacts = await github.actions.listWorkflowRunArtifacts({
+             owner: context.repo.owner,
+             repo: 'iptv-checker-rs',
+             run_id: context.payload.workflow_run.id
+          });
+          for(const artifact of artifacts.data.artifacts) {
+            let download = await github.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: 'iptv-checker-rs',
+               artifact_id: artifact.id,
+               archive_format: 'zip'
+            });
+            let artifactPath = `${artifact.name}.zip`;
+            await require('fs').promises.writeFile(artifactPath, Buffer.from(download.data.arrayBuffer()));
+            console.log(`Downloaded ${artifactPath}`);
+          }
 
-      - name: enter rust project
-        run: |
-          cd iptv-checker-rs
+    - name: Unzip Artifacts
+      run: |
+        for artifact in *.zip
+        do
+          unzip -o ${artifact}
+        done
 
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
 
-      - name: Install Cross
-        if: matrix.os == 'ubuntu-latest'
-        run: cargo install cross
-
-      - name: Build - windows
-        if: matrix.os == 'windows-latest'
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Build - linux
-        if: matrix.os == 'ubuntu-latest'
-        run: cross build --release --target ${{ matrix.target }}
-
-      - name: Build - macos
-        if: matrix.os == 'macos-latest'
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Strip binary (linux and macos)
-        if: matrix.build == 'linux' || matrix.build == 'macos'
-        run: strip "target/${{ matrix.target }}/release/iptv-checker-rs"
-
-      - name: Build archive
-        shell: bash
-        run: |
-          # Replace with the name of your binary
-          binary_name="iptv-checker-rs"
-          dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
-          mkdir "$dirname"
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "target/${{ matrix.target }}/release/$binary_name.exe" "$dirname"
-          else
-            mv "target/${{ matrix.target }}/release/$binary_name" "$dirname"
-          fi
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            7z a "$dirname.zip" "$dirname"
-            echo "ASSET=$dirname.zip" >> $GITHUB_ENV
-          else
-            tar -czf "$dirname.tar.gz" "$dirname"
-            echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
-          fi
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            ${{ env.ASSET }}
+    - name: Upload Release Assets
+      id: upload_release_assets
+      uses: actions/github-script@v3
+      with:
+        script: |
+          const fs = require('fs');
+          fs.readdirSync('./').forEach(async (file) => {
+            if (file.endsWith('.zip')) return;
+            const filePath = './' + file;
+            await github.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: context.payload.release.id,
+              name: file,
+              data: fs.readFileSync(filePath),
+              headers: {
+                'content-type': 'application/octet-stream',
+                'content-length': fs.statSync(filePath).size
+              }
+            });
+            console.log(`Uploaded ${file} to release assets.`);
+          });
