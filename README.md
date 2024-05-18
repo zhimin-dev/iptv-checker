@@ -2,17 +2,13 @@
 
 # iptv-checker
 
-本项目拆成2个项目，分别为前端[iptv-checker-web](https://github.com/zhimin-dev/iptv-checker-web)项目以及后端[iptv-checker-rs](https://github.com/zhimin-dev/iptv-checker-rs)项目
+本项目拆成2个项目
 
-## iptv-checker-web
+- 前端[iptv-checker-web:v3.2.0](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
+- 后端[iptv-checker-rs:v3.2.0](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
 
-提供iptv-checker后台页面
 
-## iptv-checker-rs
-
-提供iptv的cmd命令以及web api
-
-### docker本地打包
+## docker本地打包
 
 先将下面3个项目clone到本地(比如放在node文件夹下)，下面为文件夹目录示例
 
