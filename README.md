@@ -50,6 +50,19 @@ docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/i
 docker-compose up -d
 ```
 
+## 更新日志
+
+- 3.2.0
+  - 支持关键词匹配
+  - 支持超时时间配置
+- 3.1.1
+  - 修复后台检查后cpu增高的问题
+- 3.1.0
+  - 支持任务编辑
+  - 支持任务立即执行
+- 3.0.0
+  - 支持后台检查
+
 ## 联系
 
 [知敏博客](https://zmis.me/user/zmisgod)
