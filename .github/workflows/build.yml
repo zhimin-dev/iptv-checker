@@ -24,8 +24,8 @@ jobs:
           echo "IPTVCHECKER_LATEST_TAG:${IPTVCHECKER_LATEST_TAG}"
           echo ::set-output name=tags::${TAGS}
           mkdir iptv-checker && mv dockerfile iptv-checker/dockerfile
-          mkdir iptv-checker-rs && cd iptv-checker-rs && git clone https://github.com/zhimin-dev/iptv-checker-rs.git && cd ..
-          mkdir iptv-checker-web && cd iptv-checker-web && git clone https://github.com/zhimin-dev/iptv-checker-web.git && cd ..
+          git clone https://github.com/zhimin-dev/iptv-checker-rs.git
+          git clone https://github.com/zhimin-dev/iptv-checker-web.git
       - name: Setup Docker Buildx Command
         id: buildx
         uses: docker/setup-buildx-action@master
