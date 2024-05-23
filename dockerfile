@@ -29,7 +29,7 @@ COPY --from=frontend-builder /usr/src/app/frontend ./web
 RUN mkdir -p ./static/input
 RUN mkdir -p ./static/output
 # 复制后端构建结果
-COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs iptv-checker-rs
+COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
 # 暴露服务端口
 ENV WEB_PORT=8089
 EXPOSE $WEB_PORT
