@@ -49,7 +49,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: zmisgod/iptv-checker
+          repository: zmisgod/iptvchecker
           short-description: ${{ github.event.repository.description }}
       - name: Image Digest
         run: echo ${{ steps.docker_build.outputs.digest }}
