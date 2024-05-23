@@ -41,6 +41,7 @@ jobs:
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
           echo ::set-output name=tags::${TAGS}
           git clone https://github.com/zhimin-dev/iptv-checker-rs.git
+          del iptv-checker-rs/.github
           move iptv-checker-rs/*
 
       - name: Get Rust Project(Unix)
