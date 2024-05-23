@@ -35,8 +35,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Get Rust Data
+      - name: Get Rust Project(windows)
         id: envs
+        if: matrix.os == 'windows-latest'
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs}"
+          echo ::set-output name=tags::${TAGS}
+          git clone https://github.com/zhimin-dev/iptv-checker-rs.git
+          rm iptv-checker-rs/.github/*
+          mv iptv-checker-rs/* ./
+
+      - name: Get Rust Project(Unix)
+        id: envs
+        if: matrix.os == 'windows-latest'
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
           echo ::set-output name=tags::${TAGS}
