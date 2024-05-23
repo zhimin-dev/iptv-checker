@@ -16,7 +16,7 @@ jobs:
         id: envs
         run: |
           IPTVCHECKER_LATEST_TAG=$(git describe --tags --abbrev=0)
-          DOCKER_IMAGE="zmisgod/iptv-checker"
+          DOCKER_IMAGE="zmisgod/iptvchecker"
 
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
           TAGS="${DOCKER_IMAGE}:latest,${DOCKER_IMAGE}:${IPTVCHECKER_LATEST_TAG}"
