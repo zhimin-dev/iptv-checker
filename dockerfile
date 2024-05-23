@@ -31,6 +31,7 @@ RUN mkdir -p ./static/output
 # 复制后端构建结果
 COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
 # 暴露服务端口
-EXPOSE 8089
+ENV WEB_PORT=8089
+EXPOSE $WEB_PORT
 # 启动服务
-CMD ["./iptv-checker-rs", "web", "--start"]
+CMD ./iptv-checker-rs web --port ${WEB_PORT} --start

@@ -7,7 +7,6 @@
 - 前端[iptv-checker-web:v3.2.0](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
 - 后端[iptv-checker-rs:v3.2.0](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
 
-
 ## docker本地打包
 
 先将下面3个项目clone到本地(比如放在node文件夹下)，下面为文件夹目录示例
@@ -18,9 +17,17 @@
   - iptv-checker-rs
 
 ```bash
-cd node # 进入node文件夹
-docker build -f iptv-checker/dockerfile -t ipserver . # 执行build
-docker run -d -p 8081:8089 --name myIp ipserver # 运行
+# 进入node文件夹
+cd node
+
+# 执行build
+docker build -f iptv-checker/dockerfile -t ipserver .
+
+# 运行
+docker run -d -p 8081:8089 --name myIp ipserver  
+
+# 或者指定端口（本次指定端口为 10001，下面2个10001的地方都需要改动）、输出文件映射本地目录
+docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
 ### Docker官方包使用方法
