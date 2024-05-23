@@ -36,7 +36,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Get Rust Project(windows)
-        id: envs
         if: matrix.os == 'windows-latest'
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
@@ -46,7 +45,6 @@ jobs:
           mv iptv-checker-rs/* ./
 
       - name: Get Rust Project(Unix)
-        id: envs
         if: matrix.os == 'windows-latest'
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
