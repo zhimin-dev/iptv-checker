@@ -38,7 +38,6 @@ jobs:
       - name: Get Rust Data
         id: envs
         run: |
-          IPTVCHECKER_LATEST_TAG=$(git describe --tags --abbrev=0)
           echo "RELEASE_VERSION=${GITHUB_REF#refs}"
           echo ::set-output name=tags::${TAGS}
           git clone https://github.com/zhimin-dev/iptv-checker-rs.git
