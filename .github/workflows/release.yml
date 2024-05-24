@@ -38,11 +38,8 @@ jobs:
       - name: Get Rust Project(windows)
         if: matrix.os == 'windows-latest'
         run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs}"
-          echo ::set-output name=tags::${TAGS}
-          del .github
           git clone https://github.com/zhimin-dev/iptv-checker-rs.git
-          move iptv-checker-rs/*
+          COPY /Y iptv-checker-rs/*
 
       - name: Get Rust Project(Unix)
         if: matrix.os != 'windows-latest'
