@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch: # or just on button clicked
 
 permissions:
   contents: write
