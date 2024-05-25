@@ -34,23 +34,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Get Rust Project(windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          del .github
-          git clone https://github.com/zhimin-dev/iptv-checker-rs.git
-          COPY iptv-checker-rs/*
-
-      - name: Get Rust Project(Unix)
-        if: matrix.os != 'windows-latest'
-        run: |
-          echo "RELEASE_VERSION=${GITHUB_REF#refs}"
-          echo ::set-output name=tags::${TAGS}
-          git clone https://github.com/zhimin-dev/iptv-checker-rs.git
-          rm -rf iptv-checker-rs/.github/*
-          mv iptv-checker-rs/* ./
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Checkout iptv-checker-rs
+        uses: actions/checkout@v4
+        with:
+          repository: zhimin-dev/iptv-checker-rs
+          path: iptv-checker-rs
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
@@ -59,26 +50,32 @@ jobs:
 
       - name: Install Cross
         if: matrix.os == 'ubuntu-latest'
+        working-directory: ./iptv-checker-rs
         run: cargo install cross
 
       - name: Build - windows
         if: matrix.os == 'windows-latest'
+        working-directory: ./iptv-checker-rs
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Build - linux
         if: matrix.os == 'ubuntu-latest'
+        working-directory: ./iptv-checker-rs
         run: cross build --release --target ${{ matrix.target }}
 
       - name: Build - macos
         if: matrix.os == 'macos-latest'
+        working-directory: ./iptv-checker-rs
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Strip binary (linux and macos)
         if: matrix.build == 'linux' || matrix.build == 'macos'
+        working-directory: ./iptv-checker-rs
         run: strip "target/${{ matrix.target }}/release/iptv-checker-rs"
 
       - name: Build archive
         shell: bash
+        working-directory: ./iptv-checker-rs
         run: |
           # Replace with the name of your binary
           binary_name="iptv-checker-rs"
