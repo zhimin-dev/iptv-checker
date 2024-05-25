@@ -101,4 +101,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ${{ env.ASSET }}
+            ./iptv-checker-rs/${{ env.ASSET }}
