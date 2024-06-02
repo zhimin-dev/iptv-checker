@@ -4,8 +4,8 @@
 
 本项目拆成2个项目
 
-- 前端[iptv-checker-web:v3.2.0](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
-- 后端[iptv-checker-rs:v3.2.0](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
+- 前端[iptv-checker-web:v3.2.1](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
+- 后端[iptv-checker-rs:v3.2.1](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
 
 ## docker本地打包
 
@@ -59,6 +59,10 @@ docker-compose up -d
 
 ## 更新日志
 
+- 3.2.1
+  - 后台任务支持并发、排序设置
+  - 优化任务列表下载界面
+  - 修复智能框解析数据错误问题
 - 3.2.0
   - 支持关键词匹配
   - 支持超时时间配置
