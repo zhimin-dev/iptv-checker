@@ -22,7 +22,7 @@ jobs:
       - name: setup node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 18
       
       - name: Checkout iptv-checker-web
         uses: actions/checkout@v4
