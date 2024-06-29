@@ -59,6 +59,9 @@ docker-compose up -d
 
 ## 更新日志
 
+- 4.0.0
+  - UI更新
+  - 支持windows && mac os && linux 桌面端
 - 3.2.1
   - 后台任务支持并发、排序设置
   - 优化任务列表下载界面
