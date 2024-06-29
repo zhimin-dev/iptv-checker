@@ -50,3 +50,4 @@ jobs:
           releaseName: 'App v${{ env.VERSION }}'
           releaseBody: 'See the assets to download this version and install.'
           repo: "zhimin-dev/iptv-checker"
+          releaseDraft: true
