@@ -96,7 +96,7 @@ jobs:
             echo $(realName)
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/${realName}.deb" "$dirname/"
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            suffix="x64"
+            suffix="x64-setup"
             realName="${filename}${suffix}"
             echo $(realName)
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/${realName}.exe" "$dirname/"
