@@ -70,7 +70,7 @@ jobs:
 
       - name: Build archive
         shell: bash
-        working-directory: ./iptv-checker-web
+        working-directory: ./iptv-checker/iptv-checker-web
         run: |
           binary_name="iptv-checker-desktop"
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
@@ -95,4 +95,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./iptv-checker-web/${{ env.ASSET }}
+            ./iptv-checker/iptv-checker-web/${{ env.ASSET }}
