@@ -79,15 +79,27 @@ jobs:
           version=$(echo $tagVersion | cut -d '.' -f 1-3)
           echo $version
           dirname="${binaryName}_${version}-${{ matrix.target }}"
+          filename="${binaryName}_${version}_"
           echo $dirname
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname/"
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage" "$dirname/"
+            suffix="aarch64"
+            realName="${filename}${suffix}"
+            echo $(realName)
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${realName}.dmg" "$dirname/"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb" "$dirname/"
+            suffix="amd64"
+            if ["${{matrix.target}}" = "aarch64-unknown-linux-gnu"]; then
+              suffix="aarch64"
+            fi
+            realName="${filename}${suffix}"
+            echo $(realName)
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/${realName}.deb" "$dirname/"
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe" "$dirname/"
+            suffix="x64"
+            realName="${filename}${suffix}"
+            echo $(realName)
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/${realName}.exe" "$dirname/"
           fi
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             7z a "$dirname.zip" "$dirname"
