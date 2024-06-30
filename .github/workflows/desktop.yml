@@ -14,7 +14,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
+        os: [ macos-latest, windows-latest, ubuntu-latest ]
+        include:
+          - os: 'macos-latest'
+            args: '--target universal-apple-darwin'
+            target: 'aarch64-apple-darwin,x86_64-apple-darwin'
+          - os: 'windows-latest'
+            args: '--target aarch64-pc-windows-msvc'
+            target: 'aarch64-pc-windows-msvc'
+            aarch64: true
+          - os: 'windows-latest'
+            args: '--target x86_64-pc-windows-msvc'
+            target: 'x86_64-pc-windows-msvc'
+            x86_64: true
+          - os: 'ubuntu-latest'
+            args: '--target aarch64-unknown-linux-gnu'
+            target: 'aarch64-unknown-linux-gnu'
+            aarch64: true
+          - os: 'ubuntu-latest'
+            args: '--target x86_64-unknown-linux-gnu'
+            target: 'x86_64-unknown-linux-gnu'
+            x86_64: true
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -46,8 +66,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          releaseName: 'App v${{ env.VERSION }}'
-          releaseBody: 'See the assets to download this version and install.'
+          args: ${{ matrix.args }}
 
       - name: Build archive
         shell: bash
@@ -57,11 +76,12 @@ jobs:
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            mv "src-tauri/target/release/bundle/dmg/*.dmg" "$dirname"
+            mv "src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg" "$dirname"
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage" "$dirname"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            mv "src-tauri/target/release/bundle/deb/*.deb" "$dirname"
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb" "$dirname"
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
-            mv "src-tauri/target/release/bundle/nsis/*.exe" "$dirname"
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe" "$dirname"
           fi
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             7z a "$dirname.zip" "$dirname"
