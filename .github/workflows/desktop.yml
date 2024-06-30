@@ -46,8 +46,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
           releaseName: 'App v${{ env.VERSION }}'
           releaseBody: 'See the assets to download this version and install.'
-          repo: "zhimin-dev/iptv-checker"
-          releaseDraft: true
+
+      - name: Build archive
+        shell: bash
+        working-directory: ./iptv-checker-web
+        run: |
+          binary_name="iptv-checker-desktop"
+          dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
+          mkdir "$dirname"
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname"
+          else if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb" "$dirname"
+          else if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe" "$dirname"
+          fi
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a "$dirname.zip" "$dirname"
+            echo "ASSET=$dirname.zip" >> $GITHUB_ENV
+          else
+            tar -czf "$dirname.tar.gz" "$dirname"
+            echo "ASSET=$dirname.tar.gz" >> $GITHUB_ENV
+          fi
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./iptv-checker-web/${{ env.ASSET }}
