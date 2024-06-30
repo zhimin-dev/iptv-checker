@@ -70,7 +70,7 @@ jobs:
 
       - name: Build archive
         shell: bash
-        working-directory: ./iptv-checker-web
+        working-directory: ./iptv-checker/iptv-checker-web
         run: |
           binary_name="iptv-checker-desktop"
           dirname="$binary_name-${{ matrix.target }}"
