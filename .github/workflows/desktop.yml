@@ -35,8 +35,8 @@ jobs:
             args: '--target x86_64-unknown-linux-gnu'
             target: 'x86_64-unknown-linux-gnu'
             x86_64: true
-
     runs-on: ${{ matrix.platform }}
+
     steps:
       - uses: actions/checkout@v2
       - name: setup node
