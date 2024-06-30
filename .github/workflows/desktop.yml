@@ -73,9 +73,11 @@ jobs:
         working-directory: ./iptv-checker-web
         run: |
           binary_name="iptv-checker-desktop"
-          dirname="$binary_name-${{ matrix.target }}"
+          version=${${{github.ref_name}}//d/}
+          dirname="$binary_name_$version_-${{ matrix.target }}"
+          echo $(dirname)
+          echo $(version)
           mkdir "$dirname"
-          echo $(ls src-tauri/target/${{ matrix.target }}/release/bundle/dmg/)
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname/"
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage" "$dirname/"
