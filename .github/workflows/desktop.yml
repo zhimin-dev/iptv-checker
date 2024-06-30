@@ -75,7 +75,7 @@ jobs:
           binary_name="iptv-checker-desktop"
           dirname="$binary_name-${{ matrix.target }}"
           mkdir "$dirname"
-          echo $(ll src-tauri/target/${{ matrix.target }}/release/bundle/)
+          echo $(ls src-tauri/target/${{ matrix.target }}/release/bundle/)
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname/"
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage" "$dirname/"
