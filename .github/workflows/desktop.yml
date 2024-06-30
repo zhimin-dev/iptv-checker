@@ -70,13 +70,13 @@ jobs:
 
       - name: Build archive
         shell: bash
-        working-directory: ./iptv-checker/iptv-checker-web
+        working-directory: ./iptv-checker-web
         run: |
           binary_name="iptv-checker-desktop"
           dirname="$binary_name-${{ env.VERSION }}-${{ matrix.target }}"
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            mv "src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg" "$dirname"
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname"
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage" "$dirname"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb" "$dirname"
@@ -95,4 +95,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./iptv-checker/iptv-checker-web/${{ env.ASSET }}
+            ./iptv-checker-web/${{ env.ASSET }}
