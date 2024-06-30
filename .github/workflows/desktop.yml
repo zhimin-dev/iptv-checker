@@ -58,9 +58,9 @@ jobs:
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname"
-          else if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+          elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb" "$dirname"
-          else if [ "${{ matrix.os }}" = "windows-latest" ]; then
+          elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.exe" "$dirname"
           fi
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
