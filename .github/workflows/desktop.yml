@@ -74,11 +74,11 @@ jobs:
         run: |
           binaryName="iptv-checker-desktop"
           gitTagName="${{github.ref_name}}"
-          echo $(gitTagName)
+          echo $gitTagName
           version=${gitTagName//d/}
-          echo $(version)
+          echo $version
           dirname="$binaryName_$version_-${{ matrix.target }}"
-          echo $(dirname)
+          echo $dirname
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg" "$dirname/"
