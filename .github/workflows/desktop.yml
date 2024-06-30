@@ -73,7 +73,8 @@ jobs:
         working-directory: ./iptv-checker-web
         run: |
           binary_name="iptv-checker-desktop"
-          version=${${{github.ref_name}}//d/}
+          gitTagName="${{github.ref_name}}"
+          version=${gitTagName//d/}
           dirname="$binary_name_$version_-${{ matrix.target }}"
           echo $(dirname)
           echo $(version)
