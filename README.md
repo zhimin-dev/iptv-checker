@@ -4,8 +4,8 @@
 
 本项目拆成2个项目
 
-- 前端[iptv-checker-web:v3.2.1](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
-- 后端[iptv-checker-rs:v3.2.1](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
+- 前端[iptv-checker-web:v4.0.1](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
+- 后端[iptv-checker-rs:v4.0.1](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
 
 ## docker本地打包
 
@@ -59,6 +59,15 @@ docker-compose up -d
 
 ## 更新日志
 
+- v4.0.1
+  - bug修复
+    - 检测源输入框无法识别数据问题
+    - 桌面版检查详情页无法拖动问题
+    - 桌面版检查详情页在线播放体验优化
+    - 检查数据后再通过公共订阅源菜单进入检查详情页会出现检查设置菜单还是上一次状态
+    - 修复源检测无法暂停、检查失败的问题
+  - 后台任务支持导出、导入
+  - 后台任务增加不检查任务
 - 4.0.0
   - UI更新
   - 支持windows && mac os && linux 桌面端
