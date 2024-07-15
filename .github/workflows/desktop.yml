@@ -81,6 +81,7 @@ jobs:
           dirname="${binaryName}_${version}-${{ matrix.target }}"
           filename="${binaryName}_${version}_"
           echo $dirname
+          echo $(ls src-tauri/target/${{ matrix.target }}/release/bundle/dmg/)
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             suffix="aarch64"
