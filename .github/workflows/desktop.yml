@@ -78,6 +78,7 @@ jobs:
           tagVersion=${gitTagName//d/}
           if [tagVersion = "main"]; then
             tagVersion=$(git describe --tags --abbrev=0)
+          fi
           version=$(echo $tagVersion | cut -d '.' -f 1-3)
           echo $version
           dirname="${binaryName}_${version}-${{ matrix.target }}"
