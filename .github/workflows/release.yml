@@ -1,10 +1,9 @@
-name: Rust
+name: Create and publish a CMD tool
 
 on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: # or just on button clicked
 
 permissions:
   contents: write
