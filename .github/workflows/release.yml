@@ -1,4 +1,4 @@
-name: Create and publish a CMD tool
+name: Build CMD
 
 on:
   push:

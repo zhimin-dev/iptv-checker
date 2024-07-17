@@ -1,4 +1,4 @@
-name: Create and publish a Desktop Tool
+name: Build Desktop
 
 on:
   push:
