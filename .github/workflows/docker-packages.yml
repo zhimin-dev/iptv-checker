@@ -54,10 +54,11 @@ jobs:
       - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
           short-description: ${{ github.event.repository.description }}
+          registry: ${{ env.REGISTRY }}
 
       - name: Image Digest
         run: echo ${{ steps.docker_build.outputs.digest }}
