@@ -99,12 +99,12 @@ jobs:
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             suffix="aarch64"
-            if ["${{matrix.target}}" = "x86_64-apple-darwin"]; then
+            if ["${{ matrix.target }}" = "x86_64-apple-darwin"]; then
               suffix="x64"
             fi
-            aarch64Name="${filename}${suffix}"
-            echo $(aarch64Name)
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${aarch64Name}.dmg" "$dirname/"
+            realName="${filename}${suffix}"
+            echo $(realName)
+            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${realName}.dmg" "$dirname/"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             suffix="amd64"
             if ["${{matrix.target}}" = "aarch64-unknown-linux-gnu"]; then
