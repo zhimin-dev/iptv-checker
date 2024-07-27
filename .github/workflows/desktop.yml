@@ -18,11 +18,9 @@ jobs:
           - platform: 'macos-latest' # for Arm based macs (M1 and above).
             args: '--target aarch64-apple-darwin'
             target: 'aarch64-apple-darwin'
-            aarch64: true
           - platform: 'macos-latest' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
             target: 'x86_64-apple-darwin'
-            x86_64: true
           - os: 'windows-latest'
             args: '--target x86_64-pc-windows-msvc'
             target: 'x86_64-pc-windows-msvc'
@@ -99,7 +97,7 @@ jobs:
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             suffix="aarch64"
             if ["${{matrix.target}}" = "x86_64-apple-darwin"]; then
-              suffix="x86_64"
+              suffix="x64"
             fi
             aarch64Name="${filename}${suffix}"
             echo $(aarch64Name)
