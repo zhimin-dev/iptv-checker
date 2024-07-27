@@ -105,6 +105,7 @@ jobs:
             fi
             realName="${filename}${suffix}"
             echo $realName
+            echo ${{matrix.target}}
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${realName}.dmg" "$dirname/"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             suffix="amd64"
