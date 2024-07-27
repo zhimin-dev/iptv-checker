@@ -53,6 +53,12 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      
+      - name: rust up target
+        if: matrix.os == 'macos-latest'
+        run: |
+          sudo rustup target add aarch64-apple-darwin
+          sudo rustup target add x86_64-apple-darwin
 
       - name: install webkit2gtk (ubuntu only)
         if: matrix.os == 'ubuntu-latest'
