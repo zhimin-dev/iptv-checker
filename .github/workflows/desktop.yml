@@ -98,6 +98,7 @@ jobs:
             suffix="aarch64"
             if ["${{matrix.x86_64}}"]; then
               suffix="x86_64"
+            fi
             aarch64Name="${filename}${suffix}"
             echo $(aarch64Name)
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${aarch64Name}.dmg" "$dirname/"
