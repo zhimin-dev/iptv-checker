@@ -99,9 +99,10 @@ jobs:
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             suffix="aarch64"
-            if ["${{ matrix.target }}" = "x86_64-apple-darwin"]; then
+            if [ "${{ matrix.target }}" = "x86_64-apple-darwin" ]; then
               suffix="x64"
               echo $suffix
+              echo "xxxxx"
             fi
             realName="${filename}${suffix}"
             echo $realName
