@@ -15,13 +15,12 @@ jobs:
       matrix:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
         include:
-          - os: 'macos-latest'
-            args: '--target aarch64-apple-darwin x86_64-apple-darwin'
-            target: 'universal-apple-darwin'
-          - os: 'windows-latest'
-            args: '--target aarch64-pc-windows-msvc'
-            target: 'aarch64-pc-windows-msvc'
+          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+            args: '--target aarch64-apple-darwin'
             aarch64: true
+          - platform: 'macos-latest' # for Intel based macs.
+            args: '--target x86_64-apple-darwin'
+            x86_64: true
           - os: 'windows-latest'
             args: '--target x86_64-pc-windows-msvc'
             target: 'x86_64-pc-windows-msvc'
@@ -91,12 +90,11 @@ jobs:
           mkdir "$dirname"
           if [ "${{ matrix.os }}" = "macos-latest" ]; then
             suffix="aarch64"
+            if ["${{matrix.x86_64}}"]; then
+              suffix="x86_64"
             aarch64Name="${filename}${suffix}"
-            x86Name="${filename}x86_64"
             echo $(aarch64Name)
-            echo $(x86Name)
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${aarch64Name}.dmg" "$dirname/"
-            mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${x86Name}.dmg" "$dirname/"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             suffix="amd64"
             if ["${{matrix.target}}" = "aarch64-unknown-linux-gnu"]; then
