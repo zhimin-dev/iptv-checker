@@ -1,15 +1,17 @@
 <img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker-web/blob/main/src/assets/icon.png" height=80>
 
+[中文版本](https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md)
+
 # iptv-checker
 
-本项目拆成2个项目
+This project is split into 2 projects
 
-- 前端[iptv-checker-web:v4.0.1](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
-- 后端[iptv-checker-rs:v4.0.1](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
+- Frontend [iptv-checker-web:v4.0.1](https://github.com/zhimin-dev/iptv-checker-web), providing the backend page for iptv-checker
+- Backend [iptv-checker-rs:v4.0.1](https://github.com/zhimin-dev/iptv-checker-rs), providing cmd commands and web API for IPTV
 
-## docker本地打包
+## Docker Local Packaging
 
-先将下面3个项目clone到本地(比如放在node文件夹下)，下面为文件夹目录示例
+First, clone the following 3 projects to your local machine (for example, place them in a node folder). Below is an example of the folder structure.
 
 - node
   - iptv-checker
@@ -17,33 +19,33 @@
   - iptv-checker-rs
 
 ```bash
-# 进入node文件夹
+# Enter the node folder
 cd node
 
-# 执行build
+# Execute build
 docker build -f iptv-checker/dockerfile -t ipserver .
 
-# 运行
+# Run
 docker run -d -p 8081:8089 --name myIp ipserver  
 
-# 或者指定端口（本次指定端口为 10001，下面2个10001的地方都需要改动）、输出文件映射本地目录
+# Alternatively, specify the port (this time specifying the port as 10001, you need to change the two 10001 places below), output file mapping to local directory
 docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
-### Docker官方包使用方法
+### Docker Official Package Usage
 
 [DockerHub](https://hub.docker.com/r/zmisgod/iptvchecker)
 
-按照下面的命令运行docker版本的iptv-checker
+Run the docker version of iptv-checker with the following commands
 
 ```bash
 docker pull zmisgod/iptvchecker
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
 ```
 
-再打开浏览器访问`http://127.0.0.1:8081/`即可
+Then open your browser and visit `http://127.0.0.1:8081/`.
 
-### Docker本地打多平台包方法
+### Docker Local Multi-Platform Package Method
 
 ```bash
 docker buildx create --name mybuilder
@@ -51,41 +53,41 @@ docker buildx inspect --bootstrap
 docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push -f iptv-checker/dockerfile . 
 ```
 
-### Docker-Compose 部署
+### Docker-Compose Deployment
 
 ```bash
 docker-compose up -d
 ```
 
-## 更新日志
+## Changelog
 
 - v4.0.1
-  - bug修复
-    - 检测源输入框无法识别数据问题
-    - 桌面版检查详情页无法拖动问题
-    - 桌面版检查详情页在线播放体验优化
-    - 检查数据后再通过公共订阅源菜单进入检查详情页会出现检查设置菜单还是上一次状态
-    - 修复源检测无法暂停、检查失败的问题
-  - 后台任务支持导出、导入
-  - 后台任务增加不检查任务
-- 4.0.0
-  - UI更新
-  - 支持windows && mac os && linux 桌面端
-- 3.2.1
-  - 后台任务支持并发、排序设置
-  - 优化任务列表下载界面
-  - 修复智能框解析数据错误问题
-- 3.2.0
-  - 支持关键词匹配
-  - 支持超时时间配置
-- 3.1.1
-  - 修复后台检查后cpu增高的问题
-- 3.1.0
-  - 支持任务编辑
-  - 支持任务立即执行
-- 3.0.0
-  - 支持后台检查
+  - Bug Fixes
+    - Issue with the source input box not recognizing data
+    - Desktop version details page unable to drag issue
+    - Optimized online viewing experience on the desktop version details page
+    - Entering details page through public subscription source menu after checking data would show the last state of the check settings menu
+    - Fixed issue with source detection not being able to pause and check failure
+  - Background tasks support export and import
+  - Background tasks added option to not check tasks
+- v4.0.0
+  - UI Update
+  - Support for Windows, macOS, and Linux desktop clients
+- v3.2.1
+  - Background tasks support concurrency and sorting settings
+  - Optimized task list download interface
+  - Fixed issue with smart box parsing data incorrectly
+- v3.2.0
+  - Support for keyword matching
+  - Support for timeout configuration
+- v3.1.1
+  - Fixed issue with increased CPU usage after background checks
+- v3.1.0
+  - Support for task editing
+  - Support for immediate task execution
+- v3.0.0
+  - Support for background checking
 
-## 联系
+## Contact
 
-[知敏博客](https://zmis.me/user/zmisgod)
+[Myblog Blog](https://zmis.me/user/zmisgod)
