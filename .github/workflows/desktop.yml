@@ -16,7 +16,7 @@ jobs:
         os: [ macos-latest, windows-latest, ubuntu-latest ]
         include:
           - os: 'macos-latest'
-            args: '--target universal-apple-darwin x86_64-apple-darwin'
+            args: '--target aarch64-apple-darwin x86_64-apple-darwin'
             target: 'universal-apple-darwin'
           - os: 'windows-latest'
             args: '--target aarch64-pc-windows-msvc'
