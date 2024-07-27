@@ -59,9 +59,9 @@ jobs:
         with:
           toolchain: stable
       
-      # - name: rust up target
-      #   run: |
-      #     sudo rustup target add ${{ matrix.target }}
+      - name: rust up target
+        run: |
+          rustup target add ${{ matrix.target }}
 
       - name: install webkit2gtk (ubuntu only)
         if: matrix.os == 'ubuntu-latest'
