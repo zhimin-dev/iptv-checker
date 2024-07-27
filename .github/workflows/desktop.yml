@@ -101,9 +101,10 @@ jobs:
             suffix="aarch64"
             if ["${{ matrix.target }}" = "x86_64-apple-darwin"]; then
               suffix="x64"
+              echo $suffix
             fi
             realName="${filename}${suffix}"
-            echo $(realName)
+            echo $realName
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/${realName}.dmg" "$dirname/"
           elif [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
             suffix="amd64"
@@ -111,12 +112,12 @@ jobs:
               suffix="aarch64"
             fi
             realName="${filename}${suffix}"
-            echo $(realName)
+            echo $realName
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/deb/${realName}.deb" "$dirname/"
           elif [ "${{ matrix.os }}" = "windows-latest" ]; then
             suffix="x64-setup"
             realName="${filename}${suffix}"
-            echo $(realName)
+            echo $realName
             mv "src-tauri/target/${{ matrix.target }}/release/bundle/nsis/${realName}.exe" "$dirname/"
           fi
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
