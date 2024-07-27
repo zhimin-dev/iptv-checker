@@ -20,10 +20,10 @@ jobs:
           - aarch64-unknown-linux-gnu
           - x86_64-unknown-linux-gnu
         include:
-          - platform: 'macos-latest' # for Arm based macs (M1 and above).
+          - os: 'macos-latest' # for Arm based macs (M1 and above).
             args: '--target aarch64-apple-darwin'
             target: 'aarch64-apple-darwin'
-          - platform: 'macos-latest' # for Intel based macs.
+          - os: 'macos-latest' # for Intel based macs.
             args: '--target x86_64-apple-darwin'
             target: 'x86_64-apple-darwin'
           - os: 'windows-latest'
