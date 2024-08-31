@@ -3,7 +3,7 @@ FROM debian:buster-slim as frontend-builder
 # 设置工作目录
 WORKDIR /usr/src/app
 # 复制前端代码
-COPY iptv-checker-web/dist ./frontend
+COPY iptv-checker-ui-interface/dist ./frontend
 
 # 后端构建阶段
 FROM rust:latest as backend-builder

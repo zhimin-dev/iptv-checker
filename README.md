@@ -1,36 +1,16 @@
-<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker-web/blob/main/src/assets/icon.png" height=80>
+<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80>
 
 [中文版本](https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md)
 
-# iptv-checker
+## iptv-checker
 
-This project is split into 2 projects
+IPTV checker tool for Docker && Desktop && CMD, check your playlist is available
 
-- Frontend [iptv-checker-web:v4.0.1](https://github.com/zhimin-dev/iptv-checker-web), providing the backend page for iptv-checker
-- Backend [iptv-checker-rs:v4.0.1](https://github.com/zhimin-dev/iptv-checker-rs), providing cmd commands and web API for IPTV
+- For container versions, go to the [docker hub](https://hub.docker.com/r/zmisgod/iptvchecker) page to find the relevant commands
 
-## Docker Local Packaging
+- In command-line mode, go to [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases) and look for the download file with a version number that starts with `v`(default version)
 
-First, clone the following 3 projects to your local machine (for example, place them in a node folder). Below is an example of the folder structure.
-
-- node
-  - iptv-checker
-  - iptv-checker-web
-  - iptv-checker-rs
-
-```bash
-# Enter the node folder
-cd node
-
-# Execute build
-docker build -f iptv-checker/dockerfile -t ipserver .
-
-# Run
-docker run -d -p 8081:8089 --name myIp ipserver  
-
-# Alternatively, specify the port (this time specifying the port as 10001, you need to change the two 10001 places below), output file mapping to local directory
-docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
-```
+- For the desktop version, please go to [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases) and look for the download file with a version number that starts with `d`(means desktop)
 
 ### Docker Official Package Usage
 
@@ -40,18 +20,14 @@ Run the docker version of iptv-checker with the following commands
 
 ```bash
 docker pull zmisgod/iptvchecker
+
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
+
+# Alternatively, specify the port (this time specifying the port as 10001, you need to change the two 10001 places below), output file mapping to local directory
+docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
 Then open your browser and visit `http://127.0.0.1:8081/`.
-
-### Docker Local Multi-Platform Package Method
-
-```bash
-docker buildx create --name mybuilder
-docker buildx inspect --bootstrap
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push -f iptv-checker/dockerfile . 
-```
 
 ### Docker-Compose Deployment
 
@@ -61,6 +37,8 @@ docker-compose up -d
 
 ## Changelog
 
+- v4.0.2
+  - fixed the issue that it could not be played on the Windows platform
 - v4.0.1
   - Bug Fixes
     - Issue with the source input box not recognizing data

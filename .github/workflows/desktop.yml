@@ -48,11 +48,11 @@ jobs:
         with:
           node-version: 18
       
-      - name: Checkout iptv-checker-web
+      - name: Checkout iptv-checker-ui-interface
         uses: actions/checkout@v4
         with:
-          repository: zhimin-dev/iptv-checker-web
-          path: iptv-checker-web
+          repository: zhimin-dev/iptv-checker-ui-interface
+          path: iptv-checker-ui-interface
 
       - name: install Rust stable
         uses: actions-rs/toolchain@v1
@@ -70,7 +70,7 @@ jobs:
           sudo apt-get install -y webkit2gtk-4.0
 
       - name: install app dependencies and build it
-        working-directory: ./iptv-checker-web
+        working-directory: ./iptv-checker-ui-interface
         run: yarn && yarn build
 
       - uses: tauri-apps/tauri-action@v0
@@ -81,7 +81,7 @@ jobs:
 
       - name: Build archive
         shell: bash
-        working-directory: ./iptv-checker-web
+        working-directory: ./iptv-checker-ui-interface
         run: |
           binaryName="iptv-checker-desktop"
           gitTagName="${{github.ref_name}}"
@@ -134,4 +134,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            ./iptv-checker-web/${{ env.ASSET }}
+            ./iptv-checker-ui-interface/${{ env.ASSET }}

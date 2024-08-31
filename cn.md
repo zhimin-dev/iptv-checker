@@ -1,36 +1,16 @@
-<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker-web/blob/main/src/assets/icon.png" height=80>
+<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80>
 
 [English Version](https://github.com/zhimin-dev/iptv-checker/blob/main/README.md)
 
-# iptv-checker
+## iptv-checker
 
-本项目拆成2个项目
+适用于Docker & Desktop & & CMD的IPTV检查工具，请检查您的播放列表是否可用
 
-- 前端[iptv-checker-web:v4.0.1](https://github.com/zhimin-dev/iptv-checker-web),提供iptv-checker后台页面
-- 后端[iptv-checker-rs:v4.0.1](https://github.com/zhimin-dev/iptv-checker-rs),提供iptv的cmd命令以及web api
+- 对于容器版本，请前往 [docker hub](https://hub.docker.com/r/zmisgod/iptvchecker) 页面查找相关命令
 
-## docker本地打包
+- 在命令行模式下，转到 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 并查找版本号以 'v' 开头的下载文件
 
-先将下面3个项目clone到本地(比如放在node文件夹下)，下面为文件夹目录示例
-
-- node
-  - iptv-checker
-  - iptv-checker-web
-  - iptv-checker-rs
-
-```bash
-# 进入node文件夹
-cd node
-
-# 执行build
-docker build -f iptv-checker/dockerfile -t ipserver .
-
-# 运行
-docker run -d -p 8081:8089 --name myIp ipserver  
-
-# 或者指定端口（本次指定端口为 10001，下面2个10001的地方都需要改动）、输出文件映射本地目录
-docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
-```
+- 对于桌面版本，请前往 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 并查找版本号以 'd' 开头的下载文件
 
 ### Docker官方包使用方法
 
@@ -39,19 +19,17 @@ docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/o
 按照下面的命令运行docker版本的iptv-checker
 
 ```bash
+# 拉取镜像
 docker pull zmisgod/iptvchecker
+
+# 运行镜像
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
+
+# 或者指定端口（本次指定端口为 10001，下面2个10001的地方都需要改动）、输出文件映射本地目录
+docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
 再打开浏览器访问`http://127.0.0.1:8081/`即可
-
-### Docker本地打多平台包方法
-
-```bash
-docker buildx create --name mybuilder
-docker buildx inspect --bootstrap
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 -t zmisgod/iptvchecker:latest --push -f iptv-checker/dockerfile . 
-```
 
 ### Docker-Compose 部署
 
@@ -61,6 +39,8 @@ docker-compose up -d
 
 ## 更新日志
 
+- v4.0.2
+  - 修复windows平台无法播放的问题
 - v4.0.1
   - bug修复
     - 检测源输入框无法识别数据问题
