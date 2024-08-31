@@ -35,6 +35,10 @@ Then open your browser and visit `http://127.0.0.1:8081/`.
 docker-compose up -d
 ```
 
+### frequently asked questions
+
+- If the file is corrupted after the macos is installed, type `xattr -cr /Applications/iptv-checker-desktop.app` to solve the problem
+
 ## Changelog
 
 - v4.0.2

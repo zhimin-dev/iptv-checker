@@ -37,6 +37,10 @@ docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/o
 docker-compose up -d
 ```
 
+### 常见问题
+
+- 如果mac系统安装后提示文件已损坏，输入`xattr -cr /Applications/iptv-checker-desktop.app`可解决
+
 ## 更新日志
 
 - v4.0.2
