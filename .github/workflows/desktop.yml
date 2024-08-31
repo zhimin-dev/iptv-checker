@@ -53,6 +53,7 @@ jobs:
         with:
           repository: zhimin-dev/iptv-checker-ui-interface
           path: iptv-checker-ui-interface
+          token: ${{ secrets.GH_PAT }}
 
       - name: install Rust stable
         uses: actions-rs/toolchain@v1
