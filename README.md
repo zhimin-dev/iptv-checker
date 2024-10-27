@@ -41,7 +41,7 @@ docker-compose up -d
 
 ## Changelog
 
-- v4.0.2
+- v4.0.3
   - fixed the issue that it could not be played on the Windows platform
 - v4.0.1
   - Bug Fixes

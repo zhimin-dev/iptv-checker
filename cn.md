@@ -43,7 +43,7 @@ docker-compose up -d
 
 ## 更新日志
 
-- v4.0.2
+- v4.0.3
   - 修复windows平台无法播放的问题
 - v4.0.1
   - bug修复
