@@ -41,6 +41,9 @@ docker-compose up -d
 
 ## Changelog
 
+- v4.0.4
+  - upgrade tauri 1.0 to 2.0
+  - The online playback supports full screen and shows the correct position
 - v4.0.3
   - fixed the issue that it could not be played on the Windows platform
 - v4.0.1
