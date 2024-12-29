@@ -31,7 +31,6 @@ jobs:
           echo ::set-output name=tags::${TAGS}
           mkdir iptv-checker && cp dockerfile iptv-checker/dockerfile
           git clone https://github.com/zhimin-dev/iptv-checker-rs.git
-          git clone https://github.com/zhimin-dev/iptv-checker-ui-interface.git
 
       - name: Setup Docker Buildx Command
         id: buildx
