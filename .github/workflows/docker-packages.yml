@@ -31,11 +31,11 @@ jobs:
           echo ::set-output name=tags::${TAGS}
           mkdir iptv-checker && cp dockerfile iptv-checker/dockerfile
 
-      - name: Checkout iptv-checker-ui-interface
+      - name: Checkout iptv-checker-rs
         uses: actions/checkout@v4
         with:
-          repository: zhimin-dev/iptv-checker-ui-interface
-          path: ./iptv-checker-ui-interface
+          repository: zhimin-dev/iptv-checker-rs
+          path: ./iptv-checker-rs
           token: ${{ secrets.GH_PAT }}
 
       - name: Setup Docker Buildx Command
