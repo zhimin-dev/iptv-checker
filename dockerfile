@@ -1,10 +1,3 @@
-# 基础镜像（用于构建前端代码）
-FROM debian:buster-slim as frontend-builder
-# 设置工作目录
-WORKDIR /usr/src/app
-# 复制前端代码
-COPY iptv-checker-ui-interface/dist ./frontend
-
 # 后端构建阶段
 FROM rust:latest as backend-builder
 # 设置工作目录
@@ -25,7 +18,6 @@ RUN apt-get install openssl -y
 RUN apt-get install ffmpeg -y
 
 # 复制前端代码
-COPY --from=frontend-builder /usr/src/app/frontend ./web
 RUN mkdir -p ./static/input
 RUN mkdir -p ./static/output
 # 复制后端构建结果
