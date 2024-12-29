@@ -41,6 +41,12 @@ docker-compose up -d
 
 ## Changelog
 
+- v4.1.0
+  - [fix bug 77](https://github.com/zhimin-dev/iptv-checker/issues/77)
+  - [feature: custom sort](https://github.com/zhimin-dev/iptv-checker/issues/69)
+  - [feature: support txt file](https://github.com/zhimin-dev/iptv-checker/issues/74)
+  - fix dark mode ui error
+  - add fast checker page
 - v4.0.4
   - upgrade tauri 1.0 to 2.0
   - The online playback supports full screen and shows the correct position
