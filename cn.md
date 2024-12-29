@@ -43,6 +43,12 @@ docker-compose up -d
 
 ## 更新日志
 
+- v4.1.0
+  - [修复bug 77](https://github.com/zhimin-dev/iptv-checker/issues/77)
+  - [增加自定义排序](https://github.com/zhimin-dev/iptv-checker/issues/69)
+  - [支持txt文件](https://github.com/zhimin-dev/iptv-checker/issues/74)
+  - 修复黑夜模式的ui样式bug
+  - 增加快速检测的页面
 - v4.0.4
   - 升级tauri 2.0
   - 在线播放支持全屏并显示正确位置
