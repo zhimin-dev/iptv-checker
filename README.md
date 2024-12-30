@@ -1,6 +1,6 @@
 <img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80>
 
-[中文版本](cn.md)
+[中文版本](https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md)
 
 ## iptv-checker
 
