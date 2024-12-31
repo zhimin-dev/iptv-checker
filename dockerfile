@@ -22,6 +22,7 @@ RUN mkdir -p ./static/input
 RUN mkdir -p ./static/output
 # 复制后端构建结果
 COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
+COPY --from=backend-builder /usr/src/app/web ./web
 # 暴露服务端口
 ENV WEB_PORT=8089
 EXPOSE $WEB_PORT
