@@ -41,6 +41,13 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.1.2
+  - Remove some useless characters from the program name, such as '[HD]' or '123231 [SD]'
+  - Fixed the bug that the exported file was empty when the check was not checked
+  - cmd mode to search for channel mode
+  - FFMPEG check is supported to force the detection result to be more accurate
+- 4.1.1
+  - Fixed the bug that complex m3u files could not be parsed
 - v4.1.0
   - [fix bug 77](https://github.com/zhimin-dev/iptv-checker/issues/77)
   - [feature: custom sort](https://github.com/zhimin-dev/iptv-checker/issues/69)

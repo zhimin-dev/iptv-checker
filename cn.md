@@ -43,6 +43,13 @@ docker-compose up -d
 
 ## 更新日志
 
+- 4.1.2
+  - 去掉节目名称中的一些无用字符，比如`[HD]`或者`123231 [SD]`
+  - 修复不检查时导出的文件为空的bug
+  - cmd模式搜索频道模式
+  - 支持强制ffmpeg检查，检测结果更加准确
+- 4.1.1
+  - 修复无法解析复杂的m3u文件的bug
 - v4.1.0
   - [修复bug 77](https://github.com/zhimin-dev/iptv-checker/issues/77)
   - [增加自定义排序](https://github.com/zhimin-dev/iptv-checker/issues/69)
