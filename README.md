@@ -41,6 +41,8 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.1.3
+  - Resolved backend verification failure halting all jobs
 - 4.1.2
   - Remove some useless characters from the program name, such as '[HD]' or '123231 [SD]'
   - Fixed the bug that the exported file was empty when the check was not checked
