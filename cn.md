@@ -1,4 +1,6 @@
-<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80>
+<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80 align=center>
+
+[![Chat Server](https://img.shields.io/badge/chat-discord-7289da.svg)](https://discord.gg/vPTv6UUA)
 
 [English Version](https://github.com/zhimin-dev/iptv-checker/blob/main/README.md)
 
@@ -43,6 +45,18 @@ docker-compose up -d
 
 ## 更新日志
 
+- v4.1.4
+  - 新增
+    - 增加捐赠入口
+    - 后台任务支持仅保留2个相同名称
+    - 后台任务新增支持http检查时rtmp等非http源，可跳过
+  - 优化
+    - 后台新增任务UI、逻辑变化，更加符合用户操作逻辑
+    - 后台任务列表优化
+    - 后台任务删除时，增加弹框提示
+  - bug修复
+    - 修复了ffmepg检查导致后台任务无法进行的问题
+    - 优化了重命名频道名称导致检查卡住的问题
 - 4.1.3
   - 修复后台检查失败，导致所有任务无法进行
 - 4.1.2

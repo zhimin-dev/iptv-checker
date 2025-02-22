@@ -1,4 +1,6 @@
-<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80>
+<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80 align=center>
+
+[![Chat Server](https://img.shields.io/badge/chat-discord-7289da.svg)](https://discord.gg/vPTv6UUA)
 
 [中文版本](https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md)
 
@@ -41,6 +43,18 @@ docker-compose up -d
 
 ## Changelog
 
+- v4.1.4
+  - New Features
+    - Added a donation entry
+    - Background tasks now support retaining only two tasks with the same name
+    - Background tasks now support skipping non-HTTP sources (e.g., RTMP) during HTTP checks
+  - Optimizations
+    - Improved UI and logic for adding background tasks, making it more aligned with user operation habits
+    - Optimized the background task list
+    - Added a confirmation pop-up when deleting background tasks
+  - Bug Fixes
+    - Fixed an issue where FFmpeg checks caused background tasks to fail
+    - Optimized the issue of checks getting stuck due to renaming channel names
 - 4.1.3
   - Resolved backend verification failure halting all jobs
 - 4.1.2
