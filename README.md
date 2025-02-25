@@ -2,6 +2,9 @@
 
 [![Chat Server](https://img.shields.io/badge/chat-discord-7289da.svg)](https://discord.gg/vPTv6UUA)
 
+<a href="https://trendshift.io/repositories/5647" target="_blank"><img src="https://trendshift.io/api/badge/repositories/5647" alt="zhimin-dev%2Fiptv-checker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+
 [中文版本](https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md)
 
 ## iptv-checker
