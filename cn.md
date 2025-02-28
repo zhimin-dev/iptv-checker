@@ -1,10 +1,21 @@
-<img alt="iptv-checker" src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" height=80 align=center>
+<div align='center'>
+<img src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" width="150" height="150" alt="logo" />
+
+iptv-checker
+
+<sup>iptv-checker, 检查你的播放列表是否可用</sup>
 
 [![Chat Server](https://img.shields.io/badge/chat-discord-7289da.svg)](https://discord.gg/vPTv6UUA)
 
-[English Version](https://github.com/zhimin-dev/iptv-checker/blob/main/README.md)
+中文</a> / <a href="https://github.com/zhimin-dev/iptv-checker/blob/main/cn.md">English</a>
 
-## iptv-checker
+<a href="https://trendshift.io/repositories/5647" target="_blank"><img src="https://trendshift.io/api/badge/repositories/5647" alt="zhimin-dev%2Fiptv-checker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+<img src="https://github.com/zhimin-dev/iptv-checker/blob/main/web-snapshot.png" />
+
+</div>
+
+## 介绍
 
 适用于Docker & Desktop & & CMD的IPTV检查工具，请检查您的播放列表是否可用
 
