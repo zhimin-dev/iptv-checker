@@ -20,6 +20,7 @@ RUN apt-get install ffmpeg -y
 # 复制前端代码
 RUN mkdir -p ./static/input
 RUN mkdir -p ./static/output
+RUN mkdir -p ./static/logs
 # 复制后端构建结果
 COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
 COPY --from=backend-builder /usr/src/app/web ./web
