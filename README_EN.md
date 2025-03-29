@@ -58,6 +58,10 @@ docker-compose up -d
 
 ## Changelog
 
+- v4.1.5
+  - Fixed the issue that the icon of the webpage could not be displayed properly
+  - Fixed some missing English translations
+  - Try to resolve the ffmpeg detection stuttering issue
 - v4.1.4
   - New Features
     - Added a donation entry
