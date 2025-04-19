@@ -58,6 +58,9 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.1.6
+  - Fixed the issue where ffmpeg checks stuttering
+  - Fix an issue where the web page is displayed after refresh
 - v4.1.5
   - Fixed the issue that the icon of the webpage could not be displayed properly
   - Fixed some missing English translations
