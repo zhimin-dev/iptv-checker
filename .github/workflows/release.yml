@@ -87,7 +87,8 @@ jobs:
           fi
           mv web $dirname
           mkdir -p $dirname/static/input
-          mkdir -p $dirname/static/out
+          mkdir -p $dirname/static/output
+          mkdir -p $dirname/static/logs
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             7z a "$dirname.zip" "$dirname"
             echo "ASSET=$dirname.zip" >> $GITHUB_ENV
