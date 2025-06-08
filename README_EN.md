@@ -15,7 +15,7 @@ iptv-checker
 
 <a href="https://trendshift.io/repositories/5647" target="_blank"><img src="https://trendshift.io/api/badge/repositories/5647" alt="zhimin-dev%2Fiptv-checker | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
-<img src="https://github.com/zhimin-dev/iptv-checker/blob/main/web-snapshot.png" />
+<img src="https://github.com/zhimin-dev/iptv-checker/blob/main/web-snapshot-en.png" />
 
 </div>
 
