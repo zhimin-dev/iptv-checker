@@ -27,7 +27,7 @@ IPTV checker tool for Docker && Desktop && CMD, check your playlist is available
 
 - In command-line mode, go to [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases) and look for the download file with a version number that starts with `v`(default version)
 
-- For the desktop version, please go to [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases) and look for the download file with a version number that starts with `d`(means desktop)
+- For the desktop version, you can find download files from this page -> [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases)
 
 ### Docker Official Package Usage
 
@@ -52,12 +52,11 @@ Then open your browser and visit `http://127.0.0.1:8081/`.
 docker-compose up -d
 ```
 
-### frequently asked questions
-
-- If the file is corrupted after the macos is installed, type `xattr -cr /Applications/iptv-checker-desktop.app` to solve the problem
-
 ## Changelog
 
+- 4.1.7
+  - Fix the bug that may cause background processes to malfunction
+  - Reuse of local detection UI and backend detection UI
 - 4.1.6
   - Fixed the issue where ffmpeg checks stuttering
   - Fix an issue where the web page is displayed after refresh

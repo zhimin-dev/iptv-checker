@@ -23,7 +23,7 @@ iptv-checker
 
 - 在命令行模式下，转到 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 并查找版本号以 'v' 开头的下载文件
 
-- 对于桌面版本，请前往 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 并查找版本号以 'd' 开头的下载文件
+- 对于桌面版本，请前往 [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases) 下载
 
 ### Docker官方包使用方法
 
@@ -49,10 +49,6 @@ docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/o
 ```bash
 docker-compose up -d
 ```
-
-### 常见问题
-
-- 如果mac系统安装后提示文件已损坏，输入`xattr -cr /Applications/iptv-checker-desktop.app`可解决
 
 ## 更新日志
 
