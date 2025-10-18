@@ -1,7 +1,3 @@
-<div align="center">
-  
-</div>
-
 <div align='center'>
 <img src="https://github.com/zhimin-dev/iptv-checker/blob/main/icon.png" width="150" height="150" alt="logo" />
 
