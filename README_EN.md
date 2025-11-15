@@ -21,9 +21,9 @@ IPTV checker tool for Docker && Desktop && CMD, check your playlist is available
 
 - For container versions, go to the [docker hub](https://hub.docker.com/r/zmisgod/iptvchecker) page to find the relevant commands
 
-- In command-line mode, go to [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases) and look for the download file with a version number that starts with `v`(default version)
+- In command-line mode, you can find download files from this page [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases)
 
-- For the desktop version, you can find download files from this page -> [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases)
+- For the desktop version, you can find download files from this page [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases)
 
 ### Docker Official Package Usage
 

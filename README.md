@@ -21,7 +21,7 @@ iptv-checker
 
 - 对于容器版本，请前往 [docker hub](https://hub.docker.com/r/zmisgod/iptvchecker) 页面查找相关命令
 
-- 在命令行模式下，转到 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 并查找版本号以 'v' 开头的下载文件
+- 在命令行模式下，请前往 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 下载
 
 - 对于桌面版本，请前往 [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases) 下载
 
