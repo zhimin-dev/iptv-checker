@@ -1,5 +1,5 @@
 # 后端构建阶段
-FROM rust:latest as backend-builder
+FROM rust:latest AS backend-builder
 # 设置工作目录
 WORKDIR /usr/src/app
 # 复制整个后端项目到容器中
