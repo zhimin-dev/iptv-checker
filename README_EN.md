@@ -50,7 +50,7 @@ docker-compose up -d
 
 ## Changelog
 
-- 4.1.8.1
+- 4.1.9
   - Fixed some missing translations
   - Fixed the issue where the last updated time was not refreshed after task completion
   - Added 'Character Replacement Configuration' feature
