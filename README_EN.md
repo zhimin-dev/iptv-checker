@@ -50,6 +50,10 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.1.8.1
+  - Fixed some missing translations
+  - Fixed the issue where the last updated time was not refreshed after task completion
+  - Added 'Character Replacement Configuration' feature
 - 4.1.7
   - Fix the bug that may cause background processes to malfunction
   - Reuse of local detection UI and backend detection UI
