@@ -24,8 +24,6 @@ RUN mkdir -p ./static/logs
 # 复制后端构建结果
 COPY --from=backend-builder /usr/src/app/target/release/iptv-checker-rs ./iptv-checker-rs
 COPY --from=backend-builder /usr/src/app/web ./web
-COPY --from=backend-builder /usr/src/app/translate.txt ./translate.txt
-COPY --from=backend-builder /usr/src/app/replace.json ./replace.json
 # 暴露服务端口
 ENV WEB_PORT=8089
 EXPOSE $WEB_PORT
