@@ -50,6 +50,13 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.2.0
+  - new feature
+    - add Favourite Channels
+    - add spider setting
+    - Move the special character replacement to the settings menu
+  - bug fix
+    - Fix the bug where converting Traditional Chinese to Simplified Chinese doesn't work
 - 4.1.9
   - Fixed some missing translations
   - Fixed the issue where the last updated time was not refreshed after task completion
