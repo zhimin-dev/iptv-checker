@@ -50,6 +50,9 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.3.0
+  - Add new TV logo upload configuration
+  - Fix errors in crawling channels that cause service exceptions
 - 4.2.0
   - new feature
     - add Favourite Channels
