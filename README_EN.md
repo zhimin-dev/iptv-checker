@@ -48,6 +48,10 @@ Then open your browser and visit `http://127.0.0.1:8081/`.
 docker-compose up -d
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zhimin-dev/iptv-checker&type=date&legend=bottom-right)](https://www.star-history.com/#zhimin-dev/iptv-checker&type=date&legend=bottom-right)
+
 ## Changelog
 
 - 4.3.0
