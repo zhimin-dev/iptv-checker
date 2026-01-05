@@ -50,6 +50,10 @@ docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/o
 docker-compose up -d
 ```
 
+## star 历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=zhimin-dev/iptv-checker&type=date&legend=bottom-right)](https://www.star-history.com/#zhimin-dev/iptv-checker&type=date&legend=bottom-right)
+
 ## 更新日志
 
 - 4.3.0
