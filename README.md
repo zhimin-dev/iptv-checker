@@ -17,13 +17,11 @@ iptv-checker
 
 ## 介绍
 
-适用于Docker & Desktop & & CMD的IPTV检查工具，请检查您的播放列表是否可用
+适用于Docker & CMD的IPTV检查工具，请检查您的播放列表是否可用
 
 - 对于容器版本，请前往 [docker hub](https://hub.docker.com/r/zmisgod/iptvchecker) 页面查找相关命令
 
 - 在命令行模式下，请前往 [GitHub 的发布页面](https://github.com/zhimin-dev/iptv-checker/releases) 下载
-
-- 对于桌面版本，请前往 [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases) 下载
 
 ### Docker官方包使用方法
 
@@ -37,9 +35,6 @@ docker pull zmisgod/iptvchecker
 
 # 运行镜像
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
-
-# 或者指定端口（本次指定端口为 10001，下面2个10001的地方都需要改动）、输出文件映射本地目录
-docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
 再打开浏览器访问`http://127.0.0.1:8081/`即可
