@@ -54,6 +54,8 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.5.0
+  - support EPG configuration
 - 4.4.0
   - Supports configuration backup and restore
   - Supports separate export of IPv4 and IPv6 results
