@@ -23,8 +23,6 @@ IPTV checker tool for Docker && Desktop && CMD, check your playlist is available
 
 - In command-line mode, you can find download files from this page [GitHub's release page](https://github.com/zhimin-dev/iptv-checker/releases)
 
-- For the desktop version, you can find download files from this page [iptv-checker-descktop](https://github.com/zhimin-dev/iptv-checker-desktop/releases)
-
 ### Docker Official Package Usage
 
 [DockerHub](https://hub.docker.com/r/zmisgod/iptvchecker)
@@ -35,9 +33,6 @@ Run the docker version of iptv-checker with the following commands
 docker pull zmisgod/iptvchecker
 
 docker run -d -p 8081:8089 --name myIp zmisgod/iptvchecker
-
-# Alternatively, specify the port (this time specifying the port as 10001, you need to change the two 10001 places below), output file mapping to local directory
-docker run -d -p 8081:10001 -e WEB_PORT=10001 -v ~/icStatic/output:/app/static/output  --name myIp ipserver
 ```
 
 Then open your browser and visit `http://127.0.0.1:8081/`.
