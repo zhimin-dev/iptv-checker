@@ -49,6 +49,9 @@ docker-compose up -d
 
 ## Changelog
 
+- 4.5.1
+  - Try to fix issues that are not being checked
+  - Support triggering checks via CLI
 - 4.5.0
   - support EPG configuration
 - 4.4.0
